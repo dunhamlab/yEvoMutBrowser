@@ -38,6 +38,15 @@ ui <- pageWithSidebar(
 
 server <- function(input, output) {
   #Put the actual logic for vcf logic and visualizations here
+  data <- eventReactive(input$action, {
+    con <- dbConnect(SQLite(), dbname="GenomicsDatabase.db")
+    dbWriteTable(con, "Genome",savemode = "u", data.frame(value1 = input$file1, value2 = input$file2, 
+                                         value3 = input$file3, 
+                                         stringsAsFactors = FALSE), append = TRUE)
+    data <- dbReadTable(con, "Genome")
+    dbDisconnect(con)
+    return(data)
+  })
 }
 
 shinyApp(ui, server)
