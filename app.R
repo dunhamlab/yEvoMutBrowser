@@ -30,6 +30,7 @@ ui <- pageWithSidebar(
   # Main panel for displaying outputs ----
   mainPanel(
     
+    
     #Output goes here
   )
 )
