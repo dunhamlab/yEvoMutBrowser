@@ -3,71 +3,60 @@ library(DBI)
 library(RSQLite)
 library(ggplot2)
 library(dplyr)
+library(PLColors)
 
-# Connect to SQLite database
-con <- dbConnect(RSQLite::SQLite(), "GenomicsDatabase.db")
-
-dbListTables(con)
-
-# Disconnect from database
-
-dbDisconnect(con)
-#Boilerplate code
-ui <- pageWithSidebar(
+## Only run examples in interactive R sessions
+if (interactive()) {
   
-  # App title ----
-  headerPanel("Please insert your files into the form below"),
-  
-  # Sidebar panel for inputs ----
-  sidebarPanel(
-    fileInput("file1", "Upload VCF", accept = ".gz"),
-    dateInput("date1", "Current Date"),
-    textInput("value1", "Party of Interest"),
-    actionButton("action", label = "Write to DB"),
-    hr()
-    #Input goes here
-  ),
-  
- 
-  
-  # Main panel for displaying outputs ----
-  mainPanel(
-    plotOutput("plot")
-    
-    #Output goes here
-  )
-)
-
-#Preprocess data here
-#Simplified connection
-server <- function(input, output) {
-  #Put the actual logic for vcf logic and visualizations here
-  data <- eventReactive(input$action, {
-    con <- dbConnect(SQLite(), dbname="GenomicsDatabase.db")
-    dbWriteTable(con, "VCF",savemode = "u", data.frame(value1 = input$file1, 
-                                                          value2 = input$date1, 
-                                         value3 = input$value1, 
-                                         stringsAsFactors = FALSE), append = TRUE)
-    data <- dbReadTable(con, "VCF")
-    dbDisconnect(con)
-    return(data)
-  })
-  table <- read.table("MasterVCF.txt", header=TRUE)
-  output$plot <- renderPlot({
-    blank_theme <- theme_minimal()+
-      theme(
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        panel.border = element_blank(),
-        panel.grid=element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        plot.title=element_text(size=14, face="bold")
+  ui <- fluidPage(
+    sidebarLayout(
+      sidebarPanel(
+        fileInput("file1", "Choose VCF File", accept = ".csv"),
+        checkboxInput("header", "Header", TRUE)
+      ),
+      mainPanel(
+        tableOutput("contents"),
+        plotOutput("plot", click = "plot_click"),
+        verbatimTextOutput("info")
       )
-    table %>% count(CHROM) %>% mutate(percent=n/sum(n)*100) %>% ggplot(aes(x="",y=percent,fill=CHROM)) + geom_bar(stat="identity", width=1) +
-      coord_polar("y", start=0) + blank_theme + ggtitle("Percentage of Variants by Chromosome")
-  })
+    )
+  )
   
+  server <- function(input, output) {
+    output$contents <- renderTable({
+      file <- input$file1
+      ext <- tools::file_ext(file$datapath)
+      
+      req(file)
+      validate(need(ext == "txt", "Please upload a VCF file"))
+      
+      table <- read.table(file$datapath, header = input$header)
+      head(table)
+    })
+    output$plot <- renderPlot({
+      blank_theme <- theme_minimal()+
+        theme(
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          panel.border = element_blank(),
+          panel.grid=element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title=element_text(size=14, face="bold")
+        )
+      table %>% count(ANNOTATION) %>% mutate(percent=n/sum(n)*100) %>% ggplot(aes(x="",y=percent,fill=ANNOTATION)) + geom_bar(stat="identity", width=1) +
+        coord_polar("y", start=0) + blank_theme + ggtitle("Percentage of Variants by Type") + geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") +blank_theme + scale_fill_manual(values=pl_palette("lorax",5))
+    })
+    
+    output$info <- renderPrint({
+      req(input$plot_click)
+      x <- round(input$plot_click$x, 2)
+      y <- round(input$plot_click$y, 2)
+      cat("[", x, ", ", y, "]", sep = "")
+    })
+  }
+  
+  shinyApp(ui, server)
 }
 
 shinyApp(ui, server)
