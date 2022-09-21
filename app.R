@@ -7,10 +7,13 @@ library(tidyr)
 library(PLColors)
 library(forcats)
 
+table <- read.table("final_MASTERVCF.txt", header=TRUE)
 ## Only run examples in interactive R sessions
 if (interactive()) {
 
-  ui <- fluidPage(
+  ui <- navbarPage("yEvo",
+                   tabPanel("Mutation chromosome distribution",
+    #fluidPage(
     sidebarLayout(
       sidebarPanel(
         fileInput("file1", "Choose VCF File", accept = ".txt"),
@@ -40,7 +43,8 @@ if (interactive()) {
                                 "RBcaff_6purple1_S29",
                                 "RBcaff_6yellow1_S26")),
         actionButton("ChromosomeMap", "Chromosome Map"),
-        actionButton("PieChart", "Pie Chart")
+        actionButton("PieChart", "Pie Chart"),
+        actionButton("SNP", "SNP counts")
         
       ),
       
@@ -48,12 +52,15 @@ if (interactive()) {
         tableOutput("contents"),
         verbatimTextOutput("info"),
         plotOutput("plot1", click = "plot_click"),
-        plotOutput("plot", click = "plot_click")
+        plotOutput("plot", click = "plot_click"),
+        plotOutput("plot2", click = "plot_click"),
 
       )
     )
-  )
-  
+  ),
+  tabPanel("Page2"),
+  tabPanel("Page3")
+                   )
   server <- function(input, output) {
     output$contents <- renderTable({
       file <- input$file1
@@ -75,12 +82,17 @@ if (interactive()) {
       cat("Showing")
     })
     
+    observeEvent(input$SNP,{
+      cat("Showing")
+    })
+    
     df <- eventReactive(input$ChromosomeMap,{
       table %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
         geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = table$Length, yend = 0, size=4.1,lineend = "round") +
+        geom_segment(x = table$cent1, y = 0, xend = table$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
         scale_color_manual(values=pl_palette("lorax",17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=table
                    %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
@@ -113,6 +125,20 @@ if (interactive()) {
         coord_polar("y", start=0) + blank_theme + ggtitle("Percentage of Variants by Type") + geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") +blank_theme + scale_fill_manual(values=pl_palette("lorax",5))
     })
     
+    df2 <- eventReactive(input$SNP,{
+      
+      table %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
+        select(transition,SAMPLE) %>% 
+        filter(SAMPLE==input$SAMPLE[1]) %>%
+        mutate(length = nchar(transition)) %>% 
+        filter(length == 3) %>%  
+        ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
+        geom_bar() + theme_bw() + 
+        scale_fill_manual(values=pl_palette("lorax",12)) + 
+        theme(legend.position = "none",strip.text.y.left = element_text(angle = 0),plot.title = element_text(hjust = 0.5)) + 
+        ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
+      })
+    
 
     
     output$plot1 <- renderPlot({
@@ -120,7 +146,9 @@ if (interactive()) {
       })
     output$plot <- renderPlot({
       df1()
-
+    })
+    output$plot2 <- renderPlot({
+      df2()
     })
   }
   
