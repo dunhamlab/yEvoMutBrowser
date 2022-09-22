@@ -70,18 +70,17 @@ addResourcePath(prefix = 'img', directoryPath = 'img')
                                                   onclick ="window.open('https://www.yeastgenome.org/locus/S000000052', '_blank')")
           )
         )
-        #actionButton("do", "SGDID")
         
       ),
       
       mainPanel(
 
         tabsetPanel(type = "tabs",
-                    tabPanel("Table", tableOutput("contents")),
                     tabPanel("Chromosome Map", plotOutput("plot1", brush =brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
                     tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click")),
                     tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
-                    tabPanel("Gene View", value="Geneview",plotOutput("plot3", click = "plot_click"))#,
+                    tabPanel("Gene View", value="Geneview",plotOutput("plot3", click = "plot_click")),
+                    tabPanel("Table", tableOutput("contents"))
 
         ),
 
