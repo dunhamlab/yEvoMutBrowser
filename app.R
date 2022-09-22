@@ -282,13 +282,15 @@ if (interactive()) {
       table %>% 
         filter(SAMPLE==input$SAMPLE[1]) %>%
         filter(GENE==input$GENE[1]) %>%
+        mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
+        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-20,as.numeric(AA_POS))) %>%
         ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
         #facet_grid(rows=vars(GENE))+
         geom_hline(yintercept=0, linetype=2,alpha=.2)+
         #geom_segment(aes(x=-10,xend=PROTEIN_LENGTH+10,y=0,yend=0), size=20, color = "pink") + 
         geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
         geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
-        geom_point(aes(x=as.numeric(AA_POS)),y=1, size=2)+
+        geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
         ylim(c(-2,2))+ 
         geom_label_repel(aes(label = PROTEIN),
                          box.padding   = 1, 
