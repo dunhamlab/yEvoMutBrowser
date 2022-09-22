@@ -9,6 +9,7 @@ library(PLColors)
 library(forcats)
 
 table <- read.table("final_MASTERVCF.txt", header=TRUE)
+#table <- final
 addResourcePath(prefix = 'img', directoryPath = '~/GSHackathon/img')
 #addResourcePath("~/GSHackathon", "GSHackathon")
 ## Only run examples in interactive R sessions
@@ -59,6 +60,9 @@ if (interactive()) {
                                 "RBcaff_6purple1_S29",
                                 "RBcaff_6yellow1_S26")),
         br(),
+        
+        selectInput("GENE", "Gene",
+                    choices = c(''))
        # actionButton("ChromosomeMap", "Chromosome Map"),
        # br(),
       #  actionButton("PieChart", "Pie Chart"),
@@ -75,7 +79,9 @@ if (interactive()) {
                     tabPanel("Table", tableOutput("contents")),
                     tabPanel("Chromosome Map", plotOutput("plot1", click = "plot_click")),
                     tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click")),
-                    tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click"))
+                    tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
+                    tabPanel("Gene View", value="Geneview",plotOutput("plot3", click = "plot_click"))#,
+                  #  id ="tabselected"
         ),
         #plotOutput("plot1", click = "plot_click"),
         #plotOutput("plot", click = "plot_click"),
@@ -88,7 +94,24 @@ if (interactive()) {
            uiOutput("pdf_viewer") ),
   tabPanel("Page3")
                    )
-  server <- function(input, output) {
+  server <- function(input, output,session) {
+    
+    observe({
+      updateSelectInput(session, "GENE", choices = as.character(final[final$SAMPLE==input$SAMPLE, "GENE"]))
+    })
+    
+    #observeEvent(input$SAMPLE,{
+    #choices <- reactiveValues(
+    #  Geneview = final %>% 
+        #filter(SAMPLE==input$SAMPLE[1]) %>% 
+    #    count(GENE) %>% 
+    #    pull(GENE)
+    #)
+   # })
+    
+    #observeEvent(input$tabselected, {
+    #  updateSelectInput(session, 'GENE', choices = choices[[input$tabselected]])
+    #})
     
     output$pdf_viewer <- renderUI({ tags$iframe(
       style="height:1000px;width:100%;scrolling=yes",
@@ -120,7 +143,7 @@ if (interactive()) {
     
     
     df <- eventReactive(input$ChromosomeMap,{
-      table %>% 
+      final %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
@@ -251,6 +274,33 @@ if (interactive()) {
               plot.title = element_text(hjust = 0.5),
               axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1)) + 
         ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
+    })
+    
+    output$plot3 <- renderPlot({
+      #df2()
+      
+      table %>% 
+        filter(SAMPLE==input$SAMPLE[1]) %>%
+        filter(GENE==input$GENE[1]) %>%
+        ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
+        #facet_grid(rows=vars(GENE))+
+        geom_hline(yintercept=0, linetype=2,alpha=.2)+
+        #geom_segment(aes(x=-10,xend=PROTEIN_LENGTH+10,y=0,yend=0), size=20, color = "pink") + 
+        geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
+        geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
+        geom_point(aes(x=as.numeric(AA_POS)),y=1, size=2)+
+        ylim(c(-2,2))+ 
+        geom_label_repel(aes(label = PROTEIN),
+                         box.padding   = 1, 
+                         point.padding = 1,
+                         segment.color = 'grey50') +
+        ggtitle(as.character(input$GENE[1]))+
+        theme_classic() +
+        theme(axis.title.y=element_blank(),
+              axis.ticks.y=element_blank(),
+              plot.title = element_text(hjust = 0.5),
+              axis.text.y = element_blank()) + 
+        xlab("Amino acid position")
     })
   }
   
