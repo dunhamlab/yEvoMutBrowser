@@ -1,3 +1,4 @@
+library(devtools)
 library(shiny)
 library(shinythemes)
 library(DBI)
@@ -7,12 +8,13 @@ library(dplyr)
 library(tidyr)
 library(PLColors)
 library(forcats)
+library(ggrepel)
 
 final <- read.table("final_MASTERVCF.txt", header=TRUE)
 
 addResourcePath(prefix = 'img', directoryPath = 'img')
 
-if (interactive()) {
+#if (interactive()) {
 
   ui <-  navbarPage(
                     title = div(img(src="img/yEvo_logo.png",
@@ -25,8 +27,6 @@ if (interactive()) {
                     #theme = "journal",
                     windowTitle="yEvo",
                     theme = shinytheme("cerulean"),
-                    
-                    
                     
                    tabPanel("Data Visualizations",
 
@@ -61,7 +61,17 @@ if (interactive()) {
         br(),
         
         selectInput("GENE", "Gene",
-                    choices = c(''))
+                    choices = c('')),
+        
+        
+        fluidRow(
+          shinydashboard::box( shiny::actionButton(inputId='ab1', label="Learn More", 
+                                                  icon = icon("th"), 
+                                                  onclick ="window.open('https://www.yeastgenome.org/locus/S000000052', '_blank')")
+          )
+        )
+        #actionButton("do", "SGDID")
+        
       ),
       
       mainPanel(
@@ -94,6 +104,12 @@ if (interactive()) {
     observe({
       updateSelectInput(session, "GENE", choices = as.character(final[final$SAMPLE==input$SAMPLE, "GENE"]))
     })
+    
+    #observe({
+    #  updateSelectInput(session, "SGDID", SGID = as.character(final[final$GENE==input$GENE, "SGDID"]))
+    #})
+    
+    
     
 
     
@@ -220,4 +236,4 @@ if (interactive()) {
   }
   
   shinyApp(ui, server)
-}
+#}
