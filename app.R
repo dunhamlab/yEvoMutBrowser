@@ -63,12 +63,6 @@ if (interactive()) {
         
         selectInput("GENE", "Gene",
                     choices = c(''))
-       # actionButton("ChromosomeMap", "Chromosome Map"),
-       # br(),
-      #  actionButton("PieChart", "Pie Chart"),
-      #  br(),
-      #  actionButton("SNP", "SNP counts")
-        
       ),
       
       mainPanel(
@@ -77,7 +71,7 @@ if (interactive()) {
         # Output: Tabset w/ plot, summary, and table ----
         tabsetPanel(type = "tabs",
                     tabPanel("Table", tableOutput("contents")),
-                    tabPanel("Chromosome Map", plotOutput("plot1", click = "plot_click")),
+                    tabPanel("Chromosome Map", plotOutput("plot1", brush =brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
                     tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click")),
                     tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                     tabPanel("Gene View", value="Geneview",plotOutput("plot3", click = "plot_click"))#,
@@ -95,6 +89,14 @@ if (interactive()) {
   tabPanel("Page3")
                    )
   server <- function(input, output,session) {
+    
+    #output$info <- renderPrint({
+    #  brushedPoints(final, input$plot_brush)
+    #})
+    
+    output$info <- renderPrint({
+      nearPoints(final,input$plot_click,threshold = 10, maxpoints = 1,addDist = TRUE)
+    })
     
     observe({
       updateSelectInput(session, "GENE", choices = as.character(final[final$SAMPLE==input$SAMPLE, "GENE"]))
