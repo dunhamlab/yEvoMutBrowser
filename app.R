@@ -86,6 +86,7 @@ if (interactive()) {
       cat("Showing")
     })
     
+    
     df <- eventReactive(input$ChromosomeMap,{
       table %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
