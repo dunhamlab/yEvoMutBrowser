@@ -8,9 +8,9 @@ library(tidyr)
 library(PLColors)
 library(forcats)
 
-table <- read.table("final_MASTERVCF.txt", header=TRUE)
+final <- read.table("final_MASTERVCF.txt", header=TRUE)
 
-addResourcePath(prefix = 'img', directoryPath = '~/GSHackathon/img')
+addResourcePath(prefix = 'img', directoryPath = 'img')
 
 if (interactive()) {
 
@@ -108,9 +108,9 @@ if (interactive()) {
       req(file)
       validate(need(ext == "txt", "Please upload a VCF file"))
       
-      table <- read.table(file$datapath, header = input$header)
+      final <- read.table(file$datapath, header = input$header)
 
-      table %>% filter(SAMPLE==input$SAMPLE[1])
+      final %>% filter(SAMPLE==input$SAMPLE[1])
     })
     
 
@@ -120,14 +120,14 @@ if (interactive()) {
     
     output$plot1 <- renderPlot({
       #df()
-      table %>% 
+      final %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = table$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = table$cent1, y = 0, xend = table$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
+        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = final$Length, yend = 0, size=4.1,lineend = "round") +
+        geom_segment(x = final$cent1, y = 0, xend = final$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
         scale_color_manual(values=pl_palette("lorax",17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=table
+        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
                    %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
                      filter(SAMPLE==input$SAMPLE[1])) + 
         theme(axis.text.y=element_blank(),
@@ -154,7 +154,7 @@ if (interactive()) {
           plot.title=element_text(size=14, face="bold")
         )
       
-      table %>% filter(SAMPLE==input$SAMPLE[1]) %>% 
+      final %>% filter(SAMPLE==input$SAMPLE[1]) %>% 
         count(ANNOTATION) %>% 
         mutate(percent=n/sum(n)*100) %>% 
         ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
@@ -174,7 +174,7 @@ if (interactive()) {
         summarise(n = n()) %>% as.numeric()
       
       
-      table %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
+      final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
         select(transition,SAMPLE) %>% 
         filter(SAMPLE==input$SAMPLE[1]) %>%
         mutate(length = nchar(transition)) %>% 
@@ -192,7 +192,7 @@ if (interactive()) {
     output$plot3 <- renderPlot({
       #df2()
       
-      table %>% 
+      final %>% 
         filter(SAMPLE==input$SAMPLE[1]) %>%
         filter(GENE==input$GENE[1]) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
