@@ -14,7 +14,7 @@ addResourcePath(prefix = 'img', directoryPath = '~/GSHackathon/img')
 ## Only run examples in interactive R sessions
 if (interactive()) {
 
-  ui <-  navbarPage(#title=div(img(src="~/GSHackathon/yEvo_logo.png"), "yEvo"),
+  ui <-  navbarPage(
                     title = div(img(src="img/yEvo_logo.png",
                                     filetype = "image/png",
                                     style="margin-top: -14px;
@@ -84,10 +84,15 @@ if (interactive()) {
       )
     )
   ),
-  tabPanel("Page2"),
+  tabPanel("Background",
+           uiOutput("pdf_viewer") ),
   tabPanel("Page3")
                    )
   server <- function(input, output) {
+    
+    output$pdf_viewer <- renderUI({ tags$iframe(
+      style="height:1000px;width:100%;scrolling=yes",
+      src = "Black_box.pdf") }) 
     
     output$contents <- renderTable({
       file <- input$file1
