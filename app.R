@@ -9,10 +9,9 @@ library(PLColors)
 library(forcats)
 
 table <- read.table("final_MASTERVCF.txt", header=TRUE)
-#table <- final
+
 addResourcePath(prefix = 'img', directoryPath = '~/GSHackathon/img')
-#addResourcePath("~/GSHackathon", "GSHackathon")
-## Only run examples in interactive R sessions
+
 if (interactive()) {
 
   ui <-  navbarPage(
@@ -30,7 +29,7 @@ if (interactive()) {
                     
                     
                    tabPanel("Data Visualizations",
-    #fluidPage(
+
     sidebarLayout(
       sidebarPanel(
         fileInput("file1", "Choose VCF File", accept = ".txt"),
@@ -66,33 +65,27 @@ if (interactive()) {
       ),
       
       mainPanel(
-        #tableOutput("contents"),
-        #verbatimTextOutput("info"),
-        # Output: Tabset w/ plot, summary, and table ----
+
         tabsetPanel(type = "tabs",
                     tabPanel("Table", tableOutput("contents")),
                     tabPanel("Chromosome Map", plotOutput("plot1", brush =brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
                     tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click")),
                     tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                     tabPanel("Gene View", value="Geneview",plotOutput("plot3", click = "plot_click"))#,
-                  #  id ="tabselected"
+
         ),
-        #plotOutput("plot1", click = "plot_click"),
-        #plotOutput("plot", click = "plot_click"),
-        #plotOutput("plot2", click = "plot_click"),
+
 
       )
     )
   ),
   tabPanel("Background",
            uiOutput("pdf_viewer") ),
-  tabPanel("Page3")
+  tabPanel("Miscellaneous")
                    )
   server <- function(input, output,session) {
     
-    #output$info <- renderPrint({
-    #  brushedPoints(final, input$plot_brush)
-    #})
+
     
     output$info <- renderPrint({
       nearPoints(final,input$plot_click,threshold = 10, maxpoints = 1,addDist = TRUE)
@@ -102,18 +95,7 @@ if (interactive()) {
       updateSelectInput(session, "GENE", choices = as.character(final[final$SAMPLE==input$SAMPLE, "GENE"]))
     })
     
-    #observeEvent(input$SAMPLE,{
-    #choices <- reactiveValues(
-    #  Geneview = final %>% 
-        #filter(SAMPLE==input$SAMPLE[1]) %>% 
-    #    count(GENE) %>% 
-    #    pull(GENE)
-    #)
-   # })
-    
-    #observeEvent(input$tabselected, {
-    #  updateSelectInput(session, 'GENE', choices = choices[[input$tabselected]])
-    #})
+
     
     output$pdf_viewer <- renderUI({ tags$iframe(
       style="height:1000px;width:100%;scrolling=yes",
@@ -131,79 +113,8 @@ if (interactive()) {
       table %>% filter(SAMPLE==input$SAMPLE[1])
     })
     
-    #observeEvent(input$ChromosomeMap,{
-    #  cat("Showing")
-    #})
-    
-   # observeEvent(input$PieChart,{
-   #   cat("Showing")
-  #  })
-    
-   # observeEvent(input$SNP,{
-  #    cat("Showing")
-   # })
-    
-    
-    df <- eventReactive(input$ChromosomeMap,{
-      final %>% 
-        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
-        ggplot() +
-        facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = table$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = table$cent1, y = 0, xend = table$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-        scale_color_manual(values=pl_palette("lorax",17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=table
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                     filter(SAMPLE==input$SAMPLE[1])) + 
-        theme(axis.text.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              panel.background = element_blank()
-        ) +
-        xlim(c(0,1540000)) +
-        ggtitle("Where do variants fall on chromosomes") + 
-        xlab("Position along chromosome") + ylab("Chromosome") +
-        theme(strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              legend.position="none")
-    })
-    
-    df1 <- eventReactive(input$PieChart,{
-      blank_theme <- theme_minimal()+
-        theme(
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.border = element_blank(),
-          panel.grid=element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          plot.title=element_text(size=14, face="bold")
-        )
 
-      table %>% filter(SAMPLE==input$SAMPLE[1]) %>% 
-        count(ANNOTATION) %>% 
-        mutate(percent=n/sum(n)*100) %>% 
-        ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
-        geom_bar(stat="identity", width=1) +
-        coord_polar("y", start=0) + 
-        ggtitle("Percentage of Variants by Type") + 
-        geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
-        blank_theme + 
-        scale_fill_manual(values=pl_palette("lorax",5))
-    })
     
-    df2 <- eventReactive(input$SNP,{
-      
-      table %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,SAMPLE) %>% 
-        filter(SAMPLE==input$SAMPLE[1]) %>%
-        mutate(length = nchar(transition)) %>% 
-        filter(length == 3) %>%  
-        ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
-        geom_bar() + theme_bw() + 
-        scale_fill_manual(values=pl_palette("lorax",12)) + 
-        theme(legend.position = "none",strip.text.y.left = element_text(angle = 0),plot.title = element_text(hjust = 0.5)) + 
-        ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
-      })
     
 
     
