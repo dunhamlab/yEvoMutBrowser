@@ -76,7 +76,7 @@ link = "https://www.yeastgenome.org/locus/"
 
         tabsetPanel(type = "tabs",
                     tabPanel("Chromosome Map", plotOutput("plot1", brush =brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
-                    tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click")),
+                    tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"),verbatimTextOutput("text")),
                     tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                     tabPanel("Gene View", value="Geneview",plotOutput("plot3", click = "plot_click")),
                     tabPanel("Table", tableOutput("contents"))
@@ -232,6 +232,12 @@ link = "https://www.yeastgenome.org/locus/"
               axis.text.y = element_blank()) + 
         xlab("Amino acid position")
     })
+    
+    output$text <- renderText({ paste("Mutations Types:"," - A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
+                                 "- A synonymous mutation is a change in the DNA sequence that codes for amino acids in a protein sequence," ,"but does not change the encoded amino acid.",
+                                 "- The 5′ untranslated region (also known as 5′ UTR) is the region of a messenger RNA (mRNA) that is directly","upstream from the initiation codon. It is not usually translated.",
+                                 "- Intergenic regions are the stretches of DNA located between genes.",
+                                 "- An autonomously replicating sequence (ARS) contains the origin of replication in the yeast genome.", sep="\n")})
   }
   
   shinyApp(ui, server)
