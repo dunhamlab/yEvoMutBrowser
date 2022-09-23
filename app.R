@@ -9,12 +9,14 @@ library(tidyr)
 library(PLColors)
 library(forcats)
 library(ggrepel)
+library(purrr)
 
 final <- read.table("final_MASTERVCF.txt", header=TRUE)
 
 addResourcePath(prefix = 'img', directoryPath = 'img')
 
-#if (interactive()) {
+link = "https://www.yeastgenome.org/locus/"
+
 
   ui <-  navbarPage(
                     title = div(img(src="img/yEvo_logo.png",
@@ -63,14 +65,11 @@ addResourcePath(prefix = 'img', directoryPath = 'img')
         selectInput("GENE", "Gene",
                     choices = c('')),
         
+        selectInput("SGDID", "SGDID",
+                    choices = c('')),
         
-        fluidRow(
-          shinydashboard::box( shiny::actionButton(inputId='ab1', label="Learn More", 
-                                                  icon = icon("th"), 
-                                                  onclick ="window.open('https://www.yeastgenome.org/locus/S000000052', '_blank')")
-          )
-        )
-        
+       
+        uiOutput("url")
       ),
       
       mainPanel(
@@ -94,23 +93,24 @@ addResourcePath(prefix = 'img', directoryPath = 'img')
                    )
   server <- function(input, output,session) {
     
-
+    
     
     output$info <- renderPrint({
       nearPoints(final,input$plot_click,threshold = 10, maxpoints = 1,addDist = TRUE)
     })
     
     observe({
-      updateSelectInput(session, "GENE", choices = as.character(final[final$SAMPLE==input$SAMPLE, "GENE"]))
+      updateSelectInput(session, "GENE", choices = as.character(final[final$SAMPLE==input$SAMPLE, "GENE"]%>% discard(is.na)))
     })
     
-    #observe({
-    #  updateSelectInput(session, "SGDID", SGID = as.character(final[final$GENE==input$GENE, "SGDID"]))
-    #})
+    observe({
+      updateSelectInput(session, "SGDID", choices  = as.character(final[final$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
+    })
     
-    
-    
-
+    output$url <- renderUI({
+      url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default")
+      url
+    })
     
     output$pdf_viewer <- renderUI({ tags$iframe(
       style="height:1000px;width:100%;scrolling=yes",
@@ -235,4 +235,4 @@ addResourcePath(prefix = 'img', directoryPath = 'img')
   }
   
   shinyApp(ui, server)
-#}
+
