@@ -108,7 +108,7 @@ link = "https://www.yeastgenome.org/locus/"
     })
     
     output$url <- renderUI({
-      url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default")
+      url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
       url
     })
     
@@ -233,7 +233,7 @@ link = "https://www.yeastgenome.org/locus/"
         xlab("Amino acid position")
     })
     
-    output$text <- renderText({ paste("Mutations Types:"," - A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
+    output$text <- renderText({ paste("Mutations Types:","- A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
                                  "- A synonymous mutation is a change in the DNA sequence that codes for amino acids in a protein sequence," ,"but does not change the encoded amino acid.",
                                  "- The 5′ untranslated region (also known as 5′ UTR) is the region of a messenger RNA (mRNA) that is directly","upstream from the initiation codon. It is not usually translated.",
                                  "- Intergenic regions are the stretches of DNA located between genes.",
