@@ -89,7 +89,8 @@ link = "https://www.yeastgenome.org/locus/"
         if(is.null(e)) return("Drag over variant tick mark to see details\n")
         paste0("Variant Gene: " ,final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
               "Reference: ", final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-              "Variant: ",final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT))
+              "Variant: ",final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
+              "Position: ",final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS))
       }
       
       paste0(
