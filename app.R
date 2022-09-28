@@ -11,7 +11,8 @@ library(forcats)
 library(ggrepel)
 library(purrr)
 
-final <- read.table("final_MASTERVCF.txt", header=TRUE)
+#final <- read.table("final_MASTERVCF.txt", header=TRUE)
+final <- read.csv("final_allVCF.csv")
 
 addResourcePath(prefix = 'img', directoryPath = 'img')
 
@@ -36,30 +37,13 @@ link = "https://www.yeastgenome.org/locus/"
       sidebarPanel(
         fileInput("file1", "Choose VCF File", accept = ".txt"),
         checkboxInput("header", "Header", TRUE),
-        selectInput("SAMPLE", "Sample",
-                    choices = c("RBcaff_1blue1_S9", 
-                                "RBcaff1gray1_S12", 
-                                "RBcaff_1orange1_S10",
-                                "RBcaff_1pink2_S7",
-                                "RBcaff_1yellow1_S8",
-                                "RBcaff_3blue1_S15",
-                                "RBcaff_3gray1_S18",
-                                "RBcaff_3orange3_S16",
-                                "RBcaff_3pink3_S13",
-                                "RBcaff_3purple1_S17",
-                                "RBcaff_3yellow1_S14",
-                                "RBcaff_5blue1_S21",
-                                "RBcaff_5gray3_S24",
-                                "RBcaff_5orange2_S22",
-                                "RBcaff_5pink2_S19",
-                                "RBcaff_5purple3_S23",
-                                "RBcaff_5yellow3_S20",
-                                "RBcaff_6blue1_S27",
-                                "RBcaff_6gray3_S30",
-                                "RBcaff_6orange1_S28",
-                                "RBcaff_6pink1_S25",
-                                "RBcaff_6purple1_S29",
-                                "RBcaff_6yellow1_S26")),
+        selectInput("instructor","Instructor",
+                    choices = final %>% count(instructor) %>% pull(instructor)),
+        selectInput("year","Year",
+                    choices = c('')),
+        
+        selectInput("sample", "Sample",
+                    choices = c('')),
         br(),
         
         selectInput("GENE", "Gene",
@@ -95,12 +79,38 @@ link = "https://www.yeastgenome.org/locus/"
     
     
     
-    output$info <- renderPrint({
-      nearPoints(final,input$plot_click,threshold = 10, maxpoints = 1,addDist = TRUE)
+   # output$info <- renderPrint({
+  #    nearPoints(final,input$plot_click,threshold = 10, maxpoints = 1,addDist = TRUE)
+  #  })
+    
+    
+    output$info <- renderText({
+      xy_range_str <- function(e) {
+        if(is.null(e)) return("Drag over variant tick mark to see details\n")
+        paste0("Variant Gene: " ,final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
+              "Reference: ", final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
+              "Variant: ",final %>% filter(sample==input$sample) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT))
+      }
+      
+      paste0(
+        #"click: ", xy_str(input$plot_click),
+        #"dblclick: ", xy_str(input$plot_dblclick),
+        #"hover: ", xy_str(input$plot_hover),
+        xy_range_str(input$plot_brush)
+      )
+    })
+    
+    
+    observe({
+      updateSelectInput(session, "year", choices = as.character(final[final$instructor==input$instructor, "year"]%>% discard(is.na)))
     })
     
     observe({
-      updateSelectInput(session, "GENE", choices = as.character(final[final$SAMPLE==input$SAMPLE, "GENE"]%>% discard(is.na)))
+      updateSelectInput(session, "sample", choices = as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample) %>% discard(is.na)))
+    })
+    
+    observe({
+      updateSelectInput(session, "GENE", choices = as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na)))
     })
     
     observe({
@@ -121,20 +131,15 @@ link = "https://www.yeastgenome.org/locus/"
       ext <- tools::file_ext(file$datapath)
       
       req(file)
-      validate(need(ext == "txt", "Please upload a VCF file"))
+      validate(need(ext == "csv", "Please upload a VCF file"))
       
-      final <- read.table(file$datapath, header = input$header)
+      final <- read.csv(file$datapath, header = input$header)
 
-      final %>% filter(SAMPLE==input$SAMPLE[1])
+      final %>% filter(sample==input$sample[1])
     })
     
-
-    
-    
-
     
     output$plot1 <- renderPlot({
-      #df()
       final %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
@@ -144,7 +149,7 @@ link = "https://www.yeastgenome.org/locus/"
         scale_color_manual(values=pl_palette("lorax",17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
                    %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                     filter(SAMPLE==input$SAMPLE[1])) + 
+                     filter(sample==input$sample[1])) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
               panel.background = element_blank()
@@ -156,8 +161,8 @@ link = "https://www.yeastgenome.org/locus/"
               plot.title = element_text(hjust = 0.5),
               legend.position="none")
       })
+    
     output$plot <- renderPlot({
-      #df1()
       blank_theme <- theme_minimal()+
         theme(
           axis.title.x = element_blank(),
@@ -166,10 +171,9 @@ link = "https://www.yeastgenome.org/locus/"
           panel.grid=element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          plot.title=element_text(size=14, face="bold")
-        )
+          plot.title=element_text(size=14, face="bold"))
       
-      final %>% filter(SAMPLE==input$SAMPLE[1]) %>% 
+      final %>% filter(sample==input$sample[1]) %>% 
         count(ANNOTATION) %>% 
         mutate(percent=n/sum(n)*100) %>% 
         ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
@@ -180,27 +184,28 @@ link = "https://www.yeastgenome.org/locus/"
         blank_theme + 
         scale_fill_manual(values=pl_palette("lorax",5))
     })
+    
+    
     output$plot2 <- renderPlot({
-      #df2()
-      
-      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,SAMPLE) %>% mutate(length = nchar(transition)) %>% 
-        filter(SAMPLE==input$SAMPLE[1]) %>%
+      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample) %>% mutate(length = nchar(transition)) %>% 
+        filter(sample==input$sample[1]) %>%
         count(transition) %>% 
         summarise(n = n()) %>% as.numeric()
       
       
       final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,SAMPLE) %>% 
-        filter(SAMPLE==input$SAMPLE[1]) %>%
+        select(transition,sample) %>% 
+        filter(sample==input$sample[1]) %>%
         mutate(length = nchar(transition)) %>% 
-        filter(length == 3) %>%  
+        #filter(length >= 3) %>%  
+        mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
         ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
         geom_bar() + theme_bw() + 
         scale_fill_manual(values=pl_palette("lorax",num)) + 
         theme(legend.position = "none",
               strip.text.y.left = element_text(angle = 0),
               plot.title = element_text(hjust = 0.5),
-              axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1)) + 
+              axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
         ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
     })
     
@@ -208,7 +213,7 @@ link = "https://www.yeastgenome.org/locus/"
       #df2()
       
       final %>% 
-        filter(SAMPLE==input$SAMPLE[1]) %>%
+        filter(sample==input$sample[1]) %>%
         filter(GENE==input$GENE[1]) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-20,as.numeric(AA_POS))) %>%

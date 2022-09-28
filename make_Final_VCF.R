@@ -5,6 +5,7 @@ library(dplyr)
 library(tidyr)
 library(readr)
 
+
 table <- read.table("~/GSHackathon/MasterVCF.txt", header=TRUE)
 yeast_genome <- read.csv("~/GSHackathon/yeast_genome.csv")
 centromeres <- read.csv("~/GSHackathon/centromeres.csv")
@@ -27,4 +28,17 @@ final <- table %>%
   
 write.table(final,file = "final_MASTERVCF.txt", quote=FALSE, sep="\t", row.names = FALSE, col.names = TRUE)
 
+## making final VCF for all experiments
+allVCF <- read.csv("all_yEvo_vcf.csv")
+
+
+finalVCF <- allVCF %>% 
+  left_join(yeast_genome %>% select(-POS),by='CHROM') %>% 
+  mutate(Chromosome= gsub("chr","",CHROM)) %>% 
+  left_join(centromeres,by="CHROM") %>% left_join(gene_protein %>% select(-GENE),by='REGION') %>%
+  dplyr::mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
+  left_join(foo,by="REGION") %>%
+  filter(!is.na(instructor))
+
+write.csv(finalVCF,file = "final_allVCF.csv", row.names = FALSE)
 
