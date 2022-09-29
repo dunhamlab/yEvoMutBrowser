@@ -73,7 +73,10 @@ link = "https://www.yeastgenome.org/locus/"
                     tabPanel("Chromosome Map", plotOutput("plot1", brush =brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
                     tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"),verbatimTextOutput("text")),
                     tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
-                    tabPanel("Gene View", value="Geneview",plotOutput("plot3", click = "plot_click")),
+                    tabPanel("Gene View", value="Geneview",plotOutput("plot3", dblclick = "plot3_dblclick",
+                                                                      brush = brushOpts(
+                                                                        id = "plot3_brush",
+                                                                        resetOnNew = TRUE)),verbatimTextOutput("text1")),
                     tabPanel("Table", tableOutput("contents"))
 
         ),
@@ -207,6 +210,10 @@ link = "https://www.yeastgenome.org/locus/"
     
     output$plot <- renderPlot({
       if (input$sample != "None Selected") {
+        num <- final %>% filter(condition==input$condition) %>% 
+          filter(background==input$background) %>%
+          count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
+        
       blank_theme <- theme_minimal()+
         theme(
           axis.title.x = element_blank(),
@@ -226,8 +233,12 @@ link = "https://www.yeastgenome.org/locus/"
         ggtitle("Percentage of Variants by Type") + 
         geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
         blank_theme + 
-        scale_fill_manual(values=pl_palette("lorax",5))
+        scale_fill_manual(values=pl_palette("lorax",num))
       } else {
+         num <- final %>% filter(condition==input$condition) %>% 
+          filter(background==input$background) %>%
+          count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
+           
         blank_theme <- theme_minimal()+
           theme(
             axis.title.x = element_blank(),
@@ -248,7 +259,7 @@ link = "https://www.yeastgenome.org/locus/"
           ggtitle("Percentage of Variants by Type") + 
           geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
           blank_theme + 
-          scale_fill_manual(values=pl_palette("lorax",5))
+          scale_fill_manual(values=pl_palette("lorax",num))
       }
     })
     
@@ -301,13 +312,20 @@ link = "https://www.yeastgenome.org/locus/"
       }
     })
     
+    ranges <- reactiveValues(x = NULL, y = NULL)
+    
     output$plot3 <- renderPlot({
     if(input$sample != "None Selected") {
+      
+      xlength <- final %>% filter(condition==input$condition) %>%
+        filter(background==input$background) %>%
+        filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+      
       final %>% 
         filter(sample==input$sample[1]) %>%
         filter(GENE==input$GENE[1]) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-20,as.numeric(AA_POS))) %>%
+        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
         ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
         #facet_grid(rows=vars(GENE))+
         geom_hline(yintercept=0, linetype=2,alpha=.2)+
@@ -316,6 +334,7 @@ link = "https://www.yeastgenome.org/locus/"
         geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
         geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
         ylim(c(-2,2))+ 
+        xlim(-20,xlength)+
         geom_label_repel(aes(label = PROTEIN),
                          box.padding   = 1, 
                          point.padding = 1,
@@ -326,14 +345,20 @@ link = "https://www.yeastgenome.org/locus/"
               axis.ticks.y=element_blank(),
               plot.title = element_text(hjust = 0.5),
               axis.text.y = element_blank()) + 
-        xlab("Amino acid position")
+        xlab("Amino acid position") +
+      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
     } else {
+      
+      xlength <- final %>% filter(condition==input$condition) %>%
+        filter(background==input$background) %>%
+        filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+      
       final %>% 
         filter(condition==input$condition) %>%
         filter(background==input$background) %>%
         filter(GENE==input$GENE[1]) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-20,as.numeric(AA_POS))) %>%
+        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
         ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
         #facet_grid(rows=vars(GENE))+
         geom_hline(yintercept=0, linetype=2,alpha=.2)+
@@ -342,9 +367,10 @@ link = "https://www.yeastgenome.org/locus/"
         geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
         geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
         ylim(c(-2,2))+ 
-        geom_label_repel(aes(label = PROTEIN),
-                         box.padding   = 1, 
-                         point.padding = 1,
+        xlim(-20,xlength)+
+        geom_label_repel(aes(label = as.character(PROTEIN)),
+                        # box.padding   = 1, 
+                         #point.padding = 1,
                          segment.color = 'grey50') +
         ggtitle(as.character(input$GENE[1]))+
         theme_classic() +
@@ -352,9 +378,24 @@ link = "https://www.yeastgenome.org/locus/"
               axis.ticks.y=element_blank(),
               plot.title = element_text(hjust = 0.5),
               axis.text.y = element_blank()) + 
-        xlab("Amino acid position")
+        xlab("Amino acid position") +
+        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
     }
       
+    })
+    
+    # When a double-click happens, check if there's a brush on the plot.
+    # If so, zoom to the brush bounds; if not, reset the zoom.
+    observeEvent(input$plot3_dblclick, {
+      brush <- input$plot3_brush
+      if (!is.null(brush)) {
+        ranges$x <- c(brush$xmin, brush$xmax)
+        ranges$y <- c(brush$ymin, brush$ymax)
+        
+      } else {
+        ranges$x <- NULL
+        ranges$y <- NULL
+      }
     })
     
     output$text <- renderText({ paste("Mutations Types:","- A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
@@ -362,6 +403,8 @@ link = "https://www.yeastgenome.org/locus/"
                                  "- The 5′ untranslated region (also known as 5′ UTR) is the region of a messenger RNA (mRNA) that is directly","upstream from the initiation codon. It is not usually translated.",
                                  "- Intergenic regions are the stretches of DNA located between genes.",
                                  "- An autonomously replicating sequence (ARS) contains the origin of replication in the yeast genome.", sep="\n")})
+    
+    output$text1 <- renderText({ "The plot can be zoomed in by clicking and draggin and then double-clicking on the box.\n Reset view by double clicking again."})
   }
   
   shinyApp(ui, server)
