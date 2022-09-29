@@ -1,4 +1,5 @@
 library(devtools)
+devtools::install_github("lampoona/PLColors") 
 library(shiny)
 library(shinythemes)
 library(DBI)
@@ -10,6 +11,7 @@ library(PLColors)
 library(forcats)
 library(ggrepel)
 library(purrr)
+
 
 #final <- read.table("final_MASTERVCF.txt", header=TRUE)
 final <- read.csv("final_allVCF.csv")
@@ -317,8 +319,7 @@ link = "https://www.yeastgenome.org/locus/"
     output$plot3 <- renderPlot({
     if(input$sample != "None Selected") {
       
-      xlength <- final %>% filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
+      xlength <- final %>% filter(sample==input$sample[1]) %>%
         filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
       final %>% 
