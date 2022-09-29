@@ -1,5 +1,5 @@
 library(devtools)
-devtools::install_github("lampoona/PLColors") 
+# devtools::install_github("lampoona/PLColors") 
 library(shiny)
 library(shinythemes)
 library(DBI)
