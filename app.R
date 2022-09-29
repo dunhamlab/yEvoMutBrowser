@@ -1,5 +1,6 @@
+#install.packages("devtools")
 library(devtools)
-devtools::install_github("lampoona/PLColors") 
+#devtools::install_github("lampoona/PLColors") 
 library(shiny)
 library(shinythemes)
 library(DBI)
@@ -130,7 +131,7 @@ link = "https://www.yeastgenome.org/locus/"
     
     observe({
       updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
-        } else {as.character(final[final$condition==input$condition, "GENE"]%>% discard(is.na)) })
+        } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
     })
     
     observe({
@@ -352,7 +353,7 @@ link = "https://www.yeastgenome.org/locus/"
       
       xlength <- final %>% filter(condition==input$condition) %>%
         filter(background==input$background) %>%
-        filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+        filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
       final %>% 
         filter(condition==input$condition) %>%
