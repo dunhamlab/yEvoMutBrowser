@@ -129,12 +129,13 @@ link = "https://www.yeastgenome.org/locus/"
     
     observe({
       updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
-        } else {as.character(final[final$condition==input$condition, "GENE"]%>% discard(is.na)) })
+      } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
     })
     
     observe({
       updateSelectInput(session, "SGDID", choices  = as.character(final[final$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
     })
+  
     
     output$url <- renderUI({
       url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
