@@ -13,14 +13,16 @@ library(ggrepel)
 library(purrr)
 
 
-#final <- read.table("final_MASTERVCF.txt", header=TRUE)
+#loading in the final VCF file 
 final <- read.csv("final_allVCF.csv")
 
+#need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
 
+#create a variable called link that stores the base SGD database for locus 
 link = "https://www.yeastgenome.org/locus/"
 
-
+#how will our layout look like for the app 
   ui <-  navbarPage(
                     title = div(img(src="img/yEvo_logo.png",
                                     filetype = "image/png",
@@ -37,11 +39,10 @@ link = "https://www.yeastgenome.org/locus/"
 
     sidebarLayout(
       sidebarPanel(
-        #fileInput("file1", "Choose VCF File", accept = ".txt"),
-        #checkboxInput("header", "Header", TRUE),
+#adding buttons to data visualization panel to direct the ggplots to have the right information for plotting 
         selectInput("instructor","Instructor",
                     choices = final %>% count(instructor) %>% pull(instructor)),
-        
+        #the input that i leave intentionally blank for choices will depend on user input later on. 
         selectInput("year","Year",
                     choices = c('')),
         
@@ -92,13 +93,6 @@ link = "https://www.yeastgenome.org/locus/"
   tabPanel("Miscellaneous")
                    )
   server <- function(input, output,session) {
-    
-    
-    
-   # output$info <- renderPrint({
-  #    nearPoints(final,input$plot_click,threshold = 10, maxpoints = 1,addDist = TRUE)
-  #  })
-    
     
     output$info <- renderText({
       xy_range_str <- function(e) {
