@@ -1,3 +1,4 @@
+#install.packages("devtools")
 library(devtools)
 library(shiny)
 library(shinythemes)
@@ -352,7 +353,7 @@ link = "https://www.yeastgenome.org/locus/"
       
       xlength <- final %>% filter(condition==input$condition) %>%
         filter(background==input$background) %>%
-        filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+        filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
       final %>% 
         filter(condition==input$condition) %>%
