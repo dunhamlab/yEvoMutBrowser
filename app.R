@@ -1,4 +1,6 @@
-#install.packages("devtools")
+install.packages(c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
+                   "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
+                   "purrr"))
 library(devtools)
 library(shiny)
 library(shinythemes)
@@ -24,74 +26,55 @@ link = "https://www.yeastgenome.org/locus/"
 
 #how will our layout look like for the app 
   ui <-  navbarPage(
-                    title = div(img(src="img/yEvo_logo.png",
-                                    filetype = "image/png",
-                                    style="margin-top: -14px;
-                               padding-right:10px;
-                               padding-bottom:10px",
-                                    height = 60)
-                                ),
-                    #theme = "journal",
-                    windowTitle="yEvo",
-                    theme = shinytheme("cerulean"),
-                    
-                   tabPanel("Data Visualizations",
-
-    sidebarLayout(
-      sidebarPanel(
-#adding buttons to data visualization panel to direct the ggplots to have the right information for plotting 
-        selectInput("instructor","Instructor",
-                    choices = final %>% count(instructor) %>% pull(instructor)),
-        #the input that i leave intentionally blank for choices will depend on user input later on. 
-        selectInput("year","Year",
-                    choices = c('')),
-        
-        selectInput("sample", "Sample",
-                    choices = c('')),
-        #br(),
-        
-        h5("If Sample = None Selected, you can browse visualizations for all data based on condition and background combination chosen "),
-        
-        selectInput("condition","Condition",
-                    choices = final %>% count(condition) %>% pull(condition)),
-        
-        selectInput("background","Background",
-                    choices = c('')),
-        
-        h5("Gene and SGDID menu will update either based on the sample chosen or the condition/background combination chosen."),
-        
-        selectInput("GENE", "Gene",
-                    choices = c('')),
-        
-        selectInput("SGDID", "SGDID",
-                    choices = c('')),
-        
-       
-        uiOutput("url")
-      ),
-      
-      mainPanel(
-
-        tabsetPanel(type = "tabs",
-                    tabPanel("Chromosome Map", plotOutput("plot1", brush =brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
-                    tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"),verbatimTextOutput("text")),
-                    tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
-                    tabPanel("Gene View", value="Geneview",plotOutput("plot3", dblclick = "plot3_dblclick",
-                                                                      brush = brushOpts(
-                                                                        id = "plot3_brush",
-                                                                        resetOnNew = TRUE)),verbatimTextOutput("text1")),
-                    tabPanel("Table", tableOutput("contents"))
-
-        ),
-
-
-      )
-    )
-  ),
-  tabPanel("Background",
-           uiOutput("pdf_viewer") ),
-  tabPanel("Miscellaneous")
+    title = div(img(src="img/yEvo_logo.png",
+                    filetype = "image/png",
+                    style="margin-top: -14px;
+                         padding-right:10px;
+                         padding-bottom:10px",
+                    height = 60)
+    ),
+    windowTitle="yEvo",
+    theme = shinytheme("cerulean"),
+    tabPanel("Data Visualizations",
+             sidebarLayout(
+               sidebarPanel(
+                 # Adding buttons to data visualization panel to direct the ggplots to have the right information for plotting 
+                 selectInput("instructor", "Instructor", choices = final %>% count(instructor) %>% pull(instructor)),
+                 # The input that I leave intentionally blank for choices will depend on user input later on. 
+                 selectInput("year", "Year", choices = c('')),
+                 selectInput("sample", "Sample", choices = c('')),
+                 # br(),
+                 h5("If Sample = None Selected, you can browse visualizations for all data based on the condition and background combination chosen "),
+                 selectInput("condition", "Condition", choices = final %>% count(condition) %>% pull(condition)),
+                 selectInput("background", "Background", choices = c('')),
+                 h5("Gene and SGDID menu will update either based on the sample chosen or the condition/background combination chosen."),
+                 selectInput("GENE", "Gene", choices = c('')),
+                 selectInput("SGDID", "SGDID", choices = c('')),
+                 uiOutput("url")
+               ),
+               mainPanel(
+                 tabsetPanel(
+                   type = "tabs",
+                   tabPanel("Chromosome Map", plotOutput("plot1", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")), verbatimTextOutput("info")),
+                   tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"), verbatimTextOutput("text")),
+                   tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
+                   tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)), verbatimTextOutput("text1")),
+                   tabPanel("Table", tableOutput("contents")),
+                   tabPanel(
+                     "Append CSV Files",
+                     fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
+                     actionButton("append_btn", "Append to Existing CSV"),
+                     textOutput("message")
                    )
+                 )
+               )
+             )
+    )
+  )
+  
+  tabPanel("Background",
+           uiOutput("pdf_viewer") )
+              
   server <- function(input, output,session) {
     
     output$info <- renderText({
@@ -110,22 +93,26 @@ link = "https://www.yeastgenome.org/locus/"
     })
     
     
-    observe({
-      updateSelectInput(session, "year", choices = as.character(final[final$instructor==input$instructor, "year"]))
-    })
+      observe({
+        updateSelectInput(session, "background", choices = as.character(final %>% filter(condition==input$condition) %>% pull(background)))
+      }) 
     
-    observe({
-      updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
-    })
+      observe({
+        updateSelectInput(session, "year", choices = as.character(final[final$instructor==input$instructor, "year"]))
+      })
+
     
-    observe({
-      updateSelectInput(session, "background", choices = as.character(final %>% filter(condition==input$condition) %>% pull(background)))
-    })
+
+      observe({
+         updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+      })
     
-    observe({
+    
+     observe({
       updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
       } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
-    })
+      })
+    
     
     observe({
       updateSelectInput(session, "SGDID", choices  = as.character(final[final$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
@@ -142,20 +129,13 @@ link = "https://www.yeastgenome.org/locus/"
       src = "Black_box.pdf") }) 
     
     output$contents <- renderTable({
-      #file <- input$file1
-      #ext <- tools::file_ext(file$datapath)
-      
-      #req(file)
-      #validate(need(ext == "csv", "Please upload a VCF file"))
-      
-      #final <- read.csv(file$datapath, header = input$header)
-      if(input$sample!="None Selected") {
-        final %>% filter(sample==input$sample)
-      }else {
-        final %>% filter(condition==input$condition)
+      if (input$sample != "None Selected") {
+        final %>% filter(sample == input$sample)
+      } else {
+        final %>% filter(condition == input$condition)
       }
-      
     })
+    
     
     
     output$plot1 <- renderPlot({
@@ -329,8 +309,8 @@ link = "https://www.yeastgenome.org/locus/"
         geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
         geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
         geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
-        ylim(c(-2,2))+ 
-        xlim(-20,xlength)+
+        ylim(c(-0.2, 1.2))+ 
+        xlim(-50,xlength)+
         geom_label_repel(aes(label = PROTEIN),
                          box.padding   = 1, 
                          point.padding = 1,
@@ -342,7 +322,10 @@ link = "https://www.yeastgenome.org/locus/"
               plot.title = element_text(hjust = 0.5),
               axis.text.y = element_blank()) + 
         xlab("Amino acid position") +
-      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
+        theme(axis.text.x = element_text(size = 8)) +
+      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
+        theme(plot.margin = margin(0, 0, 0, 0))
+
     } else {
       
       xlength <- final %>% filter(condition==input$condition) %>%
@@ -375,10 +358,12 @@ link = "https://www.yeastgenome.org/locus/"
               plot.title = element_text(hjust = 0.5),
               axis.text.y = element_blank()) + 
         xlab("Amino acid position") +
-        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
+        theme(axis.text.x = element_text(size = 8)) +
+        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
+        theme(plot.margin = margin(0, 0, 0, 0))
     }
       
-    })
+    }, width = 1000)
     
     # When a double-click happens, check if there's a brush on the plot.
     # If so, zoom to the brush bounds; if not, reset the zoom.
@@ -401,6 +386,29 @@ link = "https://www.yeastgenome.org/locus/"
                                  "- An autonomously replicating sequence (ARS) contains the origin of replication in the yeast genome.", sep="\n")})
     
     output$text1 <- renderText({ "The plot can be zoomed in by clicking and draggin and then double-clicking on the box.\n Reset view by double clicking again."})
+    
+    observeEvent(input$append_btn, {
+      new_csv_path <- input$new_csv$datapath
+      
+      if (file.exists("final_allVCF.csv")) {
+        # Read the existing CSV file
+        existing_data <- read.csv("final_allVCF.csv")
+        
+        # Read the new CSV file
+        new_data <- read.csv(new_csv_path)
+        
+        # Append the new data to the existing data
+        combined_data <- rbind(existing_data, new_data)
+        
+        # Write the combined data back to the existing CSV file
+        write.csv(combined_data, "final_allVCF.csv", row.names = FALSE)
+        
+        output$message <- renderText("CSV files appended successfully.")
+      } else {
+        output$message <- renderText("Error: Existing CSV file not found.")
+      }
+    })
+      
   }
   
   shinyApp(ui, server)
