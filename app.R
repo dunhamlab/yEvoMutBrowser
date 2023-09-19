@@ -48,8 +48,7 @@ ui <-  navbarPage(
            sidebarLayout(
              # left side, Class vs Cumulative View and options 
              sidebarPanel(
-               actionButton("uploadData", "Upload Data"),
-               div("", style = "height: 20px;"),  # Create a 20px vertical space
+               fileInput("uploadData", "Upload Data"),
                actionButton("classView", "View Class Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
                actionButton("cumulView", "View Cumulative Data"),
@@ -173,8 +172,6 @@ server <- function(input, output,session) {
       final %>% filter(condition == input$condition)
     }
   })
-  
-  
   
   output$plot1 <- renderPlot({
     if (input$sample != "None Selected") {
