@@ -48,8 +48,9 @@ ui <-  navbarPage(
            sidebarLayout(
              # left side, Class vs Cumulative View and options 
              sidebarPanel(
-               actionButton("uploadData", "Upload Data"),
-               div("", style = "height: 20px;"),  # Create a 20px vertical space
+               fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
+               #actionButton("uploadData", "Upload Data"),
+               #div("", style = "height: 20px;"),  # Create a 20px vertical space
                actionButton("classView", "View Class Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
                actionButton("cumulView", "View Cumulative Data"),
