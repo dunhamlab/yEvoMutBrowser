@@ -48,7 +48,13 @@ ui <-  navbarPage(
            sidebarLayout(
              # left side, Class vs Cumulative View and options 
              sidebarPanel(
+<<<<<<< HEAD
                fileInput("uploadData", "Upload Data"),
+=======
+               fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
+               #actionButton("uploadData", "Upload Data"),
+               #div("", style = "height: 20px;"),  # Create a 20px vertical space
+>>>>>>> 7ef42b891cb24f29a0eb205b87c3d0bf44cbcd08
                actionButton("classView", "View Class Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
                actionButton("cumulView", "View Cumulative Data"),
@@ -86,12 +92,6 @@ ui <-  navbarPage(
                  tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)),
                           selectInput("GENE", "Gene", choices = c('')), selectInput("SGDID", "SGDID", choices = c('')) , verbatimTextOutput("text1")),
                  tabPanel("Table", tableOutput("contents")),
-                 tabPanel(
-                   "Append CSV Files",
-                   fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
-                   actionButton("append_btn", "Append to Existing CSV"),
-                   textOutput("message")
-                 )
                )
              )
            )
@@ -425,24 +425,24 @@ server <- function(input, output,session) {
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
     
-    if (file.exists("final_allVCF.csv")) {
-      # Read the existing CSV file
-      existing_data <- read.csv("final_allVCF.csv")
-      
-      # Read the new CSV file
-      new_data <- read.csv(new_csv_path)
-      
-      # Append the new data to the existing data
-      combined_data <- rbind(existing_data, new_data)
-      
-      # Write the combined data back to the existing CSV file
-      write.csv(combined_data, "final_allVCF.csv", row.names = FALSE)
-      
-      output$message <- renderText("CSV files appended successfully.")
-    } else {
-      output$message <- renderText("Error: Existing CSV file not found.")
-    }
-  })
+#    if (file.exists("final_allVCF.csv")) {
+#     # Read the existing CSV file
+#      existing_data <- read.csv("final_allVCF.csv")
+#      
+#      # Read the new CSV file
+#      new_data <- read.csv(new_csv_path)
+#      
+#      # Append the new data to the existing data
+#    combined_data <- rbind(existing_data, new_data)
+#      
+#      # Write the combined data back to the existing CSV file
+#      write.csv(combined_data, "final_allVCF.csv", row.names = FALSE)
+#      
+#      output$message <- renderText("CSV files appended successfully.")
+#    } else {
+#      output$message <- renderText("Error: Existing CSV file not found.")
+#    } 
+  }) 
   
 }
 
