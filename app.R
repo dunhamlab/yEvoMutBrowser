@@ -1,6 +1,6 @@
-install.packages(c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
-                   "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
-                   "purrr"))
+# install.packages(c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
+#                    "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
+#                    "purrr"))
 library(devtools)
 library(shiny)
 library(shinythemes)
@@ -17,6 +17,7 @@ library(purrr)
 
 #loading in the final VCF file 
 final <- read.csv("final_allVCF.csv")
+
 
 #need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
@@ -38,6 +39,8 @@ link = "https://www.yeastgenome.org/locus/"
     tabPanel("Data Visualizations",
              sidebarLayout(
                sidebarPanel(
+                 fileInput("datafile", "Choose CSV File", accept = ".csv"),
+                 #checkboxInput("header", "Header", TRUE),
                  # Adding buttons to data visualization panel to direct the ggplots to have the right information for plotting 
                  selectInput("instructor", "Instructor", choices = final %>% count(instructor) %>% pull(instructor)),
                  # The input that I leave intentionally blank for choices will depend on user input later on. 
@@ -59,7 +62,7 @@ link = "https://www.yeastgenome.org/locus/"
                    tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"), verbatimTextOutput("text")),
                    tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                    tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)), verbatimTextOutput("text1")),
-                   tabPanel("Table", tableOutput("contents")),
+                   tabPanel("Table", tableOutput("data_table")),
                    tabPanel(
                      "Append CSV Files",
                      fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
@@ -74,8 +77,29 @@ link = "https://www.yeastgenome.org/locus/"
   
   tabPanel("Background",
            uiOutput("pdf_viewer") )
+  
               
   server <- function(input, output,session) {
+  #######added by Virginia   
+    # Initialize a reactive variable for the dataframe
+    uploaded_data <- reactiveVal(NULL)
+    
+    # Function to read and store the uploaded data as a dataframe
+    observeEvent(input$datafile, {
+      file <- input$datafile
+      if (!is.null(file)) {
+        df <- read.csv(file$datapath, sep = ",")
+        uploaded_data(df)
+      }
+    })
+
+    
+    # Render the dataframe in the tableOutput
+    output$data_table <- renderTable({
+      uploaded_data()
+    })
+  ###########finished by Virginia   
+  
     
     output$info <- renderText({
       xy_range_str <- function(e) {
@@ -128,19 +152,24 @@ link = "https://www.yeastgenome.org/locus/"
       style="height:1000px;width:100%;scrolling=yes",
       src = "Black_box.pdf") }) 
     
-    output$contents <- renderTable({
-      if (input$sample != "None Selected") {
-        final %>% filter(sample == input$sample)
-      } else {
-        final %>% filter(condition == input$condition)
-      }
-    })
+    # output$contents <- renderTable({
+    #   final 
+    # })
+      
+      # if (input$sample != "None Selected") {
+      #   final %>% filter(sample == input$sample)
+      # } else {
+      #   final %>% filter(condition == input$condition)
+      # }
+   # })
     
     
     
     output$plot1 <- renderPlot({
+      final <- uploaded_data()
       if (input$sample != "None Selected") {
       final %>% 
+      #uploaded_data() %>%
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
@@ -161,7 +190,7 @@ link = "https://www.yeastgenome.org/locus/"
               plot.title = element_text(hjust = 0.5),
               legend.position="none")
       } else {
-        final %>% 
+        final %>%
           mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
           ggplot() +
           facet_grid(vars(Chromosome),switch = "y") +
