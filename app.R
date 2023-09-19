@@ -1,7 +1,13 @@
+# List of required packages
+# Added "PLColors" in required packages -> not sure if this was intentionally left out
+required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
+                       "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
+                       "purrr", "PLColors", "shinyjs")
 
-# install.packages(c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
-#                    "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
-#                    "purrr"))
+# Check if packages are installed, and if not, install them
+new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
 library(devtools)
 library(shiny)
 library(shinythemes)
@@ -19,7 +25,6 @@ library(shinyjs)
 
 #loading in the final VCF file 
 final <- read.csv("final_allVCF.csv")
-
 
 #need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
@@ -44,10 +49,7 @@ ui <-  navbarPage(
              # left side, Class vs Cumulative View and options 
              sidebarPanel(
                fileInput("datafile", "Choose CSV File", accept = ".csv"),
-
-               #actionButton("uploadData", "Upload Data"),
                #div("", style = "height: 20px;"),  # Create a 20px vertical space
-
                actionButton("classView", "View Class Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
                actionButton("cumulView", "View Cumulative Data"),
@@ -63,8 +65,8 @@ ui <-  navbarPage(
                    selectInput("instructor", "Instructor", choices = c('None Selected', final %>% count(instructor) %>% pull(instructor))),
                    selectInput("year", "Year", choices = c('')),
                    selectInput("sample", "Lab Group", choices = c('')),
-                    height = 60)
-              ),
+                 )
+               ),
                conditionalPanel(
                  condition = "input.cumulView",
                  div(
@@ -84,138 +86,106 @@ ui <-  navbarPage(
                  tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                  tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)),
                           selectInput("GENE", "Gene", choices = c('')), selectInput("SGDID", "SGDID", choices = c('')) , verbatimTextOutput("text1")),
-                 tabPanel("Table", tableOutput("contents")),
+                 tabPanel("Table", tableOutput("data_table")),
                )
              )
            )
   )
 )
+
+tabPanel("Background",
+         uiOutput("pdf_viewer") )
+
+server <- function(input, output,session) {
+  uploaded_data <- reactiveVal(NULL)
+  shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
+  
+  debug = TRUE
+  output$info <- renderText({
+    xy_range_str <- function(e) {
+      if(is.null(e)) return("Drag over variant tick mark to see details\n")
+      paste0("Variant Gene: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
+             "Reference: ", final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
+             "Variant: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
+             "Position: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
+             "Chromosome: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
+    }
+    
+    paste0(
+      xy_range_str(input$plot_brush)
+    )
+  })
+  #######added by Virginia   
+  # Initialize a reactive variable for the dataframe
+  
+  # Function to read and store the uploaded data as a dataframe
+  observeEvent(input$datafile, {
+    file <- input$datafile
+    if (!is.null(file)) {
+      df <- read.csv(file$datapath, sep = ",")
+      uploaded_data(df)
+    }
+  })
+  
+  
+  # Render the dataframe in the tableOutput
+  output$data_table <- renderTable({
+    uploaded_data()
+  })
+  
+  ###########finished by Virginia   
+  
+  observeEvent(c(input$uploadData, input$classView), {
+    shinyjs::show("classDropdowns")
+    shinyjs::hide("cumulDropdowns")
+  })
+  
+  observeEvent(input$cumulView, {
+    shinyjs::hide("classDropdowns")
+    shinyjs::show("cumulDropdowns")
+  })
+  
+  observe({
+    updateSelectInput(session, "background", choices = c('None Selected', as.character(final %>% filter(condition==input$condition) %>% pull(background))))
+  }) 
+  
+  observe({
+    updateSelectInput(session, "year", choices = c("None Selected", as.character(final[final$instructor==input$instructor, "year"])))
+  })
+  
+  
+  
+  observe({
+    updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+  })
+  
+  
+  observe({
+    updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
+    } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
+  })
+  
+  
+  observe({
+    updateSelectInput(session, "SGDID", choices  = as.character(final[final$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
+  })
+  
+  
+  output$url <- renderUI({
+    url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
+    url
+  })
+  
+  output$pdf_viewer <- renderUI({ tags$iframe(
+    style="height:1000px;width:100%;scrolling=yes",
+    src = "Black_box.pdf") }) 
   
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
-              
-  server <- function(input, output,session) {
-  #######added by Virginia   
-    # Initialize a reactive variable for the dataframe
-    uploaded_data <- reactiveVal(NULL)
-    
-    # Function to read and store the uploaded data as a dataframe
-    observeEvent(input$datafile, {
-      file <- input$datafile
-      if (!is.null(file)) {
-        df <- read.csv(file$datapath, sep = ",")
-        uploaded_data(df)
-      }
-    })
-
-    
-    # Render the dataframe in the tableOutput
-    output$data_table <- renderTable({
-      uploaded_data()
-    })
-  ###########finished by Virginia   
-  
-    
-    output$info <- renderText({
-      xy_range_str <- function(e) {
-        if(is.null(e)) return("Drag over variant tick mark to see details\n")
-        paste0("Variant Gene: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
-              "Reference: ", final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-              "Variant: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
-              "Position: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
-              "Chromosome: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
-      }
-      
-      paste0(
-        xy_range_str(input$plot_brush)
-      )
-    })
-    
-      
-    
-    observeEvent(c(input$uploadData, input$classView), {
-      shinyjs::show("classDropdowns")
-      shinyjs::hide("cumulDropdowns")
-    })
-    
-    observeEvent(input$cumulView, {
-      shinyjs::hide("classDropdowns")
-      shinyjs::show("cumulDropdowns")
-    })
-    
-    observe({
-      updateSelectInput(session, "background", choices = c('None Selected', as.character(final %>% filter(condition==input$condition) %>% pull(background))))
-    }) 
-    
-    observe({
-      updateSelectInput(session, "year", choices = c("None Selected", as.character(final[final$instructor==input$instructor, "year"])))
-    })
-    
-    
-    
-    observe({
-      updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
-    })
-    
-    
-    observe({
-      updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
-      } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
-    })
-    
-    
-    observe({
-      updateSelectInput(session, "SGDID", choices  = as.character(final[final$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
-    })
-    
-    
-    output$url <- renderUI({
-      url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
-      url
-    })
-    
-    output$pdf_viewer <- renderUI({ tags$iframe(
-      style="height:1000px;width:100%;scrolling=yes",
-      src = "Black_box.pdf") }) 
-    
-    output$contents <- renderTable({
-      if (input$sample != "None Selected") {
-        final %>% filter(sample == input$sample)
-      } else {
-        final %>% filter(condition == input$condition)
-      }
-    })
-    
-    output$plot1 <- renderPlot({
-      if (input$sample != "None Selected") {
-      output$url <- renderUI({
-        url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
-        url
-      })
-      
-      output$pdf_viewer <- renderUI({ tags$iframe(
-        style="height:1000px;width:100%;scrolling=yes",
-        src = "Black_box.pdf") }) 
-      
-      # output$contents <- renderTable({
-      #   final 
-      # })
-        
-        # if (input$sample != "None Selected") {
-        #   final %>% filter(sample == input$sample)
-        # } else {
-        #   final %>% filter(condition == input$condition)
-        # }
-    # })
-      
-      
-      
-    output$plot1 <- renderPlot({
-      final <- uploaded_data()
-      if (input$sample != "None Selected") {
+  output$plot1 <- renderPlot({
+    if (input$sample != "None Selected") {
       final %>% 
-      #uploaded_data() %>%
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
@@ -235,30 +205,28 @@ ui <-  navbarPage(
         theme(strip.text.y.left = element_text(angle = 0),
               plot.title = element_text(hjust = 0.5),
               legend.position="none")
-      } else {
-        final %>%
-          mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
-          ggplot() +
-          facet_grid(vars(Chromosome),switch = "y") +
-          geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = final$Length, yend = 0, size=4.1,lineend = "round") +
-          geom_segment(x = final$cent1, y = 0, xend = final$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-          scale_color_manual(values=pl_palette("lorax",17)) +
-          geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
-                     %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                       filter(condition==input$condition) %>% filter(background==input$background)) + 
-          theme(axis.text.y=element_blank(),
-                axis.ticks.y=element_blank(),
-                panel.background = element_blank()
-          ) +
-          xlim(c(0,1540000)) +
-          ggtitle("Where do variants fall on chromosomes") + 
-          xlab("Position along chromosome") + ylab("Chromosome") +
-          theme(strip.text.y.left = element_text(angle = 0),
-                plot.title = element_text(hjust = 0.5),
-                legend.position="none")
-      }
-      
-      })
+    } else {
+      final %>% 
+        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
+        ggplot() +
+        facet_grid(vars(Chromosome),switch = "y") +
+        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = final$Length, yend = 0, size=4.1,lineend = "round") +
+        geom_segment(x = final$cent1, y = 0, xend = final$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
+        scale_color_manual(values=pl_palette("lorax",17)) +
+        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
+                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
+                     filter(condition==input$condition) %>% filter(background==input$background)) + 
+        theme(axis.text.y=element_blank(),
+              axis.ticks.y=element_blank(),
+              panel.background = element_blank()
+        ) +
+        xlim(c(0,1540000)) +
+        ggtitle("Where do variants fall on chromosomes") + 
+        xlab("Position along chromosome") + ylab("Chromosome") +
+        theme(strip.text.y.left = element_text(angle = 0),
+              plot.title = element_text(hjust = 0.5),
+              legend.position="none")
+    }
     
   })
   
