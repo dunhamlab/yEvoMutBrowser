@@ -1,6 +1,6 @@
 install.packages(c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                    "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
-                   "purrr"))
+                   "purrr", "PLColors"), )
 library(devtools)
 library(shiny)
 library(shinythemes)
@@ -38,6 +38,7 @@ link = "https://www.yeastgenome.org/locus/"
     tabPanel("Data Visualizations",
              sidebarLayout(
                sidebarPanel(
+                 fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
                  # Adding buttons to data visualization panel to direct the ggplots to have the right information for plotting 
                  selectInput("instructor", "Instructor", choices = final %>% count(instructor) %>% pull(instructor)),
                  # The input that I leave intentionally blank for choices will depend on user input later on. 
@@ -60,12 +61,6 @@ link = "https://www.yeastgenome.org/locus/"
                    tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                    tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)), verbatimTextOutput("text1")),
                    tabPanel("Table", tableOutput("contents")),
-                   tabPanel(
-                     "Append CSV Files",
-                     fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
-                     actionButton("append_btn", "Append to Existing CSV"),
-                     textOutput("message")
-                   )
                  )
                )
              )
@@ -387,27 +382,6 @@ link = "https://www.yeastgenome.org/locus/"
     
     output$text1 <- renderText({ "The plot can be zoomed in by clicking and draggin and then double-clicking on the box.\n Reset view by double clicking again."})
     
-    observeEvent(input$append_btn, {
-      new_csv_path <- input$new_csv$datapath
-      
-      if (file.exists("final_allVCF.csv")) {
-        # Read the existing CSV file
-        existing_data <- read.csv("final_allVCF.csv")
-        
-        # Read the new CSV file
-        new_data <- read.csv(new_csv_path)
-        
-        # Append the new data to the existing data
-        combined_data <- rbind(existing_data, new_data)
-        
-        # Write the combined data back to the existing CSV file
-        write.csv(combined_data, "final_allVCF.csv", row.names = FALSE)
-        
-        output$message <- renderText("CSV files appended successfully.")
-      } else {
-        output$message <- renderText("Error: Existing CSV file not found.")
-      }
-    })
       
   }
   
