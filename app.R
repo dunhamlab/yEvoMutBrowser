@@ -97,7 +97,7 @@ tabPanel("Background",
          uiOutput("pdf_viewer") )
 
 server <- function(input, output,session) {
-  uploaded_data <- reactiveVal(NULL)
+  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv"))
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
   
   debug = TRUE
