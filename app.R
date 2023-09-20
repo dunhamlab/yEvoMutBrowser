@@ -22,6 +22,7 @@ library(ggrepel)
 library(purrr)
 library(shinyjs)
 
+
 #loading in the final VCF file 
 final <- read.csv("final_allVCF.csv")
 
@@ -41,6 +42,7 @@ ui <-  navbarPage(
                          padding-bottom:10px",
                   height = 60)
   ),
+  
   windowTitle="yEvo",
   theme = shinytheme("cerulean"),
   tabPanel("Data Visualizations",
@@ -49,30 +51,22 @@ ui <-  navbarPage(
              sidebarPanel(
                fileInput("datafile", "Choose CSV File", accept = ".csv"),
                #div("", style = "height: 20px;"),  # Create a 20px vertical space
-               actionButton("classView", "View Class Data"),
-               div("", style = "height: 20px;"),  # Create a 20px vertical space
-               actionButton("cumulView", "View Cumulative Data"),
+               checkboxInput("classView", "View Class Data"),
+               checkboxInput("cumulView", "View Cumulative Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
                # Only shows on condition observeEvent
                conditionalPanel(
                  # links condition to button via button key 
-                 condition = "input.uploadData || input.classView || output.filesUploaded",
-                 div(
-                   # condition key 
-                   id = "classDropdowns",
-                   # actual panel contents 
-                   selectInput("instructor", "Instructor", choices = c('None Selected', final %>% count(instructor) %>% pull(instructor))),
-                   selectInput("year", "Year", choices = c('')),
-                   selectInput("sample", "Lab Group", choices = c('')),
-                 )
+                 condition = "input.uploadData || input.classView",
+                 selectInput("instructor", "Instructor", choices = c('')),
+                 selectInput("year", "Year", choices = c('')),
+                 selectInput("sample", "Lab Group", choices = c('')),
+
                ),
                conditionalPanel(
                  condition = "input.cumulView",
-                 div(
-                   id = "cumulDropdowns",
-                   selectInput("condition", "Condition", choices = c('None Selected', final %>% count(condition) %>% pull(condition))),
-                   selectInput("background", "Background", choices = c('')),
-                 )
+                 selectInput("condition", "Condition", choices = c('None Selected', final %>% count(condition) %>% pull(condition))),
+                 selectInput("background", "Background", choices = c('')),
                ),
 
              ),
@@ -99,19 +93,20 @@ tabPanel("Background",
          uiOutput("pdf_viewer") )
 
 server <- function(input, output,session) {
-  uploaded_data <- reactiveVal(NULL)
-  
+  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv"))
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
   
   debug = TRUE
+  
+  # Displays Chromosome Map info; filtering by sample
   output$info <- renderText({
     xy_range_str <- function(e) {
       if(is.null(e)) return("Drag over variant tick mark to see details\n")
-      paste0("Variant Gene: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
-             "Reference: ", final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-             "Variant: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
-             "Position: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
-             "Chromosome: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
+      paste0("Variant Gene: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
+             "Reference: ", final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
+             "Variant: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
+             "Position: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
+             "Chromosome: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
     }
     
     paste0(
@@ -120,12 +115,12 @@ server <- function(input, output,session) {
   })
   #######added by Virginia   
   # Initialize a reactive variable for the dataframe
-  
   # Function to read and store the uploaded data as a dataframe
   observeEvent(input$datafile, {
     file <- input$datafile
-    if (!is.null(file)) {
-      df <- read.csv(file$datapath, sep = ",")
+    if (!is.null(file) && all(names(final) == names(read.csv(file$datapath, sep = ",")))) {
+      df <- rbind(final,read.csv(file$datapath, sep = ","))
+      #df <- read.csv(file$datapath, sep = ",")
       uploaded_data(df)
       
       file_path <- input$datafile$datapath
@@ -133,8 +128,13 @@ server <- function(input, output,session) {
       # Assuming the CSV file has a column named "instructor"
       n1choices <- unique(csv_data$instructor)
       updateSelectInput(session, "instructor", choices = c(n1choices, final %>% count(instructor) %>% pull(instructor)))
-    } 
+
+    } else {
+      uploaded_data(final)
+    }
   })
+  
+
   
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
@@ -147,19 +147,29 @@ server <- function(input, output,session) {
   })
   
   ###########finished by Virginia   
-  
-  observeEvent(c(input$uploadData, input$classView), {
-    shinyjs::show("classDropdowns")
-    shinyjs::hide("cumulDropdowns")
-  })
-  
-  observeEvent(input$cumulView, {
-    shinyjs::hide("classDropdowns")
-    shinyjs::show("cumulDropdowns")
-  })
+
   
   observe({
-    updateSelectInput(session, "background", choices = c('None Selected', as.character(final %>% filter(condition==input$condition) %>% pull(background))))
+    if (input$classView) { 
+      shinyjs::disable("cumulView")
+    }
+    else {
+    shinyjs::enable("cumulView")
+    }
+  })
+  observe({
+    if (input$cumulView) { 
+      shinyjs::disable("classView")
+    }
+    else {
+      shinyjs::enable("classView")
+    }
+  })
+  
+
+  
+  observe({
+    updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
   }) 
   
   observe({
@@ -186,17 +196,33 @@ server <- function(input, output,session) {
     } else {
     updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
     }
+    updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
+  }) 
+  
+  observe({
+    if (input$instructor == "All Selected") {
+      updateSelectInput(session, "year", choices = c("All Selected", unique(uploaded_data()$year)))
+    } else {
+      updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
+    }
+  })
+  
+  
+  
+  
+  observe({
+    updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
-    } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
+    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(uploaded_data()[uploaded_data()$sample==input$sample, "GENE"]%>% discard(is.na))
+    } else {as.character(uploaded_data() %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
   })
   
   
   observe({
-    updateSelectInput(session, "SGDID", choices  = as.character(final[final$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
+    updateSelectInput(session, "SGDID", choices  = as.character(uploaded_data()[uploaded_data()$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
   })
   
   
@@ -213,7 +239,7 @@ server <- function(input, output,session) {
            uiOutput("pdf_viewer") )
   
   output$plot1 <- renderPlot({
-    if (input$sample != "None Selected") {
+    if (input$classView) {
       final %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
@@ -260,7 +286,7 @@ server <- function(input, output,session) {
   })
   
   output$plot <- renderPlot({
-    if (input$sample != "None Selected") {
+    if (input$classView) {
       num <- final %>% filter(condition==input$condition) %>% 
         filter(background==input$background) %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
@@ -285,7 +311,7 @@ server <- function(input, output,session) {
         geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
         blank_theme + 
         scale_fill_manual(values=pl_palette("lorax",num))
-    } else {
+    } else { 
       num <- final %>% filter(condition==input$condition) %>% 
         filter(background==input$background) %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
@@ -316,7 +342,7 @@ server <- function(input, output,session) {
   
   
   output$plot2 <- renderPlot({
-    if(input$sample!="None Selected") {
+    if(input$classView) {
       num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample) %>% mutate(length = nchar(transition)) %>% 
         filter(sample==input$sample[1]) %>%
         count(transition) %>% 
@@ -366,7 +392,7 @@ server <- function(input, output,session) {
   ranges <- reactiveValues(x = NULL, y = NULL)
   
   output$plot3 <- renderPlot({
-    if(input$sample != "None Selected") {
+    if(input$classView) {
       
       xlength <- final %>% filter(sample==input$sample[1]) %>%
         filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
