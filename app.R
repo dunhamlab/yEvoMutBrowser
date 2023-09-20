@@ -22,7 +22,6 @@ library(ggrepel)
 library(purrr)
 library(shinyjs)
 
-
 #loading in the final VCF file 
 final <- read.csv("final_allVCF.csv")
 
@@ -58,7 +57,7 @@ ui <-  navbarPage(
                # Only shows on condition observeEvent
                conditionalPanel(
                  # links condition to button via button key 
-                 condition = "input.uploadData || input.classView",
+                 condition = "input.uploadData || input.classView || output.filesUploaded",
                  div(
                    # condition key 
                    id = "classDropdowns",
@@ -115,6 +114,32 @@ server <- function(input, output,session) {
       xy_range_str(input$plot_brush)
     )
   })
+<<<<<<< Updated upstream
+=======
+  #######added by Virginia   
+  # Initialize a reactive variable for the dataframe
+  
+  # Function to read and store the uploaded data as a dataframe
+  observeEvent(input$datafile, {
+    file <- input$datafile
+    if (!is.null(file)) {
+      df <- read.csv(file$datapath, sep = ",")
+      uploaded_data(df)
+    }
+  })
+  
+  output$filesUploaded <- reactive({
+    val <- !(is.null(input$datafile))
+  })
+  outputOptions(output, 'filesUploaded', suspendWhenHidden=FALSE)
+  
+  # Render the dataframe in the tableOutput
+  output$data_table <- renderTable({
+    uploaded_data()
+  })
+  
+  ###########finished by Virginia   
+>>>>>>> Stashed changes
   
   observeEvent(c(input$uploadData, input$classView), {
     shinyjs::show("classDropdowns")
