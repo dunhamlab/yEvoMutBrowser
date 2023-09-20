@@ -100,6 +100,7 @@ tabPanel("Background",
 
 server <- function(input, output,session) {
   uploaded_data <- reactiveVal(NULL)
+  
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
   
   debug = TRUE
@@ -126,7 +127,13 @@ server <- function(input, output,session) {
     if (!is.null(file)) {
       df <- read.csv(file$datapath, sep = ",")
       uploaded_data(df)
-    }
+      
+      file_path <- input$datafile$datapath
+      csv_data <- read.csv(file_path)
+      # Assuming the CSV file has a column named "instructor"
+      n1choices <- unique(csv_data$instructor)
+      updateSelectInput(session, "instructor", choices = c(n1choices, final %>% count(instructor) %>% pull(instructor)))
+    } 
   })
   
   output$filesUploaded <- reactive({
@@ -156,13 +163,29 @@ server <- function(input, output,session) {
   }) 
   
   observe({
-    updateSelectInput(session, "year", choices = c("None Selected", as.character(final[final$instructor==input$instructor, "year"])))
+    # Once there is a file uploaded
+    if (!is.null(input$datafile$datapath)) {
+      file_path <- input$datafile$datapath
+      csv_data <- read.csv(file_path)
+      n2choices <- unique(csv_data$year)
+      # autofill year dropdown
+      updateSelectInput(session,"year", choices = c(n2choices, as.character(final[final$instructor==input$instructor, "year"])))
+    } else {
+      updateSelectInput(session, "year", choices = c("None Selected", as.character(final[final$instructor==input$instructor, "year"])))
+    }
   })
-  
-  
-  
+
   observe({
+    # once there is a file uploaded
+    if(!is.null(input$datafile$datapath)){
+      file_path <- input$datafile$datapath
+      csv_data <- read.csv(file_path)
+      n3choices <- unique(csv_data$sample)
+      # autofill LabGroup dropdown
+      updateSelectInput(session,"sample", choices = c(n3choices, as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    } else {
     updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    }
   })
   
   
