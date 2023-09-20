@@ -64,7 +64,7 @@ ui <-  navbarPage(
                    # actual panel contents 
                    selectInput("instructor", "Instructor", choices = c('None Selected', final %>% count(instructor) %>% pull(instructor))),
                    selectInput("year", "Year", choices = c('')),
-                   selectInput("sample", "Lab Group", choices = c('')),
+                   selectInput("labGroup", "Lab Group", choices = c('')),
                  )
                ),
                conditionalPanel(
@@ -88,6 +88,7 @@ ui <-  navbarPage(
                           selectInput("GENE", "Gene", choices = c('')), 
                           selectInput("SGDID", "SGDID", choices = c('')),
                           uiOutput("url"),
+                          div("", style = "height: 20px;"),
                           verbatimTextOutput("text1")),
                  tabPanel("Table", tableOutput("data_table")),
                )
@@ -107,11 +108,11 @@ server <- function(input, output,session) {
   output$info <- renderText({
     xy_range_str <- function(e) {
       if(is.null(e)) return("Drag over variant tick mark to see details\n")
-      paste0("Variant Gene: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
-             "Reference: ", final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-             "Variant: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
-             "Position: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
-             "Chromosome: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
+      paste0("Variant Gene: ",final %>% filter(if (input$labGroup != "None Selected") {labGroup==input$labGroup} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
+             "Reference: ", final %>% filter(if (input$labGroup != "None Selected") {labGroup==input$labGroup} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
+             "Variant: ",final %>% filter(if (input$labGroup != "None Selected") {labGroup==input$labGroup} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
+             "Position: ",final %>% filter(if (input$labGroup != "None Selected") {labGroup==input$labGroup} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
+             "Chromosome: ",final %>% filter(if (input$labGroup != "None Selected") {labGroup==input$labGroup} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
     }
     
     paste0(
@@ -159,12 +160,12 @@ server <- function(input, output,session) {
   
   
   observe({
-    updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    updateSelectInput(session, "labGroup", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(labGroup))))
   })
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
+    updateSelectInput(session, "GENE", choices = if(input$labGroup!="None Selected") { as.character(final[final$labGroup==input$labGroup, "GENE"]%>% discard(is.na))
     } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
   })
   
@@ -187,7 +188,7 @@ server <- function(input, output,session) {
            uiOutput("pdf_viewer") )
   
   output$plot1 <- renderPlot({
-    if (input$sample != "None Selected") {
+    if (input$labGroup != "None Selected") {
       final %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
@@ -197,7 +198,7 @@ server <- function(input, output,session) {
         scale_color_manual(values=pl_palette("lorax",17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
                    %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                     filter(sample==input$sample)) + 
+                     filter(labGroup==input$labGroup)) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
               panel.background = element_blank()
@@ -234,7 +235,7 @@ server <- function(input, output,session) {
   })
   
   output$plot <- renderPlot({
-    if (input$sample != "None Selected") {
+    if (input$labGroup != "None Selected") {
       num <- final %>% filter(condition==input$condition) %>% 
         filter(background==input$background) %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
@@ -249,7 +250,7 @@ server <- function(input, output,session) {
           axis.ticks = element_blank(),
           plot.title=element_text(size=14, face="bold"))
       
-      final %>% filter(sample==input$sample) %>% 
+      final %>% filter(labGroup==input$labGroup) %>% 
         count(ANNOTATION) %>% 
         mutate(percent=n/sum(n)*100) %>% 
         ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
@@ -290,16 +291,16 @@ server <- function(input, output,session) {
   
   
   output$plot2 <- renderPlot({
-    if(input$sample!="None Selected") {
-      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample) %>% mutate(length = nchar(transition)) %>% 
-        filter(sample==input$sample[1]) %>%
+    if(input$labGroup!="None Selected") {
+      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,labGroup) %>% mutate(length = nchar(transition)) %>% 
+        filter(labGroup==input$labGroup[1]) %>%
         count(transition) %>% 
         summarise(n = n()) %>% as.numeric()
       
       
       final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,sample) %>% 
-        filter(sample==input$sample[1]) %>%
+        select(transition,labGroup) %>% 
+        filter(labGroup==input$labGroup[1]) %>%
         mutate(length = nchar(transition)) %>% 
         #filter(length >= 3) %>%  
         mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
@@ -312,7 +313,7 @@ server <- function(input, output,session) {
               axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
         ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
     } else {
-      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample,condition,background) %>% mutate(length = nchar(transition)) %>% 
+      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,labGroup,condition,background) %>% mutate(length = nchar(transition)) %>% 
         filter(condition==input$condition) %>%
         filter(background==input$background) %>%
         count(transition) %>% 
@@ -320,7 +321,7 @@ server <- function(input, output,session) {
       
       
       final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,sample,condition,background) %>% 
+        select(transition,labGroup,condition,background) %>% 
         filter(condition==input$condition) %>%
         filter(background==input$background) %>%
         mutate(length = nchar(transition)) %>% 
@@ -340,13 +341,13 @@ server <- function(input, output,session) {
   ranges <- reactiveValues(x = NULL, y = NULL)
   
   output$plot3 <- renderPlot({
-    if(input$sample != "None Selected") {
+    if(input$labGroup != "None Selected") {
       
-      xlength <- final %>% filter(sample==input$sample[1]) %>%
+      xlength <- final %>% filter(labGroup==input$labGroup[1]) %>%
         filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
       final %>% 
-        filter(sample==input$sample[1]) %>%
+        filter(labGroup==input$labGroup[1]) %>%
         filter(GENE==input$GENE[1]) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
