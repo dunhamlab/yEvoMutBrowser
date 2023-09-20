@@ -15,7 +15,7 @@ library(DBI)
 library(RSQLite)
 library(ggplot2) ## visualization data
 library(dplyr)
-library(tidyr) ## handleing data ## df must be tidy to use a lot of packages 
+library(tidyr) ## handling data ## df must be tidy to use a lot of packages 
 library(PLColors)
 library(forcats)
 library(ggrepel)
@@ -85,7 +85,10 @@ ui <-  navbarPage(
                  tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                  tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)),
-                          selectInput("GENE", "Gene", choices = c('')), selectInput("SGDID", "SGDID", choices = c('')) , verbatimTextOutput("text1")),
+                          selectInput("GENE", "Gene", choices = c('')), 
+                          selectInput("SGDID", "SGDID", choices = c('')),
+                          uiOutput("url"),
+                          verbatimTextOutput("text1")),
                  tabPanel("Table", tableOutput("data_table")),
                )
              )
@@ -97,7 +100,7 @@ tabPanel("Background",
          uiOutput("pdf_viewer") )
 
 server <- function(input, output,session) {
-  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv"))
+  uploaded_data <- reactiveVal(NULL)
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
   
   debug = TRUE
