@@ -15,7 +15,7 @@ library(DBI)
 library(RSQLite)
 library(ggplot2) ## visualization data
 library(dplyr)
-library(tidyr) ## handleing data ## df must be tidy to use a lot of packages 
+library(tidyr) ## handling data ## df must be tidy to use a lot of packages 
 library(PLColors)
 library(forcats)
 library(ggrepel)
@@ -47,8 +47,7 @@ ui <-  navbarPage(
            sidebarLayout(
              # left side, Class vs Cumulative View and options 
              sidebarPanel(
-               fileInput("new_csv", "Upload New CSV File", accept = c(".csv")),
-               #actionButton("uploadData", "Upload Data"),
+               fileInput("datafile", "Choose CSV File", accept = ".csv"),
                #div("", style = "height: 20px;"),  # Create a 20px vertical space
                actionButton("classView", "View Class Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
@@ -85,8 +84,11 @@ ui <-  navbarPage(
                  tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
                  tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)),
-                          selectInput("GENE", "Gene", choices = c('')), selectInput("SGDID", "SGDID", choices = c('')) , verbatimTextOutput("text1")),
-                 tabPanel("Table", tableOutput("contents")),
+                          selectInput("GENE", "Gene", choices = c('')), 
+                          selectInput("SGDID", "SGDID", choices = c('')),
+                          uiOutput("url"),
+                          verbatimTextOutput("text1")),
+                 tabPanel("Table", tableOutput("data_table")),
                )
              )
            )
@@ -97,6 +99,7 @@ tabPanel("Background",
          uiOutput("pdf_viewer") )
 
 server <- function(input, output,session) {
+  uploaded_data <- reactiveVal(NULL)
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
   
   debug = TRUE
@@ -183,15 +186,8 @@ server <- function(input, output,session) {
     style="height:1000px;width:100%;scrolling=yes",
     src = "Black_box.pdf") }) 
   
-  output$contents <- renderTable({
-    if (input$sample != "None Selected") {
-      final %>% filter(sample == input$sample)
-    } else {
-      final %>% filter(condition == input$condition)
-    }
-  })
-  
-  
+  tabPanel("Background",
+           uiOutput("pdf_viewer") )
   
   output$plot1 <- renderPlot({
     if (input$sample != "None Selected") {
