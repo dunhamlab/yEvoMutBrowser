@@ -114,8 +114,6 @@ server <- function(input, output,session) {
       xy_range_str(input$plot_brush)
     )
   })
-<<<<<<< Updated upstream
-=======
   #######added by Virginia   
   # Initialize a reactive variable for the dataframe
   
@@ -139,7 +137,6 @@ server <- function(input, output,session) {
   })
   
   ###########finished by Virginia   
->>>>>>> Stashed changes
   
   observeEvent(c(input$uploadData, input$classView), {
     shinyjs::show("classDropdowns")
