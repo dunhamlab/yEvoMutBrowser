@@ -61,7 +61,7 @@ ui <-  navbarPage(
                    # condition key 
                    id = "classDropdowns",
                    # actual panel contents 
-                   selectInput("instructor", "Instructor", choices = c('None Selected', final %>% count(instructor) %>% pull(instructor))),
+                   selectInput("instructor", "Instructor", choices = c('All Selected', final %>% count(instructor) %>% pull(instructor))),
                    selectInput("year", "Year", choices = c('')),
                    selectInput("sample", "Lab Group", choices = c('')),
                  )
@@ -106,11 +106,11 @@ server <- function(input, output,session) {
   output$info <- renderText({
     xy_range_str <- function(e) {
       if(is.null(e)) return("Drag over variant tick mark to see details\n")
-      paste0("Variant Gene: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
-             "Reference: ", final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-             "Variant: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
-             "Position: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
-             "Chromosome: ",final %>% filter(if (input$sample != "None Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
+      paste0("Variant Gene: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
+             "Reference: ", final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
+             "Variant: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
+             "Position: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
+             "Chromosome: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
     }
     
     paste0(
@@ -119,15 +119,19 @@ server <- function(input, output,session) {
   })
   #######added by Virginia   
   # Initialize a reactive variable for the dataframe
-  
   # Function to read and store the uploaded data as a dataframe
   observeEvent(input$datafile, {
     file <- input$datafile
-    if (!is.null(file)) {
-      df <- read.csv(file$datapath, sep = ",")
+    if (!is.null(file) && all(names(final) == names(read.csv(file$datapath, sep = ",")))) {
+      df <- rbind(final,read.csv(file$datapath, sep = ","))
+      #df <- read.csv(file$datapath, sep = ",")
       uploaded_data(df)
+    } else {
+      uploaded_data(final)
     }
   })
+  
+
   
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
@@ -140,15 +144,18 @@ server <- function(input, output,session) {
   })
   
   ###########finished by Virginia   
+
   
   observeEvent(c(input$uploadData, input$classView), {
     shinyjs::show("classDropdowns")
     shinyjs::hide("cumulDropdowns")
+    #SWITCH TO CLASS DATA HERE
   })
   
   observeEvent(input$cumulView, {
     shinyjs::hide("classDropdowns")
     shinyjs::show("cumulDropdowns")
+    #SWITCH TO CUMULATIVE DATA HERE
   })
   
   observe({
@@ -156,18 +163,23 @@ server <- function(input, output,session) {
   }) 
   
   observe({
-    updateSelectInput(session, "year", choices = c("None Selected", as.character(final[final$instructor==input$instructor, "year"])))
+    if (input$instructor == "All Selected") {
+      updateSelectInput(session, "year", choices = c("All Selected", unique(final$year)))
+    } else {
+      updateSelectInput(session, "year", choices = c("All Selected", as.character(final[final$instructor == input$instructor, "year"])))
+    }
   })
   
   
   
+  
   observe({
-    updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    updateSelectInput(session, "sample", choices = c("All Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="None Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
+    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
     } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
   })
   
@@ -190,7 +202,7 @@ server <- function(input, output,session) {
            uiOutput("pdf_viewer") )
   
   output$plot1 <- renderPlot({
-    if (input$sample != "None Selected") {
+    if (input$sample != "All Selected") {
       final %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
@@ -237,7 +249,7 @@ server <- function(input, output,session) {
   })
   
   output$plot <- renderPlot({
-    if (input$sample != "None Selected") {
+    if (input$sample != "All Selected") {
       num <- final %>% filter(condition==input$condition) %>% 
         filter(background==input$background) %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
@@ -293,7 +305,7 @@ server <- function(input, output,session) {
   
   
   output$plot2 <- renderPlot({
-    if(input$sample!="None Selected") {
+    if(input$sample!="All Selected") {
       num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample) %>% mutate(length = nchar(transition)) %>% 
         filter(sample==input$sample[1]) %>%
         count(transition) %>% 
@@ -343,7 +355,7 @@ server <- function(input, output,session) {
   ranges <- reactiveValues(x = NULL, y = NULL)
   
   output$plot3 <- renderPlot({
-    if(input$sample != "None Selected") {
+    if(input$sample != "All Selected") {
       
       xlength <- final %>% filter(sample==input$sample[1]) %>%
         filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
