@@ -61,7 +61,7 @@ ui <-  navbarPage(
                    # condition key 
                    id = "classDropdowns",
                    # actual panel contents 
-                   selectInput("instructor", "Instructor", choices = c('All Selected', final %>% count(instructor) %>% pull(instructor))),
+                   selectInput("instructor", "Instructor", choices = c()),
                    selectInput("year", "Year", choices = c('')),
                    selectInput("sample", "Lab Group", choices = c('')),
                  )
@@ -99,7 +99,7 @@ tabPanel("Background",
          uiOutput("pdf_viewer") )
 
 server <- function(input, output,session) {
-  uploaded_data <- reactiveVal(NULL)
+  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv"))
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
   
   debug = TRUE
@@ -126,6 +126,7 @@ server <- function(input, output,session) {
       df <- rbind(final,read.csv(file$datapath, sep = ","))
       #df <- read.csv(file$datapath, sep = ",")
       uploaded_data(df)
+
     } else {
       uploaded_data(final)
     }
@@ -149,24 +150,26 @@ server <- function(input, output,session) {
   observeEvent(c(input$uploadData, input$classView), {
     shinyjs::show("classDropdowns")
     shinyjs::hide("cumulDropdowns")
-    #SWITCH TO CLASS DATA HERE
   })
   
   observeEvent(input$cumulView, {
     shinyjs::hide("classDropdowns")
     shinyjs::show("cumulDropdowns")
-    #SWITCH TO CUMULATIVE DATA HERE
   })
   
   observe({
-    updateSelectInput(session, "background", choices = c('None Selected', as.character(final %>% filter(condition==input$condition) %>% pull(background))))
+    updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
+  }) 
+  
+  observe({
+    updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
   }) 
   
   observe({
     if (input$instructor == "All Selected") {
-      updateSelectInput(session, "year", choices = c("All Selected", unique(final$year)))
+      updateSelectInput(session, "year", choices = c("All Selected", unique(uploaded_data()$year)))
     } else {
-      updateSelectInput(session, "year", choices = c("All Selected", as.character(final[final$instructor == input$instructor, "year"])))
+      updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
     }
   })
   
@@ -174,18 +177,18 @@ server <- function(input, output,session) {
   
   
   observe({
-    updateSelectInput(session, "sample", choices = c("All Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(final[final$sample==input$sample, "GENE"]%>% discard(is.na))
-    } else {as.character(final %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
+    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(uploaded_data()[uploaded_data()$sample==input$sample, "GENE"]%>% discard(is.na))
+    } else {as.character(uploaded_data() %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
   })
   
   
   observe({
-    updateSelectInput(session, "SGDID", choices  = as.character(final[final$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
+    updateSelectInput(session, "SGDID", choices  = as.character(uploaded_data()[uploaded_data()$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
   })
   
   
