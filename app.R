@@ -1,5 +1,4 @@
 # List of required packages
-# Added "PLColors" in required packages -> not sure if this was intentionally left out
 required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                        "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
                        "purrr", "PLColors", "shinyjs")
@@ -8,6 +7,7 @@ required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite",
 new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages)
 
+#loading necessary libraries
 library(devtools)
 library(shiny)
 library(shinythemes)
@@ -47,10 +47,9 @@ ui <-  navbarPage(
   theme = shinytheme("cerulean"),
   tabPanel("Data Visualizations",
            sidebarLayout(
-             # left side, Class vs Cumulative View and options 
+             # Left side, Class vs Cumulative View and options 
              sidebarPanel(
                fileInput("datafile", "Choose CSV File", accept = ".csv"),
-               #div("", style = "height: 20px;"),  # Create a 20px vertical space
                checkboxInput("classView", "View Class Data"),
                checkboxInput("cumulView", "View Cumulative Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
@@ -61,14 +60,12 @@ ui <-  navbarPage(
                  selectInput("instructor", "Instructor", choices = c('')),
                  selectInput("year", "Year", choices = c('')),
                  selectInput("sample", "Lab Group", choices = c('')),
-
                ),
                conditionalPanel(
                  condition = "input.cumulView",
                  selectInput("condition", "Condition", choices = c('None Selected', final %>% count(condition) %>% pull(condition))),
                  selectInput("background", "Background", choices = c('')),
                ),
-
              ),
              # Right side, Data Visualization
              mainPanel(
@@ -92,30 +89,28 @@ ui <-  navbarPage(
 tabPanel("Background",
          uiOutput("pdf_viewer") )
 
+# Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
+  #initially setting default file
   uploaded_data <- reactiveVal(read.csv("final_allVCF.csv"))
-  shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
-  
-  debug = TRUE
+  shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
   output$info <- renderText({
     xy_range_str <- function(e) {
       if(is.null(e)) return("Drag over variant tick mark to see details\n")
-      paste0("Variant Gene: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
-             "Reference: ", final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-             "Variant: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
-             "Position: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
-             "Chromosome: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
+      paste0("Variant Gene: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
+             "Reference: ", filtered_data()%>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
+             "Variant: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
+             "Position: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
+             "Chromosome: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
     }
-    
     paste0(
       xy_range_str(input$plot_brush)
     )
   })
-  #######added by Virginia   
   # Initialize a reactive variable for the dataframe
-  # Function to read and store the uploaded data as a dataframe
+  # Function to read and append the uploaded data to the cumulative dataframe
   observeEvent(input$datafile, {
     file <- input$datafile
     if (!is.null(file) && all(names(final) == names(read.csv(file$datapath, sep = ",")))) {
@@ -126,8 +121,8 @@ server <- function(input, output,session) {
       uploaded_data(final)
     }
   })
-  
-  
+
+  #filtering dataframe based on menu selection
   filtered_data <- reactive({
     data <- uploaded_data()
     if (input$classView) {
@@ -136,22 +131,19 @@ server <- function(input, output,session) {
     selected_year <- input$year
     selected_sample <- input$sample
     
+    #filtering based on selections if NOT all selected
     if (selected_instructor != "All Selected") {
       data <- data %>% filter(instructor == selected_instructor)
-      #filter_condition <- filter_condition & (instructor == selected_instructor)
     }
     
     if (selected_year != "All Selected") {
       data <- data %>% filter(year == selected_year)
-      #filter_condition <- filter_condition & (year == selected_year)
     }
     
     if (selected_sample != "All Selected") {
       data <- data %>% filter(sample == selected_sample)
-      #filter_condition <- filter_condition & (sample == selected_sample)
     }
-    }
-    else if (input$cumulView) {
+    }else if (input$cumulView) {
       selected_condition <- input$condition
       selected_background <- input$background
       
@@ -166,6 +158,7 @@ server <- function(input, output,session) {
     data 
   })
   
+  #storing a value to see if a file has been uploaded
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
   })
@@ -177,9 +170,7 @@ server <- function(input, output,session) {
     filtered_data()
   })
   
-  ###########finished by Virginia   
-
-  
+  #Display settings
   observe({
     if (input$classView) { 
       shinyjs::disable("cumulView")
@@ -196,9 +187,8 @@ server <- function(input, output,session) {
       shinyjs::enable("classView")
     }
   })
-  
 
-  
+  #Handling behaviors for button selections
   observe({
     updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
   }) 
@@ -230,7 +220,7 @@ server <- function(input, output,session) {
     updateSelectInput(session, "SGDID", choices  = as.character(uploaded_data()[uploaded_data()$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
   })
   
-  
+  # Learn about Gene button within gene viewer
   output$url <- renderUI({
     url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
     url
@@ -242,7 +232,7 @@ server <- function(input, output,session) {
   
   tabPanel("Background",
            uiOutput("pdf_viewer") )
-  
+  #CODE FOR RENDERING PLOTS BELOW
   output$chromPlot <- renderPlot({
         filtered_data()%>%
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
@@ -253,7 +243,6 @@ server <- function(input, output,session) {
         scale_color_manual(values=pl_palette("lorax",17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
                    %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) #%>% 
-                     #filter(sample==input$sample)
                    ) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
@@ -269,7 +258,6 @@ server <- function(input, output,session) {
   })
   
   output$varPieChart <- renderPlot({
-    
       num <- filtered_data() %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
       
@@ -297,16 +285,13 @@ server <- function(input, output,session) {
   
   
   output$snpCountPlot <- renderPlot({
+    # counting number of transitions to display to set for colors and plot
       num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
         mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
         count(transition) %>% summarise(n = n()) %>% as.numeric()
       
-      
       filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        #select(transition,sample) %>% 
-        #filter(sample==input$sample[1]) %>%
         mutate(length = nchar(transition)) %>% 
-        #filter(length >= 3) %>%  
         mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
         ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
         geom_bar() + theme_bw() + 
@@ -329,9 +314,7 @@ server <- function(input, output,session) {
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
         ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
-        #facet_grid(rows=vars(GENE))+
         geom_hline(yintercept=0, linetype=2,alpha=.2)+
-        #geom_segment(aes(x=-10,xend=PROTEIN_LENGTH+10,y=0,yend=0), size=20, color = "pink") + 
         geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
         geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
         geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
@@ -341,7 +324,6 @@ server <- function(input, output,session) {
                          box.padding   = 2, 
                          point.padding = 1,
                          segment.color = 'grey50',
-                         #segment.size = 0,    
                          min.segment.length = 0
                          ) +
         ggtitle(as.character(input$GENE))+
@@ -385,27 +367,8 @@ server <- function(input, output,session) {
   
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
-    
-#    if (file.exists("final_allVCF.csv")) {
-#     # Read the existing CSV file
-#      existing_data <- read.csv("final_allVCF.csv")
-#      
-#      # Read the new CSV file
-#      new_data <- read.csv(new_csv_path)
-#      
-#      # Append the new data to the existing data
-#    combined_data <- rbind(existing_data, new_data)
-#      
-#      # Write the combined data back to the existing CSV file
-#      write.csv(combined_data, "final_allVCF.csv", row.names = FALSE)
-#      
-#      output$message <- renderText("CSV files appended successfully.")
-#    } else {
-#      output$message <- renderText("Error: Existing CSV file not found.")
-#    } 
+
   }) 
-  
 }
 
 shinyApp(ui, server)
-
