@@ -84,7 +84,7 @@ ui <-  navbarPage(
              )
            )
   )
-)
+) #END OF UI
 
 tabPanel("Background",
          uiOutput("pdf_viewer") )
@@ -158,7 +158,7 @@ server <- function(input, output,session) {
     data 
   })
   
-  #storing a value to see if a file has been uploaded
+  #storing a bool to see if a file has been uploaded
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
   })
