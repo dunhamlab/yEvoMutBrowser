@@ -270,9 +270,7 @@ server <- function(input, output,session) {
   })
   
   output$plot <- renderPlot({
-    if (input$classView) {
-      num <- final %>% filter(condition==input$condition) %>% 
-        filter(background==input$background) %>%
+      num <- filtered_data() %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
       
       blank_theme <- theme_minimal()+
@@ -285,7 +283,7 @@ server <- function(input, output,session) {
           axis.ticks = element_blank(),
           plot.title=element_text(size=14, face="bold"))
       
-      final %>% filter(sample==input$sample) %>% 
+      filtered_data() %>% 
         count(ANNOTATION) %>% 
         mutate(percent=n/sum(n)*100) %>% 
         ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
@@ -295,33 +293,6 @@ server <- function(input, output,session) {
         geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
         blank_theme + 
         scale_fill_manual(values=pl_palette("lorax",num))
-    } else { 
-      num <- final %>% filter(condition==input$condition) %>% 
-        filter(background==input$background) %>%
-        count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
-      
-      blank_theme <- theme_minimal()+
-        theme(
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.border = element_blank(),
-          panel.grid=element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          plot.title=element_text(size=14, face="bold"))
-      
-      final %>% filter(condition==input$condition) %>% 
-        filter(background==input$background) %>%
-        count(ANNOTATION) %>% 
-        mutate(percent=n/sum(n)*100) %>% 
-        ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
-        geom_bar(stat="identity", width=1) +
-        coord_polar("y", start=0) + 
-        ggtitle("Percentage of Variants by Type") + 
-        geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
-        blank_theme + 
-        scale_fill_manual(values=pl_palette("lorax",num))
-    }
   })
   
   
