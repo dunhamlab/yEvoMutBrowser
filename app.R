@@ -59,6 +59,7 @@ ui <-  navbarPage(
                  condition = "input.uploadData || input.classView",
                  selectInput("instructor", "Instructor", choices = c('')),
                  selectInput("year", "Year", choices = c('')),
+# PLEASE NOTE: "sample" is called "Lab Group" within ui to make it easier to understand, but the official name in the df is sample                 
                  selectInput("sample", "Lab Group", choices = c('')),
                ),
                conditionalPanel(
