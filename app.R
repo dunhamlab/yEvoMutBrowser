@@ -130,7 +130,7 @@ server <- function(input, output,session) {
   
   filtered_data <- reactive({
     data <- uploaded_data()
-    
+    if (input$classView) {
     # Get the selected values from the dropdown menus
     selected_instructor <- input$instructor
     selected_year <- input$year
@@ -150,7 +150,20 @@ server <- function(input, output,session) {
       data <- data %>% filter(sample == selected_sample)
       #filter_condition <- filter_condition & (sample == selected_sample)
     }
-    data
+    }
+    else if (input$cumulView) {
+      selected_condition <- input$condition
+      selected_background <- input$background
+      
+      if (selected_condition != "None Selected") {
+        data <- data %>% filter(condition == selected_condition)
+      }
+      
+      if (selected_background != "None Selected") {
+        data <- data %>% filter(background == selected_background)
+      }
+    }
+    data 
   })
   
   output$filesUploaded <- reactive({
@@ -202,7 +215,6 @@ server <- function(input, output,session) {
     }
   })
 
-  
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
