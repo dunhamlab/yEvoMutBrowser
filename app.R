@@ -222,7 +222,7 @@ server <- function(input, output,session) {
   
   observe({
     updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(uploaded_data()[uploaded_data()$sample==input$sample, "GENE"]%>% discard(is.na))
-    } else {as.character(uploaded_data() %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
+    } else {as.character(filtered_data() %>% pull(GENE) %>% discard(is.na)) })
   })
   
   
@@ -321,14 +321,11 @@ server <- function(input, output,session) {
   ranges <- reactiveValues(x = NULL, y = NULL)
   
   output$plot3 <- renderPlot({
-    if(input$classView) {
+      xlength <- filtered_data() %>%
+        filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
-      xlength <- final %>% filter(sample==input$sample[1]) %>%
-        filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
-      
-      final %>% 
-        filter(sample==input$sample[1]) %>%
-        filter(GENE==input$GENE[1]) %>%
+      filtered_data() %>% 
+        filter(GENE==input$GENE) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
         ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
@@ -344,7 +341,7 @@ server <- function(input, output,session) {
                          box.padding   = 1, 
                          point.padding = 1,
                          segment.color = 'grey50') +
-        ggtitle(as.character(input$GENE[1]))+
+        ggtitle(as.character(input$GENE))+
         theme_classic() +
         theme(axis.title.y=element_blank(),
               axis.ticks.y=element_blank(),
@@ -355,44 +352,9 @@ server <- function(input, output,session) {
         coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
         theme(plot.margin = margin(0, 0, 0, 0))
       
-    } else {
-      
-      xlength <- final %>% filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
-      
-      final %>% 
-        filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        filter(GENE==input$GENE[1]) %>%
-        mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-        ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
-        #facet_grid(rows=vars(GENE))+
-        geom_hline(yintercept=0, linetype=2,alpha=.2)+
-        #geom_segment(aes(x=-10,xend=PROTEIN_LENGTH+10,y=0,yend=0), size=20, color = "pink") + 
-        geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
-        geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
-        geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
-        ylim(c(-2,2))+ 
-        xlim(-20,xlength)+
-        geom_label_repel(aes(label = as.character(PROTEIN)),
-                         # box.padding   = 1, 
-                         #point.padding = 1,
-                         segment.color = 'grey50') +
-        ggtitle(as.character(input$GENE[1]))+
-        theme_classic() +
-        theme(axis.title.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.y = element_blank()) + 
-        xlab("Amino acid position") +
-        theme(axis.text.x = element_text(size = 8)) +
-        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
-        theme(plot.margin = margin(0, 0, 0, 0))
-    }
     
-  }, width = 1000)
+    
+  }, width = 750)
   
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
