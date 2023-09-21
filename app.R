@@ -74,10 +74,10 @@ ui <-  navbarPage(
              mainPanel(
                tabsetPanel(
                  type = "tabs",
-                 tabPanel("Chromosome Map", plotOutput("plot1", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
-                 tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"), verbatimTextOutput("text")),
-                 tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
-                 tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)),
+                 tabPanel("Chromosome Map", plotOutput("chromPlot", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
+                 tabPanel("Variant Pie Chart", plotOutput("varPieChart", click = "plot_click"), verbatimTextOutput("text")),
+                 tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
+                 tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
                           selectInput("GENE", "Gene", choices = c('')), 
                           selectInput("SGDID", "SGDID", choices = c('')),
                           uiOutput("url"),
@@ -243,9 +243,8 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
-  output$plot1 <- renderPlot({
-    
-    filtered_data() %>% 
+  output$chromPlot <- renderPlot({
+        filtered_data()%>%
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
@@ -269,7 +268,8 @@ server <- function(input, output,session) {
     
   })
   
-  output$plot <- renderPlot({
+  output$varPieChart <- renderPlot({
+    
       num <- filtered_data() %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
       
@@ -296,7 +296,7 @@ server <- function(input, output,session) {
   })
   
   
-  output$plot2 <- renderPlot({
+  output$snpCountPlot <- renderPlot({
       num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
         mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
         count(transition) %>% summarise(n = n()) %>% as.numeric()
@@ -320,7 +320,7 @@ server <- function(input, output,session) {
   
   ranges <- reactiveValues(x = NULL, y = NULL)
   
-  output$plot3 <- renderPlot({
+  output$geneViewPlot <- renderPlot({
       xlength <- filtered_data() %>%
         filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
@@ -363,8 +363,8 @@ server <- function(input, output,session) {
   
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
-  observeEvent(input$plot3_dblclick, {
-    brush <- input$plot3_brush
+  observeEvent(input$geneViewPlot_dblclick, {
+    brush <- input$geneViewPlot_brush
     if (!is.null(brush)) {
       ranges$x <- c(brush$xmin, brush$xmax)
       ranges$y <- c(brush$ymin, brush$ymax)
