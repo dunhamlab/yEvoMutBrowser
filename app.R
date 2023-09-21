@@ -328,21 +328,24 @@ server <- function(input, output,session) {
         filter(GENE==input$GENE) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-        ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
+        ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
         #facet_grid(rows=vars(GENE))+
         geom_hline(yintercept=0, linetype=2,alpha=.2)+
         #geom_segment(aes(x=-10,xend=PROTEIN_LENGTH+10,y=0,yend=0), size=20, color = "pink") + 
         geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
-        geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
-        geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
+        geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
+        geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
         ylim(c(-0.2, 1.2))+ 
         xlim(-50,xlength)+
-        geom_label_repel(aes(label = PROTEIN),
-                         box.padding   = 1, 
+        geom_text_repel(aes(label = PROTEIN),
+                         box.padding   = 2, 
                          point.padding = 1,
-                         segment.color = 'grey50') +
+                         segment.color = 'grey50',
+                         #segment.size = 0,    
+                         min.segment.length = 0
+                         ) +
         ggtitle(as.character(input$GENE))+
-        theme_classic() +
+        theme_classic(base_size=18) +
         theme(axis.title.y=element_blank(),
               axis.ticks.y=element_blank(),
               plot.title = element_text(hjust = 0.5),
@@ -350,10 +353,12 @@ server <- function(input, output,session) {
         xlab("Amino acid position") +
         theme(axis.text.x = element_text(size = 8)) +
         coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
-        theme(plot.margin = margin(0, 0, 0, 0))
+        theme(plot.margin = margin(0, 0, 0, 0)) + 
+        annotate(
+          "text", x = 1, y = Inf, label = "Drag over mutations to see more",
+          hjust = 0, vjust = 2, color = "black", size = 5
+        )
       
-    
-    
   }, width = 750)
   
   # When a double-click happens, check if there's a brush on the plot.
