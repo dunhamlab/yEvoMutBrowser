@@ -244,17 +244,18 @@ server <- function(input, output,session) {
            uiOutput("pdf_viewer") )
   
   output$plot1 <- renderPlot({
-    if (input$classView) {
-      final %>% 
+    
+    filtered_data() %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = final$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = final$cent1, y = 0, xend = final$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
+        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = filtered_data()$Length, yend = 0, size=4.1,lineend = "round") +
+        geom_segment(x = filtered_data()$cent1, y = 0, xend = filtered_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
         scale_color_manual(values=pl_palette("lorax",17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                     filter(sample==input$sample)) + 
+        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
+                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) #%>% 
+                     #filter(sample==input$sample)
+                   ) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
               panel.background = element_blank()
@@ -265,28 +266,6 @@ server <- function(input, output,session) {
         theme(strip.text.y.left = element_text(angle = 0),
               plot.title = element_text(hjust = 0.5),
               legend.position="none")
-    } else {
-      final %>% 
-        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
-        ggplot() +
-        facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = final$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = final$cent1, y = 0, xend = final$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-        scale_color_manual(values=pl_palette("lorax",17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                     filter(condition==input$condition) %>% filter(background==input$background)) + 
-        theme(axis.text.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              panel.background = element_blank()
-        ) +
-        xlim(c(0,1540000)) +
-        ggtitle("Where do variants fall on chromosomes") + 
-        xlab("Position along chromosome") + ylab("Chromosome") +
-        theme(strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              legend.position="none")
-    }
     
   })
   
