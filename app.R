@@ -297,16 +297,14 @@ server <- function(input, output,session) {
   
   
   output$plot2 <- renderPlot({
-    if(input$classView) {
-      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample) %>% mutate(length = nchar(transition)) %>% 
-        filter(sample==input$sample[1]) %>%
-        count(transition) %>% 
-        summarise(n = n()) %>% as.numeric()
+      num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
+        mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
+        count(transition) %>% summarise(n = n()) %>% as.numeric()
       
       
-      final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,sample) %>% 
-        filter(sample==input$sample[1]) %>%
+      filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
+        #select(transition,sample) %>% 
+        #filter(sample==input$sample[1]) %>%
         mutate(length = nchar(transition)) %>% 
         #filter(length >= 3) %>%  
         mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
@@ -318,30 +316,6 @@ server <- function(input, output,session) {
               plot.title = element_text(hjust = 0.5),
               axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
         ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
-    } else {
-      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample,condition,background) %>% mutate(length = nchar(transition)) %>% 
-        filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        count(transition) %>% 
-        summarise(n = n()) %>% as.numeric()
-      
-      
-      final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,sample,condition,background) %>% 
-        filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        mutate(length = nchar(transition)) %>% 
-        #filter(length >= 3) %>%  
-        mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
-        ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
-        geom_bar() + theme_bw() + 
-        scale_fill_manual(values=pl_palette("lorax",num)) + 
-        theme(legend.position = "none",
-              strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-        ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
-    }
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
