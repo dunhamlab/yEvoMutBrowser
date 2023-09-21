@@ -210,54 +210,33 @@ server <- function(input, output,session) {
            uiOutput("pdf_viewer") )
   
   output$plot1 <- renderPlot({
-    if (input$classView) {
-      final %>% 
-        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
-        ggplot() +
-        facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = final$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = final$cent1, y = 0, xend = final$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-        scale_color_manual(values=pl_palette("lorax",17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                     filter(sample==input$sample)) + 
-        theme(axis.text.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              panel.background = element_blank()
-        ) +
-        xlim(c(0,1540000)) +
-        ggtitle("Where do variants fall on chromosomes") + 
-        xlab("Position along chromosome") + ylab("Chromosome") +
-        theme(strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              legend.position="none")
-    } else {
-      final %>% 
-        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
-        ggplot() +
-        facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = final$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = final$cent1, y = 0, xend = final$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-        scale_color_manual(values=pl_palette("lorax",17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=final
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))%>% 
-                     filter(condition==input$condition) %>% filter(background==input$background)) + 
-        theme(axis.text.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              panel.background = element_blank()
-        ) +
-        xlim(c(0,1540000)) +
-        ggtitle("Where do variants fall on chromosomes") + 
-        xlab("Position along chromosome") + ylab("Chromosome") +
-        theme(strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              legend.position="none")
-    }
     
-  })
+    filtered_data() %>% 
+        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
+        ggplot() +
+        facet_grid(vars(Chromosome),switch = "y") +
+        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = filtered_data()$Length, yend = 0, size=4.1,lineend = "round") +
+        geom_segment(x = filtered_data()$cent1, y = 0, xend = filtered_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
+        scale_color_manual(values=pl_palette("lorax",17)) +
+        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
+                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) #%>% 
+                    # filter(sample==input$sample)
+                   ) + 
+        theme(axis.text.y=element_blank(),
+              axis.ticks.y=element_blank(),
+              panel.background = element_blank()
+        ) +
+        xlim(c(0,1540000)) +
+        ggtitle("Where do variants fall on chromosomes") + 
+        xlab("Position along chromosome") + ylab("Chromosome") +
+        theme(strip.text.y.left = element_text(angle = 0),
+              plot.title = element_text(hjust = 0.5),
+              legend.position="none")
+    
+      })
   
   output$plot <- renderPlot({
-    if (input$classView) {
+    
       num <- final %>% filter(condition==input$condition) %>% 
         filter(background==input$background) %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
@@ -282,33 +261,6 @@ server <- function(input, output,session) {
         geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
         blank_theme + 
         scale_fill_manual(values=pl_palette("lorax",num))
-    } else { 
-      num <- final %>% filter(condition==input$condition) %>% 
-        filter(background==input$background) %>%
-        count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
-      
-      blank_theme <- theme_minimal()+
-        theme(
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.border = element_blank(),
-          panel.grid=element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          plot.title=element_text(size=14, face="bold"))
-      
-      final %>% filter(condition==input$condition) %>% 
-        filter(background==input$background) %>%
-        count(ANNOTATION) %>% 
-        mutate(percent=n/sum(n)*100) %>% 
-        ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
-        geom_bar(stat="identity", width=1) +
-        coord_polar("y", start=0) + 
-        ggtitle("Percentage of Variants by Type") + 
-        geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
-        blank_theme + 
-        scale_fill_manual(values=pl_palette("lorax",num))
-    }
   })
   
   
