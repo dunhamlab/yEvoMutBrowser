@@ -122,22 +122,46 @@ server <- function(input, output,session) {
       df <- rbind(final,read.csv(file$datapath, sep = ","))
       #df <- read.csv(file$datapath, sep = ",")
       uploaded_data(df)
-
     } else {
       uploaded_data(final)
     }
   })
   
-
+  
+  filtered_data <- reactive({
+    data <- uploaded_data()
+    
+    # Get the selected values from the dropdown menus
+    selected_instructor <- input$instructor
+    selected_year <- input$year
+    selected_sample <- input$sample
+    
+    if (selected_instructor != "All Selected") {
+      data <- data %>% filter(instructor == selected_instructor)
+      #filter_condition <- filter_condition & (instructor == selected_instructor)
+    }
+    
+    if (selected_year != "All Selected") {
+      data <- data %>% filter(year == selected_year)
+      #filter_condition <- filter_condition & (year == selected_year)
+    }
+    
+    if (selected_sample != "All Selected") {
+      data <- data %>% filter(sample == selected_sample)
+      #filter_condition <- filter_condition & (sample == selected_sample)
+    }
+    data
+  })
   
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
   })
+  
   outputOptions(output, 'filesUploaded', suspendWhenHidden=FALSE)
   
   # Render the dataframe in the tableOutput
   output$data_table <- renderTable({
-    uploaded_data()
+    filtered_data()
   })
   
   ###########finished by Virginia   
@@ -177,9 +201,7 @@ server <- function(input, output,session) {
       updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
     }
   })
-  
-  
-  
+
   
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
