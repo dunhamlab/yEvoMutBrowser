@@ -90,11 +90,15 @@ ui <-  navbarPage(
                )
              )
            )
-  )
+  ),
+  tabPanel("Tutorial",
+           div(img(src="img/how-to-WIDE.png",
+               height="65%", width="65%"),
+               style="text-align: center;")
+  ),
+  tabPanel("Background",
+         uiOutput("pdf_viewer"))
 ) #END OF UI
-
-tabPanel("Background",
-         uiOutput("pdf_viewer") )
 
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
@@ -217,6 +221,11 @@ server <- function(input, output,session) {
       updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
     }
   })
+    
+  observe({
+      updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
+  }) 
+
   
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
