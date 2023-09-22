@@ -90,6 +90,10 @@ ui <-  navbarPage(
                )
              )
            )
+  ),
+  tabPanel("Tutorial",
+           h2("Tutorial"),
+           img(src="img/yEvo_logo.png")
   )
 ) #END OF UI
 
@@ -205,6 +209,7 @@ server <- function(input, output,session) {
   }) 
   
   observe({
+<<<<<<< Updated upstream
     # once there is a file uploaded
     if(!is.null(input$datafile$datapath)){
       file_path <- input$datafile$datapath
@@ -214,13 +219,18 @@ server <- function(input, output,session) {
   }) 
   
   observe({
+=======
+>>>>>>> Stashed changes
     if (input$instructor == "All Selected") {
       updateSelectInput(session, "year", choices = c("All Selected", unique(uploaded_data()$year)))
     } else {
       updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
     }
   })
-  
+    
+  observe({
+      updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
+  }) 
 
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
