@@ -50,12 +50,13 @@ ui <-  navbarPage(
              # Left side, Class vs Cumulative View and options 
              sidebarPanel(
                fileInput("datafile", "Choose CSV File", accept = ".csv"),
-               conditionalPanel(
-                 # links condition to button via button key 
-                 condition = "output.filesUploaded",
-                 textInput("inputted_instructor", "Who is your Instructor"),
-                 textInput("inputted_year", "What is the current year")
-               ),
+               # conditionalPanel(
+               #   # Asks for instructor/year so we can modify user uploaded file so we can combine it
+                   # with our current data
+               #   condition = "output.filesUploaded",
+               #   textInput("inputted_instructor", "Who is your Instructor"),
+               #   textInput("inputted_year", "What is the current year")
+               # ),
               radioButtons("View", "Select an option:",
                             choices = c("View Class Data", "View Cumulative Data"),
                             selected = character(0)),
