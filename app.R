@@ -122,19 +122,19 @@ server <- function(input, output,session) {
       df <- rbind(final,read.csv(file$datapath, sep = ","))
       #df <- read.csv(file$datapath, sep = ",")
       uploaded_data(df)
-      
-      file_path <- input$datafile$datapath
-      csv_data <- read.csv(file_path)
-      # Assuming the CSV file has a column named "instructor"
-      n1choices <- unique(csv_data$instructor)
-      updateSelectInput(session, "instructor", choices = c(n1choices, final %>% count(instructor) %>% pull(instructor)))
 
+      # file_path <- input$datafile$datapath
+      # csv_data <- read.csv(file_path)
+      # Assuming the CSV file has a column named "instructor"
+      # n1choices <- unique(csv_data$instructor)
+      # n2choices <- unique(csv_data$year)
+      # # Autofill for the uploaded file
+      # updateSelectInput(session, "instructor", choices = c(n1choices, final %>% count(instructor) %>% pull(instructor)))
+      # updateSelectInput(session,"year", choices = c(n2choices, as.character(final[final$instructor==input$instructor, "year"])))
     } else {
       uploaded_data(final)
     }
   })
-  
-
   
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
@@ -166,25 +166,10 @@ server <- function(input, output,session) {
     }
   })
   
-
-  
   observe({
     updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
   }) 
   
-  observe({
-    # Once there is a file uploaded
-    if (!is.null(input$datafile$datapath)) {
-      file_path <- input$datafile$datapath
-      csv_data <- read.csv(file_path)
-      n2choices <- unique(csv_data$year)
-      # autofill year dropdown
-      updateSelectInput(session,"year", choices = c(n2choices, as.character(final[final$instructor==input$instructor, "year"])))
-    } else {
-      updateSelectInput(session, "year", choices = c("None Selected", as.character(final[final$instructor==input$instructor, "year"])))
-    }
-  })
-
   observe({
     # once there is a file uploaded
     if(!is.null(input$datafile$datapath)){
@@ -194,9 +179,8 @@ server <- function(input, output,session) {
       # autofill LabGroup dropdown
       updateSelectInput(session,"sample", choices = c(n3choices, as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
     } else {
-    updateSelectInput(session, "sample", choices = c("None Selected", as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+      updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
     }
-    updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
   }) 
   
   observe({
@@ -206,9 +190,6 @@ server <- function(input, output,session) {
       updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
     }
   })
-  
-  
-  
   
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
