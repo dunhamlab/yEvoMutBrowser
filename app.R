@@ -92,13 +92,13 @@ ui <-  navbarPage(
            )
   ),
   tabPanel("Tutorial",
-           h2("Tutorial"),
-           img(src="img/yEvo_logo.png")
-  )
+           div(img(src="img/How-to.png",
+               height="55%", width="55%"),
+               style="text-align: center;")
+  ),
+  tabPanel("Background",
+         uiOutput("pdf_viewer"))
 ) #END OF UI
-
-tabPanel("Background",
-         uiOutput("pdf_viewer") )
 
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
