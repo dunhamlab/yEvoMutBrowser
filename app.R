@@ -50,6 +50,12 @@ ui <-  navbarPage(
              # Left side, Class vs Cumulative View and options 
              sidebarPanel(
                fileInput("datafile", "Choose CSV File", accept = ".csv"),
+               conditionalPanel(
+                 # links condition to button via button key 
+                 condition = "output.filesUploaded",
+                 textInput("inputted_instructor", "Who is your Instructor"),
+                 textInput("inputted_year", "What is the current year")
+               ),
                checkboxInput("classView", "View Class Data"),
                checkboxInput("cumulView", "View Cumulative Data"),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
@@ -118,15 +124,6 @@ server <- function(input, output,session) {
       df <- rbind(final,read.csv(file$datapath, sep = ","))
       #df <- read.csv(file$datapath, sep = ",")
       uploaded_data(df)
-
-      # file_path <- input$datafile$datapath
-      # csv_data <- read.csv(file_path)
-      # Assuming the CSV file has a column named "instructor"
-      # n1choices <- unique(csv_data$instructor)
-      # n2choices <- unique(csv_data$year)
-      # # Autofill for the uploaded file
-      # updateSelectInput(session, "instructor", choices = c(n1choices, final %>% count(instructor) %>% pull(instructor)))
-      # updateSelectInput(session,"year", choices = c(n2choices, as.character(final[final$instructor==input$instructor, "year"])))
     } else {
       uploaded_data(final)
     }
@@ -169,7 +166,9 @@ server <- function(input, output,session) {
     data 
   })
   
-  #storing a bool to see if a file has been uploaded
+  # storing a bool to see if a file has been uploaded
+  # if a file has be uploaded, using the condition that if output$filesUploaded 
+  # is true, we can auto-open the class view
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
   })
