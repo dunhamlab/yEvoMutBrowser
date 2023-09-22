@@ -204,18 +204,11 @@ server <- function(input, output,session) {
     updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
   }) 
   
+  
   observe({
-    # once there is a file uploaded
-    if(!is.null(input$datafile$datapath)){
-      file_path <- input$datafile$datapath
-      csv_data <- read.csv(file_path)
-      n3choices <- unique(csv_data$sample)
-      # autofill LabGroup dropdown
-      updateSelectInput(session,"sample", choices = c(n3choices, as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
-    } else {
-      updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
-    }
-  }) 
+      updateSelectInput(session, "instructor", choices = c("All Selected", unique(uploaded_data()$instructor)))
+  })
+  
   
   observe({
     if (input$instructor == "All Selected") {
@@ -225,7 +218,6 @@ server <- function(input, output,session) {
     }
   })
   
-
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
