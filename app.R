@@ -49,7 +49,7 @@ ui <-  navbarPage(
            sidebarLayout(
              # Left side, Class vs Cumulative View and options 
              sidebarPanel(
-               fileInput("datafile", "Choose CSV File", accept = ".csv"),
+               fileInput("datafile", "Optional: Upload additional CSV File", accept = ".csv"),
                conditionalPanel(
                  # links condition to button via button key 
                  condition = "output.filesUploaded",
