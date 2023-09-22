@@ -49,7 +49,7 @@ ui <-  navbarPage(
            sidebarLayout(
              # Left side, Class vs Cumulative View and options 
              sidebarPanel(
-               fileInput("datafile", "Choose CSV File", accept = ".csv"),
+               fileInput("datafile", "Optional: Upload additional CSV File", accept = ".csv"),
                # conditionalPanel(
                #   # Asks for instructor/year so we can modify user uploaded file so we can combine it
                    # with our current data
