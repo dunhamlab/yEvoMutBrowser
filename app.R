@@ -208,10 +208,6 @@ server <- function(input, output,session) {
     # once there is a file uploaded
     if(!is.null(input$datafile$datapath)){
       file_path <- input$datafile$datapath
-      csv_data <- read.csv(file_path)
-      n3choices <- unique(csv_data$sample)
-      # autofill LabGroup dropdown
-      updateSelectInput(session,"sample", choices = c(n3choices, as.character(final %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
     } else {
       updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
     }
