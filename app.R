@@ -208,19 +208,13 @@ server <- function(input, output,session) {
     updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
   }) 
   
-  observe({
-<<<<<<< Updated upstream
-    # once there is a file uploaded
-    if(!is.null(input$datafile$datapath)){
-      file_path <- input$datafile$datapath
-    } else {
-      updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
-    }
-  }) 
   
   observe({
-=======
->>>>>>> Stashed changes
+      updateSelectInput(session, "instructor", choices = c("All Selected", unique(uploaded_data()$instructor)))
+  })
+  
+  
+  observe({
     if (input$instructor == "All Selected") {
       updateSelectInput(session, "year", choices = c("All Selected", unique(uploaded_data()$year)))
     } else {
@@ -232,6 +226,7 @@ server <- function(input, output,session) {
       updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
   }) 
 
+  
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
