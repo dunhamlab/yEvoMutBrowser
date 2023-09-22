@@ -276,17 +276,18 @@ server <- function(input, output,session) {
   
   tabPanel("Background",
            uiOutput("pdf_viewer") )
-  #CODE FOR RENDERING PLOTS BELOW
+  
   output$chromPlot <- renderPlot({
-        filtered_data()%>%
+      uploaded_data() %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
         ggplot() +
         facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = filtered_data()$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = filtered_data()$cent1, y = 0, xend = filtered_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
+        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = uploaded_data()$Length, yend = 0, size=4.1,lineend = "round") +
+        geom_segment(x = uploaded_data()$cent1, y = 0, xend = uploaded_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
         scale_color_manual(values=pl_palette("lorax",17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) #%>% 
+                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))
+
                    ) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
@@ -298,7 +299,6 @@ server <- function(input, output,session) {
         theme(strip.text.y.left = element_text(angle = 0),
               plot.title = element_text(hjust = 0.5),
               legend.position="none")
-    
   })
   
   output$varPieChart <- renderPlot({
