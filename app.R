@@ -92,8 +92,8 @@ ui <-  navbarPage(
            )
   ),
   tabPanel("Tutorial",
-           div(img(src="img/How-to.png",
-               height="55%", width="55%"),
+           div(img(src="img/how-to-WIDE.png",
+               height="65%", width="65%"),
                style="text-align: center;")
   ),
   tabPanel("Background",
