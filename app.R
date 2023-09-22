@@ -56,20 +56,21 @@ ui <-  navbarPage(
                  textInput("inputted_instructor", "Who is your Instructor"),
                  textInput("inputted_year", "What is the current year")
                ),
-               checkboxInput("classView", "View Class Data"),
-               checkboxInput("cumulView", "View Cumulative Data"),
+              radioButtons("View", "Select an option:",
+                            choices = c("View Class Data", "View Cumulative Data"),
+                            selected = character(0)),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
                # Only shows on condition observeEvent
                conditionalPanel(
                  # links condition to button via button key 
-                 condition = "input.uploadData || input.classView",
+                 condition = "input.uploadData || input.classView || output.selectedClassView",
                  selectInput("instructor", "Instructor", choices = c('')),
                  selectInput("year", "Year", choices = c('')),
 # PLEASE NOTE: "sample" is called "Lab Group" within ui to make it easier to understand, but the official name in the df is sample                 
                  selectInput("sample", "Lab Group", choices = c('')),
                ),
                conditionalPanel(
-                 condition = "input.cumulView",
+                 condition = "input.cumulView || output.selectedCumulView",
                  selectInput("condition", "Condition", choices = c('None Selected', final %>% count(condition) %>% pull(condition))),
                  selectInput("background", "Background", choices = c('')),
                ),
@@ -137,25 +138,24 @@ server <- function(input, output,session) {
   #filtering dataframe based on menu selection
   filtered_data <- reactive({
     data <- uploaded_data()
-    if (input$classView) {
-    # Get the selected values from the dropdown menus
-    selected_instructor <- input$instructor
-    selected_year <- input$year
-    selected_sample <- input$sample
-    
-    #filtering based on selections if NOT all selected
-    if (selected_instructor != "All Selected") {
-      data <- data %>% filter(instructor == selected_instructor)
-    }
-    
-    if (selected_year != "All Selected") {
-      data <- data %>% filter(year == selected_year)
-    }
-    
-    if (selected_sample != "All Selected") {
-      data <- data %>% filter(sample == selected_sample)
-    }
-    }else if (input$cumulView) {
+    if(!is.null(input$View)){
+      
+      if (input$View == "View Class Data") {
+        # Get the selected values from the dropdown menus
+        selected_instructor <- input$instructor
+        selected_year <- input$year
+        selected_sample <- input$sample
+        #filtering based on selections if NOT all selected
+        if (selected_instructor != "All Selected") {
+          data <- data %>% filter(instructor == selected_instructor)
+        }
+        if (selected_year != "All Selected") {
+          data <- data %>% filter(year == selected_year)
+        }
+        if (selected_sample != "All Selected") {
+          data <- data %>% filter(sample == selected_sample)
+        }
+    } else if (input$View == "View Cumulative Data") {
       selected_condition <- input$condition
       selected_background <- input$background
       
@@ -166,6 +166,7 @@ server <- function(input, output,session) {
       if (selected_background != "None Selected") {
         data <- data %>% filter(background == selected_background)
       }
+    }
     }
     data 
   })
@@ -179,6 +180,20 @@ server <- function(input, output,session) {
   
   outputOptions(output, 'filesUploaded', suspendWhenHidden=FALSE)
   
+  output$selectedClassView <- reactive({
+    if(!is.null(input$View)){
+      value <- (input$View == "View Class Data")
+    }
+  })
+  outputOptions(output, 'selectedClassView', suspendWhenHidden=FALSE)
+  
+  output$selectedCumulView <- reactive({
+    if(!is.null(input$View)){
+      value <- (input$View == "View Cumulative Data")
+    }
+  })
+  outputOptions(output, 'selectedCumulView', suspendWhenHidden=FALSE)
+  
   # Render the dataframe in the tableOutput
   output$data_table <- renderTable({
     filtered_data()
@@ -186,21 +201,28 @@ server <- function(input, output,session) {
   
   #Display settings
   observe({
-    if (input$classView) { 
+    if(!is.null(input$View)){
+      if (input$View == "View Class Data") { 
+        shinyjs::disable("cumulView")
+        shinyjs::enable("classView")
+      }
+      else if(input$View == "View Cumulative Data"){
+        shinyjs::enable("cumulView")
+        shinyjs::disable("classView")
+      }
+    } else {
+      shinyjs::disable("classView")
       shinyjs::disable("cumulView")
     }
-    else {
-    shinyjs::enable("cumulView")
-    }
   })
-  observe({
-    if (input$cumulView) { 
-      shinyjs::disable("classView")
-    }
-    else {
-      shinyjs::enable("classView")
-    }
-  })
+  # observe({
+  #   if (input$cumulView) { 
+  #     shinyjs::disable("classView")
+  #   }
+  #   else {
+  #     shinyjs::enable("classView")
+  #   }
+  # })
   
 
   #Handling behaviors for button selections
