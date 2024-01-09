@@ -257,16 +257,16 @@ server <- function(input, output,session) {
   observe({
     updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(uploaded_data()[uploaded_data()$sample==input$sample, "GENE"]%>% discard(is.na))
     } else {as.character(filtered_data() %>% pull(GENE) %>% discard(is.na)) })
+    
   })
   
-  
-  observe({
-    updateSelectInput(session, "SGDID", choices  = as.character(uploaded_data()[uploaded_data()$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
-  })
   
   # Learn about Gene button within gene viewer
+  sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
-    url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
+    sgdid_values <- as.character(uploaded_data()[uploaded_data()$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
+    sgdid$value <- sgdid_values
+    url <- a("Learn about Gene",href=paste0(link, sgdid$value),class="btn btn-default", target='_blank')
     url
   })
   
