@@ -67,8 +67,8 @@ ui <-  navbarPage(
                  condition = "input.uploadData || input.classView || output.selectedClassView",
                  selectInput("instructor", "Instructor", choices = c('')),
                  selectInput("year", "Year", choices = c('')),
-# PLEASE NOTE: "sample" is called "Lab Group" within ui to make it easier to understand, but the official name in the df is sample                 
-                 selectInput("sample", "Lab Group", choices = c('')),
+# PLEASE NOTE: "sample" is called "Sample Name" within ui to make it easier to understand, but the official name in the df is sample                 
+                 selectInput("sample", "Sample Name", choices = c('')),
                ),
                conditionalPanel(
                  condition = "input.cumulView || output.selectedCumulView",
