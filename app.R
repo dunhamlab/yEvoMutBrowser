@@ -58,7 +58,7 @@ ui <-  navbarPage(
                #   textInput("inputted_year", "What is the current year")
                # ),
               radioButtons("View", "Select an option:",
-                            choices = c("View Class Data", "View Cumulative Data"),
+                            choices = c("View By Class", "View By Selection Condition"),
                             selected = character(0)),
                div("", style = "height: 20px;"),  # Create a 20px vertical space
                # Only shows on condition observeEvent
@@ -140,7 +140,7 @@ server <- function(input, output,session) {
     data <- uploaded_data()
     if(!is.null(input$View)){
       
-      if (input$View == "View Class Data") {
+      if (input$View == "View By Class") {
         # Get the selected values from the dropdown menus
         selected_instructor <- input$instructor
         selected_year <- input$year
@@ -155,7 +155,7 @@ server <- function(input, output,session) {
         if (selected_sample != "All Selected") {
           data <- data %>% filter(sample == selected_sample)
         }
-    } else if (input$View == "View Cumulative Data") {
+    } else if (input$View == "View By Selection Condition") {
       selected_condition <- input$condition
       selected_background <- input$background
       
@@ -182,14 +182,14 @@ server <- function(input, output,session) {
   
   output$selectedClassView <- reactive({
     if(!is.null(input$View)){
-      value <- (input$View == "View Class Data")
+      value <- (input$View == "View By Class")
     }
   })
   outputOptions(output, 'selectedClassView', suspendWhenHidden=FALSE)
   
   output$selectedCumulView <- reactive({
     if(!is.null(input$View)){
-      value <- (input$View == "View Cumulative Data")
+      value <- (input$View == "View By Selection Condition")
     }
   })
   outputOptions(output, 'selectedCumulView', suspendWhenHidden=FALSE)
@@ -202,11 +202,11 @@ server <- function(input, output,session) {
   #Display settings
   observe({
     if(!is.null(input$View)){
-      if (input$View == "View Class Data") { 
+      if (input$View == "View By Class") { 
         shinyjs::disable("cumulView")
         shinyjs::enable("classView")
       }
-      else if(input$View == "View Cumulative Data"){
+      else if(input$View == "View By Selection Condition"){
         shinyjs::enable("cumulView")
         shinyjs::disable("classView")
       }
@@ -259,7 +259,6 @@ server <- function(input, output,session) {
     } else {as.character(filtered_data() %>% pull(GENE) %>% discard(is.na)) })
     
   })
-  
   
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
