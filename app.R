@@ -60,7 +60,13 @@ ui <-  navbarPage(
               radioButtons("View", "Select an option:",
                             choices = c("View By Class", "View By Selection Condition"),
                             selected = character(0)),
-               div("", style = "height: 20px;"),  # Create a 20px vertical space
+               div("", style = "height: 10px;"),  # Create a 10px vertical space
+              
+              #create download button here
+              downloadButton("downloadBtn", "Download the following data"),
+              
+              div("", style = "height: 10px;"),  # Create a 10px vertical space
+              
                # Only shows on condition observeEvent
                conditionalPanel(
                  # links condition to button via button key 
@@ -139,7 +145,6 @@ server <- function(input, output,session) {
   filtered_data <- reactive({
     data <- uploaded_data()
     if(!is.null(input$View)){
-      
       if (input$View == "View By Class") {
         # Get the selected values from the dropdown menus
         selected_instructor <- input$instructor
@@ -170,6 +175,38 @@ server <- function(input, output,session) {
     }
     data 
   })
+  
+  #download button functionality
+  output$downloadBtn <- downloadHandler(
+    filename = function() {
+      # Set the filename for the downloaded file
+      if(is.null(input$View)){
+        "master_table.csv"
+      }else if (input$View == "View By Class") {
+        selected_instructor <- input$instructor
+        selected_year <- input$year
+        selected_sample <- input$sample
+        if (selected_sample != "All Selected") {
+          paste0(selected_instructor, "_",selected_year,"_",selected_sample,".csv")
+        }else if (selected_year != "All Selected") {
+          paste0(selected_instructor, "_",selected_year,".csv")
+        }else if (selected_instructor != "All Selected") {
+          paste0(selected_instructor,".csv")
+        }
+        
+      }else if (input$View == "View By Selection Condition") {
+        if(input$background != "None Selected"){
+        paste0(input$condition,"_",input$background,".csv")
+        }else{
+          paste0(input$condition,".csv")
+        }
+      }
+    },
+    content = function(file) {
+      # Write the data to a CSV file
+      write.csv(filtered_data(), file)
+    }
+  )
   
   # storing a bool to see if a file has been uploaded
   # if a file has be uploaded, using the condition that if output$filesUploaded 
