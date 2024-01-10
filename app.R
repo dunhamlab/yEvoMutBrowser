@@ -215,15 +215,6 @@ server <- function(input, output,session) {
       shinyjs::disable("cumulView")
     }
   })
-  # observe({
-  #   if (input$cumulView) { 
-  #     shinyjs::disable("classView")
-  #   }
-  #   else {
-  #     shinyjs::enable("classView")
-  #   }
-  # })
-  
 
   #Handling behaviors for button selections
   observe({
