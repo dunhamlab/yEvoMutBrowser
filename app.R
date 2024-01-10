@@ -1,7 +1,7 @@
 # List of required packages
 required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                        "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
-                       "purrr", "PLColors", "shinyjs")
+                       "purrr", "PLColors", "shinyjs", "viridis")
 
 # Check if packages are installed, and if not, install them
 new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
@@ -15,8 +15,8 @@ library(DBI)
 library(RSQLite)
 library(ggplot2) ## visualization data
 library(dplyr)
+library(viridis)
 library(tidyr) ## handling data ## df must be tidy to use a lot of packages 
-library(PLColors)
 library(forcats)
 library(ggrepel)
 library(purrr)
@@ -275,7 +275,7 @@ server <- function(input, output,session) {
   
   tabPanel("Background",
            uiOutput("pdf_viewer") )
-  
+
   output$chromPlot <- renderPlot({
       uploaded_data() %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
@@ -283,10 +283,9 @@ server <- function(input, output,session) {
         facet_grid(vars(Chromosome),switch = "y") +
         geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = uploaded_data()$Length, yend = 0, size=4.1,lineend = "round") +
         geom_segment(x = uploaded_data()$cent1, y = 0, xend = uploaded_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-        scale_color_manual(values=pl_palette("lorax",17)) +
+        scale_color_manual(values = rep("red", 17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
                    %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))
-
                    ) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
@@ -323,7 +322,7 @@ server <- function(input, output,session) {
         ggtitle("Percentage of Variants by Type") + 
         geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
         blank_theme + 
-        scale_fill_manual(values=pl_palette("lorax",num))
+        scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1))
   })
   
   
@@ -338,7 +337,7 @@ server <- function(input, output,session) {
         mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
         ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
         geom_bar() + theme_bw() + 
-        scale_fill_manual(values=pl_palette("lorax",num)) + 
+        scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
         theme(legend.position = "none",
               strip.text.y.left = element_text(angle = 0),
               plot.title = element_text(hjust = 0.5),
