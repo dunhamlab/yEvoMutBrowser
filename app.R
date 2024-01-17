@@ -78,7 +78,7 @@ ui <-  navbarPage(
                ),
                conditionalPanel(
                  condition = "input.cumulView || output.selectedCumulView",
-                 selectInput("condition", "Condition", choices = c('None Selected', final %>% count(condition) %>% pull(condition))),
+                 selectInput("condition", "Condition", choices = c('All Selected', final %>% count(condition) %>% pull(condition))),
                  selectInput("background", "Background", choices = c('')),
                ),
              ),
@@ -164,11 +164,11 @@ server <- function(input, output,session) {
       selected_condition <- input$condition
       selected_background <- input$background
       
-      if (selected_condition != "None Selected") {
+      if (selected_condition != "All Selected") {
         data <- data %>% filter(condition == selected_condition)
       }
       
-      if (selected_background != "None Selected") {
+      if (selected_background != "All Selected") {
         data <- data %>% filter(background == selected_background)
       }
     }
@@ -195,7 +195,7 @@ server <- function(input, output,session) {
         }
         
       }else if (input$View == "View By Selection Condition") {
-        if(input$background != "None Selected"){
+        if(input$background != "All Selected"){
         paste0(input$condition,"_",input$background,".csv")
         }else{
           paste0(input$condition,".csv")
@@ -246,6 +246,7 @@ server <- function(input, output,session) {
       else if(input$View == "View By Selection Condition"){
         shinyjs::enable("cumulView")
         shinyjs::disable("classView")
+        #shinyjs:disable("background")
       }
     } else {
       shinyjs::disable("classView")
@@ -255,9 +256,22 @@ server <- function(input, output,session) {
 
   #Handling behaviors for button selections
   observe({
-    updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
-  }) 
-  
+    options <- c(as.character(uploaded_data() %>% filter(condition == input$condition) %>% pull(background)))
+    print(options)
+    if(length(unique(options)) != 1){ 
+      updateSelectInput(session, "background", choices = c('All Selected', options))
+      shinyjs::enable("background")
+    }else{
+      updateSelectInput(session, "background", choices = c(options))
+      shinyjs::disable("background")
+    }
+  })
+  #making the background not a button before selecting a condition
+  observe({
+    if(input$condition == "All Selected"){
+      shinyjs::disable("background")
+    }
+  })
   
   observe({
       updateSelectInput(session, "instructor", choices = c("All Selected", unique(uploaded_data()$instructor)))
