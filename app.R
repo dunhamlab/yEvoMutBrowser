@@ -349,8 +349,24 @@ server <- function(input, output,session) {
               legend.position="none")
   })
   
+<<<<<<< Updated upstream
   #TODO: Make sure annotations come from the right place (should also be in filtered df)
+=======
+  # Color dictionary for each annotation in Pie Chart
+  color_vector <- c("red", "blue", "green", "orange", "purple",
+                    "cyan", "magenta", "yellow", "brown", "pink",
+                    "darkgreen", "lightblue", "violet", "gold", "gray")
+  # Maps specific annotation to specific color
+  annotat_colormap <- list("5'-upstream" = color_vector[0], "ARS" = color_vector[1], 
+                           "coding-nonsynonymous" = color_vector[2], "coding-synonymous" = color_vector[3],
+                           "intergenic" = color_vector[4], "intron" = color_vector[5],
+                           "LTR_retrotransposon" = color_vector[6], "rRNA" = color_vector[7],
+                           "telomere" = color_vector[8], "tRNA" = color_vector[9])
+  
+  
+>>>>>>> Stashed changes
   output$varPieChart <- renderPlot({
+    # gives us the number of annotations
       num <- filtered_data() %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
       
