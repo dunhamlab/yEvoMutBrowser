@@ -16,7 +16,7 @@ library(RSQLite)
 library(ggplot2) ## visualization data
 library(dplyr)
 library(viridis)
-library(tidyr) ## handling data ## df must be tidy to use a lot of packages 
+library(tidyr) ## handling data, df must be tidy to use a lot of packages 
 library(forcats)
 library(ggrepel)
 library(purrr)
@@ -110,25 +110,31 @@ ui <-  navbarPage(
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
   #initially setting default file
-  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv"))
+#CURRENTLY DOESN'T WORK BECAUSE IT DOES NOT HAVE THE GENE/CHROM INFO, INITIALLY IN final_allVCF.csv
+  uploaded_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
   output$info <- renderText({
     xy_range_str <- function(e) {
       if(is.null(e)) return("Drag over variant tick mark to see details\n")
+      
+      ##FOLLOWING BLOCK USES GENE/CHROM DATA
+      #TODO: Change to gene/chrom file
       paste0("Variant Gene: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
              "Reference: ", filtered_data()%>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
              "Variant: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
              "Position: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
              "Chromosome: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
     }
+     ##END GENE/CHROM DATA BLOCK
     paste0(
-      xy_range_str(input$plot_brush)
+      xy_range_str(input$plot_brush) #pulls in the user selected section (?)
     )
   })
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
+  #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$datafile, {
     file <- input$datafile
     if (!is.null(file) && all(names(final) == names(read.csv(file$datapath, sep = ",")))) {
@@ -302,6 +308,7 @@ server <- function(input, output,session) {
     
   })
   
+  #TODO: make sure gene info and sgdid info is coming from the right place ->should all be handled within filtering function(?)
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
@@ -318,6 +325,7 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
 
+  #TODO: replace chromosome and gene data w the correct path
   output$chromPlot <- renderPlot({
       uploaded_data() %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
@@ -341,6 +349,7 @@ server <- function(input, output,session) {
               legend.position="none")
   })
   
+  #TODO: Make sure annotations come from the right place (should also be in filtered df)
   output$varPieChart <- renderPlot({
       num <- filtered_data() %>%
         count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
@@ -368,6 +377,7 @@ server <- function(input, output,session) {
   })
   
   
+  #TODO: figure out what ref, alt, are from and what info we need here?
   output$snpCountPlot <- renderPlot({
     # counting number of transitions to display to set for colors and plot
       num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
@@ -389,6 +399,7 @@ server <- function(input, output,session) {
   
   ranges <- reactiveValues(x = NULL, y = NULL)
   
+  #TODO: AA_POS what is going on here lol and do we have the right info
   output$geneViewPlot <- renderPlot({
       xlength <- filtered_data() %>%
         filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
@@ -427,6 +438,7 @@ server <- function(input, output,session) {
       
   }, width = 750)
   
+  #TODO: how can we find the y values to properly match up with each chromosome?
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
   observeEvent(input$geneViewPlot_dblclick, {
