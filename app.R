@@ -24,7 +24,7 @@ library(shinyjs)
 
 
 #loading in the final VCF file 
-final <- read.csv("final_allVCF.csv")
+final <- read.csv("all_yEvo_vcf.csv") #final_allVCF is what used to be here
 
 #need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
