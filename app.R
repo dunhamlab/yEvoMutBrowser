@@ -349,26 +349,44 @@ server <- function(input, output,session) {
               legend.position="none")
   })
   
-<<<<<<< Updated upstream
-  #TODO: Make sure annotations come from the right place (should also be in filtered df)
-=======
-  # Color dictionary for each annotation in Pie Chart
-  color_vector <- c("red", "blue", "green", "orange", "purple",
-                    "cyan", "magenta", "yellow", "brown", "pink",
-                    "darkgreen", "lightblue", "violet", "gold", "gray")
   # Maps specific annotation to specific color
-  annotat_colormap <- list("5'-upstream" = color_vector[0], "ARS" = color_vector[1], 
-                           "coding-nonsynonymous" = color_vector[2], "coding-synonymous" = color_vector[3],
-                           "intergenic" = color_vector[4], "intron" = color_vector[5],
-                           "LTR_retrotransposon" = color_vector[6], "rRNA" = color_vector[7],
-                           "telomere" = color_vector[8], "tRNA" = color_vector[9])
+  annotat_colormap <- c()
   
-  
->>>>>>> Stashed changes
   output$varPieChart <- renderPlot({
-    # gives us the number of annotations
-      num <- filtered_data() %>%
-        count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
+    # Color vector for each annotation in Pie Chart
+    # just add the same number of colors as number of annotations
+    # ex. if there are 10 unique annotations, put 10 unique colors
+    # in this color vector
+    color_vector <- c("red", "blue", "green", "orange", "purple",
+                      "cyan", "magenta", "yellow", "brown", "pink",
+                      "darkgreen", "lightblue", "violet", "gold", "gray")
+    
+    # gives us the number of unique annotations in filtered data
+      unique_annotations <- filtered_data() %>%
+        distinct(ANNOTATION) %>% pull(ANNOTATION)
+      
+      # if there are new annotations that have not been mapped to a color
+      # put them in this named vector with [annotation = color] 
+      new_anno_vector <- c()
+      # keep track of which unique index in the color_vector we will choose
+      # for our new annotations
+      cur_anno_length = length(annotat_colormap) + 1
+      # check along all unique annotations
+      for (i in seq_along(unique_annotations)) {
+        # if there are new annotations, add it to the color map 
+        # and set it to next available color
+        if (!(unique_annotations[i] %in% names(annotat_colormap))){
+          # get the new unused color for our new annotation
+          new_color = color_vector[cur_anno_length]
+          # add this new annotation and color name-value pair to a vector
+          new_anno_vector <- c(new_anno_vector, setNames(new_color,unique_annotations[i]))
+          # increment to cur_anno_length to next unique color
+          cur_anno_length = cur_anno_length + 1
+        }
+      }
+      # now combine back into annotat_colormap
+      # and permanently update (does not reset unless you close and rerun the program)
+      annotat_colormap <<- c(annotat_colormap, new_anno_vector)
       
       blank_theme <- theme_minimal()+
         theme(
@@ -389,7 +407,7 @@ server <- function(input, output,session) {
         ggtitle("Percentage of Variants by Type") + 
         geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
         blank_theme + 
-        scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1))
+        scale_fill_manual(values=annotat_colormap)
   })
   
   
