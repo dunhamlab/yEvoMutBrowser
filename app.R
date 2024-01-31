@@ -24,7 +24,8 @@ library(shinyjs)
 
 
 #loading in the final VCF file 
-final <- read.csv("all_yEvo_vcf.csv") #final_allVCF is what used to be here
+final <- read.csv("final_allVCF.csv") #final_allVCF is what used to be here
+#change this to all_yEvo_vcf.csv once gene info is fixed
 
 #need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
@@ -111,7 +112,7 @@ ui <-  navbarPage(
 server <- function(input, output,session) {
   #initially setting default file
 #CURRENTLY DOESN'T WORK BECAUSE IT DOES NOT HAVE THE GENE/CHROM INFO, INITIALLY IN final_allVCF.csv
-  uploaded_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
+  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv")) 
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
