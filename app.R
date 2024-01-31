@@ -23,9 +23,14 @@ library(purrr)
 library(shinyjs)
 
 
-#loading in the final VCF file 
-final <- read.csv("final_allVCF.csv") #final_allVCF is what used to be here
-#change this to all_yEvo_vcf.csv once gene info is fixed
+#loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
+mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
+
+#loading in the genes data file
+genes_info <- read.csv("gene_info.csv")
+
+#loading in the chromosomes data file
+chrom_info <- read.csv("chromosome_info.csv")
 
 #need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
@@ -79,7 +84,7 @@ ui <-  navbarPage(
                ),
                conditionalPanel(
                  condition = "input.cumulView || output.selectedCumulView",
-                 selectInput("condition", "Condition", choices = c('All Selected', final %>% count(condition) %>% pull(condition))),
+                 selectInput("condition", "Condition", choices = c('All Selected', mut_backend %>% count(condition) %>% pull(condition))),
                  selectInput("background", "Background", choices = c('')),
                ),
              ),
@@ -110,9 +115,8 @@ ui <-  navbarPage(
 
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
-  #initially setting default file
-#CURRENTLY DOESN'T WORK BECAUSE IT DOES NOT HAVE THE GENE/CHROM INFO, INITIALLY IN final_allVCF.csv
-  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv")) 
+  #initially setting default file of all mutation data
+  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
@@ -138,19 +142,19 @@ server <- function(input, output,session) {
   #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$datafile, {
     file <- input$datafile
-    if (!is.null(file) && all(names(final) == names(read.csv(file$datapath, sep = ",")))) {
-      df <- rbind(final,read.csv(file$datapath, sep = ","))
+    if (!is.null(file) && all(names(mut_backend) == names(read.csv(file$datapath, sep = ",")))) {
+      df <- rbind(mut_backend,read.csv(file$datapath, sep = ","))
       #df <- read.csv(file$datapath, sep = ",")
-      uploaded_data(df)
+      mutation_data(df)
     } else {
-      uploaded_data(final)
+      mutation_data(mut_backend)
     }
   })
   
 
   #filtering dataframe based on menu selection
   filtered_data <- reactive({
-    data <- uploaded_data()
+    data <- mutation_data()
     if(!is.null(input$View)){
       if (input$View == "View By Class") {
         # Get the selected values from the dropdown menus
@@ -263,7 +267,7 @@ server <- function(input, output,session) {
 
   #Handling behaviors for button selections
   observe({
-    options <- c(as.character(uploaded_data() %>% filter(condition == input$condition) %>% pull(background)))
+    options <- c(as.character(mutation_data() %>% filter(condition == input$condition) %>% pull(background)))
     print(options)
     if(length(unique(options)) != 1){ 
       updateSelectInput(session, "background", choices = c('All Selected', options))
@@ -281,30 +285,30 @@ server <- function(input, output,session) {
   })
   
   observe({
-      updateSelectInput(session, "instructor", choices = c("All Selected", unique(uploaded_data()$instructor)))
+      updateSelectInput(session, "instructor", choices = c("All Selected", unique(mutation_data()$instructor)))
   })
   
   
   observe({
     if (input$instructor == "All Selected") {
-      updateSelectInput(session, "year", choices = c("All Selected", unique(uploaded_data()$year)))
+      updateSelectInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)))
     } else {
-      updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
+      updateSelectInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])))
     }
   })
     
   observe({
-      updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
+      updateSelectInput(session, "instructor", choices = c('All Selected', unique(mutation_data()$instructor)))
   }) 
 
   
   observe({
-    updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    updateSelectInput(session, "sample", choices = c("All Selected", as.character(mutation_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(uploaded_data()[uploaded_data()$sample==input$sample, "GENE"]%>% discard(is.na))
+    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(mutation_data()[mutation_data()$sample==input$sample, "GENE"]%>% discard(is.na))
     } else {as.character(filtered_data() %>% pull(GENE) %>% discard(is.na)) })
     
   })
@@ -313,7 +317,7 @@ server <- function(input, output,session) {
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
-    sgdid_values <- as.character(uploaded_data()[uploaded_data()$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
+    sgdid_values <- as.character(genes_info[genes_info$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
     sgdid$value <- sgdid_values
     url <- a("Learn about Gene",href=paste0(link, sgdid$value),class="btn btn-default", target='_blank')
     url
@@ -328,15 +332,17 @@ server <- function(input, output,session) {
 
   #TODO: replace chromosome and gene data w the correct path
   output$chromPlot <- renderPlot({
-      uploaded_data() %>% 
-        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
+    chrom_info %>%
+        mutate(CHROM=forcats::fct_relevel(CHROM,'chrI','chrII','chrIII','chrIV','chrV','chrVI','chrVII','chrVIII','chrIX','chrX','chrXI','chrXII','chrXIII','chrXIV','chrXV','chrXVI','chrM')) %>%
         ggplot() +
-        facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = uploaded_data()$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = uploaded_data()$cent1, y = 0, xend = uploaded_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
+        facet_grid(vars(CHROM),switch = "y") +
+      # displaying the chromosome itself (of given length, with rounded ends)
+        geom_segment(aes(color=CHROM),x = 1, y = 0, xend = chrom_info$length, yend = 0, size=4.1,lineend = "round") + 
+      # displaying centromeres
+        geom_segment(x = chrom_info$cent1, y = 0, xend = chrom_info$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
         scale_color_manual(values = rep("red", 17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))
+                   %>% mutate(CHROM=forcats::fct_relevel(CHROM,'chrI','chrII','chrIII','chrIV','chrV','chrVI','chrVII','chrVIII','chrIX','chrX','chrXI','chrXII','chrXIII','chrXIV','chrXV','chrXVI','chrM'))
                    ) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
@@ -439,7 +445,7 @@ server <- function(input, output,session) {
       xlength <- filtered_data() %>%
         filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
-      filtered_data() %>% 
+      filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
         filter(GENE==input$GENE) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
