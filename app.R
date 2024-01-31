@@ -23,9 +23,8 @@ library(purrr)
 library(shinyjs)
 
 
-#loading in the final VCF file 
-final <- read.csv("all_yEvo_vcf.csv") #final_allVCF is what used to be here
-#change this to all_yEvo_vcf.csv once gene info is fixed
+#loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
+mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
 
 #loading in the genes data file
 genes_info <- read.csv("gene_info.csv")
@@ -85,7 +84,7 @@ ui <-  navbarPage(
                ),
                conditionalPanel(
                  condition = "input.cumulView || output.selectedCumulView",
-                 selectInput("condition", "Condition", choices = c('All Selected', final %>% count(condition) %>% pull(condition))),
+                 selectInput("condition", "Condition", choices = c('All Selected', mut_backend %>% count(condition) %>% pull(condition))),
                  selectInput("background", "Background", choices = c('')),
                ),
              ),
@@ -118,7 +117,7 @@ ui <-  navbarPage(
 server <- function(input, output,session) {
   #initially setting default file
 #CURRENTLY DOESN'T WORK BECAUSE IT DOES NOT HAVE THE GENE/CHROM INFO, INITIALLY IN final_allVCF.csv
-  uploaded_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
+  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
@@ -144,19 +143,19 @@ server <- function(input, output,session) {
   #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$datafile, {
     file <- input$datafile
-    if (!is.null(file) && all(names(final) == names(read.csv(file$datapath, sep = ",")))) {
-      df <- rbind(final,read.csv(file$datapath, sep = ","))
+    if (!is.null(file) && all(names(mut_backend) == names(read.csv(file$datapath, sep = ",")))) {
+      df <- rbind(mut_backend,read.csv(file$datapath, sep = ","))
       #df <- read.csv(file$datapath, sep = ",")
-      uploaded_data(df)
+      mutation_data(df)
     } else {
-      uploaded_data(final)
+      mutation_data(mut_backend)
     }
   })
   
 
   #filtering dataframe based on menu selection
   filtered_data <- reactive({
-    data <- uploaded_data()
+    data <- mutation_data()
     if(!is.null(input$View)){
       if (input$View == "View By Class") {
         # Get the selected values from the dropdown menus
@@ -269,7 +268,7 @@ server <- function(input, output,session) {
 
   #Handling behaviors for button selections
   observe({
-    options <- c(as.character(uploaded_data() %>% filter(condition == input$condition) %>% pull(background)))
+    options <- c(as.character(mutation_data() %>% filter(condition == input$condition) %>% pull(background)))
     print(options)
     if(length(unique(options)) != 1){ 
       updateSelectInput(session, "background", choices = c('All Selected', options))
@@ -287,30 +286,30 @@ server <- function(input, output,session) {
   })
   
   observe({
-      updateSelectInput(session, "instructor", choices = c("All Selected", unique(uploaded_data()$instructor)))
+      updateSelectInput(session, "instructor", choices = c("All Selected", unique(mutation_data()$instructor)))
   })
   
   
   observe({
     if (input$instructor == "All Selected") {
-      updateSelectInput(session, "year", choices = c("All Selected", unique(uploaded_data()$year)))
+      updateSelectInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)))
     } else {
-      updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
+      updateSelectInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])))
     }
   })
     
   observe({
-      updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
+      updateSelectInput(session, "instructor", choices = c('All Selected', unique(mutation_data()$instructor)))
   }) 
 
   
   observe({
-    updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    updateSelectInput(session, "sample", choices = c("All Selected", as.character(mutation_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(uploaded_data()[uploaded_data()$sample==input$sample, "GENE"]%>% discard(is.na))
+    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(mutation_data()[mutation_data()$sample==input$sample, "GENE"]%>% discard(is.na))
     } else {as.character(filtered_data() %>% pull(GENE) %>% discard(is.na)) })
     
   })
