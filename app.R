@@ -115,8 +115,7 @@ ui <-  navbarPage(
 
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
-  #initially setting default file
-#CURRENTLY DOESN'T WORK BECAUSE IT DOES NOT HAVE THE GENE/CHROM INFO, INITIALLY IN final_allVCF.csv
+  #initially setting default file of all mutation data
   mutation_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
@@ -446,7 +445,7 @@ server <- function(input, output,session) {
       xlength <- filtered_data() %>%
         filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
-      filtered_data() %>% 
+      filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
         filter(GENE==input$GENE) %>%
         mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
