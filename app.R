@@ -24,8 +24,14 @@ library(shinyjs)
 
 
 #loading in the final VCF file 
-final <- read.csv("final_allVCF.csv") #final_allVCF is what used to be here
+final <- read.csv("all_yEvo_vcf.csv") #final_allVCF is what used to be here
 #change this to all_yEvo_vcf.csv once gene info is fixed
+
+#loading in the genes data file
+genes_info <- read.csv("gene_info.csv")
+
+#loading in the chromosomes data file
+chrom_info <- read.csv("chromosome_info.csv")
 
 #need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
@@ -112,7 +118,7 @@ ui <-  navbarPage(
 server <- function(input, output,session) {
   #initially setting default file
 #CURRENTLY DOESN'T WORK BECAUSE IT DOES NOT HAVE THE GENE/CHROM INFO, INITIALLY IN final_allVCF.csv
-  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv")) 
+  uploaded_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
@@ -313,7 +319,7 @@ server <- function(input, output,session) {
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
-    sgdid_values <- as.character(uploaded_data()[uploaded_data()$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
+    sgdid_values <- as.character(genes_info[genes_info$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
     sgdid$value <- sgdid_values
     url <- a("Learn about Gene",href=paste0(link, sgdid$value),class="btn btn-default", target='_blank')
     url
@@ -328,15 +334,17 @@ server <- function(input, output,session) {
 
   #TODO: replace chromosome and gene data w the correct path
   output$chromPlot <- renderPlot({
-      uploaded_data() %>% 
-        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
+    chrom_info %>%
+        mutate(CHROM=forcats::fct_relevel(CHROM,'chrI','chrII','chrIII','chrIV','chrV','chrVI','chrVII','chrVIII','chrIX','chrX','chrXI','chrXII','chrXIII','chrXIV','chrXV','chrXVI','chrM')) %>%
         ggplot() +
-        facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = uploaded_data()$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = uploaded_data()$cent1, y = 0, xend = uploaded_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
+        facet_grid(vars(CHROM),switch = "y") +
+      # displaying the chromosome itself (of given length, with rounded ends)
+        geom_segment(aes(color=CHROM),x = 1, y = 0, xend = chrom_info$length, yend = 0, size=4.1,lineend = "round") + 
+      # displaying centromeres
+        geom_segment(x = chrom_info$cent1, y = 0, xend = chrom_info$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
         scale_color_manual(values = rep("red", 17)) +
         geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M'))
+                   %>% mutate(CHROM=forcats::fct_relevel(CHROM,'chrI','chrII','chrIII','chrIV','chrV','chrVI','chrVII','chrVIII','chrIX','chrX','chrXI','chrXII','chrXIII','chrXIV','chrXV','chrXVI','chrM'))
                    ) + 
         theme(axis.text.y=element_blank(),
               axis.ticks.y=element_blank(),
