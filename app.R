@@ -442,7 +442,7 @@ server <- function(input, output,session) {
   
   #TODO: AA_POS what is going on here lol and do we have the right info
   output$geneViewPlot <- renderPlot({
-      xlength <- filtered_data() %>%
+      xlength <- genes_info %>%
         filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       
       filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
@@ -451,7 +451,7 @@ server <- function(input, output,session) {
         mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
         ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
         geom_hline(yintercept=0, linetype=2,alpha=.2)+
-        geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
+        geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
         geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
         geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
         ylim(c(-0.2, 1.2))+ 
