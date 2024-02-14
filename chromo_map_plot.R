@@ -2,26 +2,23 @@
 library(ggplot2)
 library(plotly)
 library(dplyr)
+library(forcats)
 
 # Load data from a CSV file
 chromosometest <- read.csv(file.path(getwd(), "/chromosome_info.csv"))
 genetest <- read.csv(file.path(getwd(), "/gene_info.csv"))
-mutations_test <- read.csv(file.path(getwd(),"/final_allVCF.csv"))
+mutations_test <- read.csv(file.path(getwd(),"/all_yEvo_vcf.csv"))
+
 #test 150 genes
-#gene_test <- read.csv("C:/Users/virgi/OneDrive/UW/Other/test-yEvo/gene_info_test.csv")
+#genetest <- read.csv("C:/Users/virgi/OneDrive/UW/Other/test-yEvo/gene_info_test.csv")
 
-mutations_filtered <-subset(mutations_test, instructor == "Moscow")
+filtered_mutations <-filter(mutations_test, condition == "caffeine")
 # head(mutations_filtered)
-
-
 # Assuming your dataframes are mutations_filtered and gene_test
 
 # Merge the dataframes based on the "REGION" column
-filtered_genes_data <- merge(mutations_filtered, gene_test, by = "REGION")
-
-# Display the merged data
-#print(merged_data)
-
+filtered_genes_data <- left_join(filtered_mutations, genetest, by = "REGION")
+filtered_genes_data <- filtered_genes_data[complete.cases(filtered_genes_data), ]
 
 # Define the desired order of categories
 desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII', 'chrI')
@@ -29,9 +26,6 @@ desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'ch
 
 # Convert category to a factor with the desired order
 chromosometest$CHROM <- factor(chromosometest$CHROM, levels = desired_order)
-filtered_genes_data$CHROM.x <- factor(filtered_genes_data$CHROM.x, levels = desired_order)
-filtered_genes_data$CHROM.y <- factor(filtered_genes_data$CHROM.x, levels = desired_order)
-
 
 # Sample data for chromosomes
 chromosomes <- data.frame(
@@ -41,35 +35,67 @@ chromosomes <- data.frame(
 
 # Sample data for genes
 genes <- data.frame(
-  chromosome = gene_test$CHROM,
-  start = gene_test$START,
-  end = gene_test$STOP,
-  geneName = gene_test$GENE 
+  chromosome = genetest$CHROM,
+  start = genetest$START,
+  end = genetest$STOP,
+  geneName = genetest$GENE 
 )
 
 
 filtered_genes <- data.frame(
-  chromosome = filtered_genes_data$CHROM.x,
+  chromosome = filtered_genes_data$CHROM.y,
   start = filtered_genes_data$START,
   end = filtered_genes_data$STOP,
-  geneName = filtered_genes_data$GENE.y
+  geneName = filtered_genes_data$GENE.x
 )
 
-filtered_genes_data$CHROM.x <- factor(filtered_genes_data$CHROM.x, levels = desired_order)
+# Define a mapping from chromosome names to numbers
+chromosome_mapping <- c(
+  'chrM' = 1, 
+  'chrXVI' = 2, 
+  'chrXV' = 3, 
+  'chrXIV' = 4, 
+  'chrXIII' = 5, 
+  'chrXII' = 6, 
+  'chrXI' = 7, 
+  'chrX' = 8, 
+  'chrIX' = 9, 
+  'chrVIII' = 10, 
+  'chrVII' = 11, 
+  'chrVI' = 12, 
+  'chrV' = 13, 
+  'chrIV' = 14, 
+  'chrIII' = 15, 
+  'chrII' = 16, 
+  'chrI' = 17
+)
 
+# Add a new column to the dataframe with mapped chromosome numbers
+filtered_genes$chromosome_as_num <- chromosome_mapping[filtered_genes$chromosome]
+chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
+
+# Display the updated dataframe
+print(filtered_genes)
+print(chromosomes)
 
 # Plotting
 p <- ggplot() +
-  geom_bar(data = chromosomes, aes(x = length, y = chromosome), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
-  geom_rect(data = genes, aes(ymin = as.numeric(factor(chromosome)) - 0.4, # swapped ymin and ymax
-                              ymax = as.numeric(factor(chromosome)) + 0.4,
-                              xmin = start, 
-                              xmax = end,
-                              text = geneName), 
+  geom_bar(data = chromosomes, aes(x = length, y = chromosome), stat = 'identity', fill = 'lightblue', width = 0.5) +
+
+  geom_rect(data = filtered_genes, aes(ymin = chromosome_as_num - 0.4,
+                                       ymax = chromosome_as_num + 0.4,
+                                       xmin = start, 
+                                       xmax = end,
+                                       text = geneName), 
+          
             fill = 'red', alpha = 0.5) +
+  #geom_rect(data = filtered_genes, aes(ymin = 1, ymax = 20, xmin = 1, xmax = 20), fill = "red") + 
   labs(title = 'Chromosomes with Genes Overlay',
-       y = 'Chromosome', # changed x-axis label to Chromosome
-       x = 'Length') # changed y-axis label to Length
+       y = 'Chromosome',
+       x = 'Length')
+# Print the plot
+print(p)
 
 # Convert ggplot2 plot to plotly
 ggplotly(p)
+print("done")
