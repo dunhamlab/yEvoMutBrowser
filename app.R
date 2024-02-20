@@ -1,7 +1,7 @@
 # List of required packages
 required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                        "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
-                       "purrr", "PLColors", "shinyjs", "viridis")
+                       "purrr", "PLColors", "shinyjs", "viridis", "plotly")
 
 # Check if packages are installed, and if not, install them
 new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
@@ -21,6 +21,8 @@ library(forcats)
 library(ggrepel)
 library(purrr)
 library(shinyjs)
+library(plotly)
+
 
 
 #loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
@@ -58,28 +60,28 @@ ui <-  navbarPage(
                fileInput("datafile", "Optional: Upload additional CSV File", accept = ".csv"),
                # conditionalPanel(
                #   # Asks for instructor/year so we can modify user uploaded file so we can combine it
-                   # with our current data
+               # with our current data
                #   condition = "output.filesUploaded",
                #   textInput("inputted_instructor", "Who is your Instructor"),
                #   textInput("inputted_year", "What is the current year")
                # ),
-              radioButtons("View", "Select an option:",
+               radioButtons("View", "Select an option:",
                             choices = c("View By Class", "View By Selection Condition"),
                             selected = character(0)),
                div("", style = "height: 10px;"),  # Create a 10px vertical space
-              
-              #create download button here
-              downloadButton("downloadBtn", "Download the following data"),
-              
-              div("", style = "height: 10px;"),  # Create a 10px vertical space
-              
+               
+               #create download button here
+               downloadButton("downloadBtn", "Download the following data"),
+               
+               div("", style = "height: 10px;"),  # Create a 10px vertical space
+               
                # Only shows on condition observeEvent
                conditionalPanel(
                  # links condition to button via button key 
                  condition = "input.uploadData || input.classView || output.selectedClassView",
                  selectInput("instructor", "Instructor", choices = c('')),
                  selectInput("year", "Year", choices = c('')),
-# PLEASE NOTE: "sample" is called "Sample Name" within ui to make it easier to understand, but the official name in the df is sample                 
+                 # PLEASE NOTE: "sample" is called "Sample Name" within ui to make it easier to understand, but the official name in the df is sample                 
                  selectInput("sample", "Sample Name", choices = c('')),
                ),
                conditionalPanel(
@@ -92,7 +94,8 @@ ui <-  navbarPage(
              mainPanel(
                tabsetPanel(
                  type = "tabs",
-                 tabPanel("Chromosome Map", plotOutput("chromPlot", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
+                 #tabPanel("Chromosome Map", plotlyOutput("chromPlot", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
+                 tabPanel("Chromosome Map", plotlyOutput("chromPlot"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotOutput("varPieChart", click = "plot_click"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
                  tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
@@ -106,11 +109,11 @@ ui <-  navbarPage(
   ),
   tabPanel("Tutorial",
            div(img(src="img/how-to-WIDE.png",
-               height="65%", width="65%"),
+                   height="65%", width="65%"),
                style="text-align: center;")
   ),
   tabPanel("Background",
-         uiOutput("pdf_viewer"))
+           uiOutput("pdf_viewer"))
 ) #END OF UI
 
 # Now entering server, which handles everything dynamically
@@ -121,21 +124,7 @@ server <- function(input, output,session) {
   
   # Displays Chromosome Map info; filtering by sample
   output$info <- renderText({
-    xy_range_str <- function(e) {
-      if(is.null(e)) return("Drag over variant tick mark to see details\n")
-      
-      ##FOLLOWING BLOCK USES GENE/CHROM DATA
-      #TODO: Change to gene/chrom file
-      paste0("Variant Gene: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
-             "Reference: ", filtered_data()%>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-             "Variant: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
-             "Position: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
-             "Chromosome: ",filtered_data() %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
-    }
-     ##END GENE/CHROM DATA BLOCK
-    paste0(
-      xy_range_str(input$plot_brush) #pulls in the user selected section (?)
-    )
+    return("Drag over variant tick mark to see details\n")
   })
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
@@ -151,7 +140,7 @@ server <- function(input, output,session) {
     }
   })
   
-
+  
   #filtering dataframe based on menu selection
   filtered_data <- reactive({
     data <- mutation_data()
@@ -171,18 +160,18 @@ server <- function(input, output,session) {
         if (selected_sample != "All Selected") {
           data <- data %>% filter(sample == selected_sample)
         }
-    } else if (input$View == "View By Selection Condition") {
-      selected_condition <- input$condition
-      selected_background <- input$background
-      
-      if (selected_condition != "All Selected") {
-        data <- data %>% filter(condition == selected_condition)
+      } else if (input$View == "View By Selection Condition") {
+        selected_condition <- input$condition
+        selected_background <- input$background
+        
+        if (selected_condition != "All Selected") {
+          data <- data %>% filter(condition == selected_condition)
+        }
+        
+        if (selected_background != "All Selected") {
+          data <- data %>% filter(background == selected_background)
+        }
       }
-      
-      if (selected_background != "All Selected") {
-        data <- data %>% filter(background == selected_background)
-      }
-    }
     }
     data 
   })
@@ -207,7 +196,7 @@ server <- function(input, output,session) {
         
       }else if (input$View == "View By Selection Condition") {
         if(input$background != "All Selected"){
-        paste0(input$condition,"_",input$background,".csv")
+          paste0(input$condition,"_",input$background,".csv")
         }else{
           paste0(input$condition,".csv")
         }
@@ -244,7 +233,8 @@ server <- function(input, output,session) {
   
   # Render the dataframe in the tableOutput
   output$data_table <- renderTable({
-    filtered_data()
+    filtered_data() %>%
+      select(CHROM, POS, ANNOTATION, GENE, PROTEIN, condition, instructor, year, sample, REF, ALT)
   })
   
   #Display settings
@@ -264,7 +254,7 @@ server <- function(input, output,session) {
       shinyjs::disable("cumulView")
     }
   })
-
+  
   #Handling behaviors for button selections
   observe({
     options <- c(as.character(mutation_data() %>% filter(condition == input$condition) %>% pull(background)))
@@ -285,7 +275,7 @@ server <- function(input, output,session) {
   })
   
   observe({
-      updateSelectInput(session, "instructor", choices = c("All Selected", unique(mutation_data()$instructor)))
+    updateSelectInput(session, "instructor", choices = c("All Selected", unique(mutation_data()$instructor)))
   })
   
   
@@ -296,11 +286,11 @@ server <- function(input, output,session) {
       updateSelectInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])))
     }
   })
-    
+  
   observe({
-      updateSelectInput(session, "instructor", choices = c('All Selected', unique(mutation_data()$instructor)))
+    updateSelectInput(session, "instructor", choices = c('All Selected', unique(mutation_data()$instructor)))
   }) 
-
+  
   
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(mutation_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
@@ -329,32 +319,63 @@ server <- function(input, output,session) {
   
   tabPanel("Background",
            uiOutput("pdf_viewer") )
-
+  
   #TODO: replace chromosome and gene data w the correct path
-  output$chromPlot <- renderPlot({
-    chrom_info %>%
-        mutate(CHROM=forcats::fct_relevel(CHROM,'chrI','chrII','chrIII','chrIV','chrV','chrVI','chrVII','chrVIII','chrIX','chrX','chrXI','chrXII','chrXIII','chrXIV','chrXV','chrXVI','chrM')) %>%
-        ggplot() +
-        facet_grid(vars(CHROM),switch = "y") +
-      # displaying the chromosome itself (of given length, with rounded ends)
-        geom_segment(aes(color=CHROM),x = 1, y = 0, xend = chrom_info$length, yend = 0, size=4.1,lineend = "round") + 
-      # displaying centromeres
-        geom_segment(x = chrom_info$cent1, y = 0, xend = chrom_info$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-        scale_color_manual(values = rep("red", 17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
-                   %>% mutate(CHROM=forcats::fct_relevel(CHROM,'chrI','chrII','chrIII','chrIV','chrV','chrVI','chrVII','chrVIII','chrIX','chrX','chrXI','chrXII','chrXIII','chrXIV','chrXV','chrXVI','chrM'))
-                   ) + 
-        theme(axis.text.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              panel.background = element_blank()
-        ) +
-        xlim(c(0,1540000)) +
-        ggtitle("Where do variants fall on chromosomes") + 
-        xlab("Position along chromosome") + ylab("Chromosome") +
-        theme(strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              legend.position="none")
+  
+
+  
+  # Chromosomal data for chromoplot
+  chromosomes <- data.frame(
+    chromosome = chrom_info$CHROM,
+    length = chrom_info$length
+  )
+  
+  mutations_locations <- reactive({
+    # Extract the current values of the reactive data frames
+    mutation_data_value <- filtered_data()
+    # Merge the data frames based on the "REGION" column
+    merge(mutation_data_value, genes_info, by = "REGION")
   })
+  
+  #To pull out only the genes that mutated
+  mutated_genes <- reactive({
+    # To pull out only the genes that mutated
+    data.frame(
+      chromosome = mutations_locations()$CHROM.x,
+      start = mutations_locations()$START,
+      end = mutations_locations()$STOP,
+      geneName = mutations_locations()$GENE.y
+    )
+  })
+  
+  output$chromPlot <- renderPlotly({
+    # Plotting
+    p <- ggplot() +
+      geom_bar(data = chromosomes, aes(x = length, y = chromosome), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
+      geom_rect(data = mutated_genes(), aes(ymin = as.numeric(factor(chromosome)) - 0.4, # swapped ymin and ymax
+                                           ymax = as.numeric(factor(chromosome)) + 0.4,
+                                           xmin = start,
+                                           xmax = end,
+                                           text = geneName),
+                fill = 'red', alpha = 0.5) +
+      labs(title = 'Location of mutations along chromosomes',
+           y = 'Chromosome', # changed x-axis label to Chromosome
+           x = 'Position along chromosome') # changed y-axis label to Length
+    
+    # Convert ggplot2 plot to plotly
+    p <- ggplotly(p)
+    
+    # Add formatting
+    p <- layout(
+      p,
+      plot_bgcolor = "rgba(0,0,0,0)",   # Set plot background color to transparent
+      paper_bgcolor = "rgba(0,0,0,0)",  # Set paper background color to transparent
+      xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
+      yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
+    )
+  })
+  
+  
   
   # Maps specific annotation to specific color
   annotat_colormap <- c()
@@ -364,119 +385,120 @@ server <- function(input, output,session) {
     # just add the same number of colors as number of annotations
     # ex. if there are 10 unique annotations, put 10 unique colors
     # in this color vector
-    color_vector <- c("red", "blue", "green", "orange", "purple",
-                      "cyan", "magenta", "yellow", "brown", "pink",
-                      "darkgreen", "lightblue", "violet", "gold", "gray")
+    color_vector <- c("#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
+                      "#7f7f7f", "#f7b6d2", "#e377c2", "#c49c94", "#8c564b",
+                      "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
+                      "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
     # gives us the number of unique annotations in filtered data
-      unique_annotations <- filtered_data() %>%
-        distinct(ANNOTATION) %>% pull(ANNOTATION)
-      
-      # if there are new annotations that have not been mapped to a color
-      # put them in this named vector with [annotation = color] 
-      new_anno_vector <- c()
-      # keep track of which unique index in the color_vector we will choose
-      # for our new annotations
-      cur_anno_length = length(annotat_colormap) + 1
-      # check along all unique annotations
-      for (i in seq_along(unique_annotations)) {
-        # if there are new annotations, add it to the color map 
-        # and set it to next available color
-        if (!(unique_annotations[i] %in% names(annotat_colormap))){
-          # get the new unused color for our new annotation
-          new_color = color_vector[cur_anno_length]
-          # add this new annotation and color name-value pair to a vector
-          new_anno_vector <- c(new_anno_vector, setNames(new_color,unique_annotations[i]))
-          # increment to cur_anno_length to next unique color
-          cur_anno_length = cur_anno_length + 1
-        }
+    unique_annotations <- filtered_data() %>%
+      distinct(ANNOTATION) %>% pull(ANNOTATION)
+    
+    # if there are new annotations that have not been mapped to a color
+    # put them in this named vector with [annotation = color] 
+    new_anno_vector <- c()
+    # keep track of which unique index in the color_vector we will choose
+    # for our new annotations
+    cur_anno_length = length(annotat_colormap) + 1
+    # check along all unique annotations
+    for (i in seq_along(unique_annotations)) {
+      # if there are new annotations, add it to the color map 
+      # and set it to next available color
+      if (!(unique_annotations[i] %in% names(annotat_colormap))){
+        # get the new unused color for our new annotation
+        new_color = color_vector[cur_anno_length]
+        # add this new annotation and color name-value pair to a vector
+        new_anno_vector <- c(new_anno_vector, setNames(new_color,unique_annotations[i]))
+        # increment to cur_anno_length to next unique color
+        cur_anno_length = cur_anno_length + 1
       }
-      # now combine back into annotat_colormap
-      # and permanently update (does not reset unless you close and rerun the program)
-      annotat_colormap <<- c(annotat_colormap, new_anno_vector)
-      
-      blank_theme <- theme_minimal()+
-        theme(
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.border = element_blank(),
-          panel.grid=element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          plot.title=element_text(size=14, face="bold"))
-      
-      filtered_data() %>% 
-        count(ANNOTATION) %>% 
-        mutate(percent=n/sum(n)*100) %>% 
-        ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
-        geom_bar(stat="identity", width=1) +
-        coord_polar("y", start=0) + 
-        ggtitle("Percentage of Variants by Type") + 
-        geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
-        blank_theme + 
-        scale_fill_manual(values=annotat_colormap)
+    }
+    # now combine back into annotat_colormap
+    # and permanently update (does not reset unless you close and rerun the program)
+    annotat_colormap <<- c(annotat_colormap, new_anno_vector)
+    
+    blank_theme <- theme_minimal()+
+      theme(
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid=element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title=element_text(size=14, face="bold"))
+    
+    filtered_data() %>% 
+      count(ANNOTATION) %>% 
+      mutate(percent=n/sum(n)*100) %>% 
+      ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
+      geom_bar(stat="identity", width=1) +
+      coord_polar("y", start=0) + 
+      ggtitle("Percentage of Variants by Type") + 
+      geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
+      blank_theme + 
+      scale_fill_manual(values=annotat_colormap)
   })
   
   
   #TODO: figure out what ref, alt, are from and what info we need here?
   output$snpCountPlot <- renderPlot({
     # counting number of transitions to display to set for colors and plot
-      num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
-        mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
-        count(transition) %>% summarise(n = n()) %>% as.numeric()
-      
-      filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        mutate(length = nchar(transition)) %>% 
-        mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
-        ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
-        geom_bar() + theme_bw() + 
-        scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
-        theme(legend.position = "none",
-              strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-        ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
+    num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
+      mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
+      count(transition) %>% summarise(n = n()) %>% as.numeric()
+    
+    filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
+      mutate(length = nchar(transition)) %>% 
+      mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
+      ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
+      geom_bar() + theme_bw() + 
+      scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
+      theme(legend.position = "none",
+            strip.text.y.left = element_text(angle = 0),
+            plot.title = element_text(hjust = 0.5),
+            axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
+      ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
   
   #TODO: AA_POS what is going on here lol and do we have the right info
   output$geneViewPlot <- renderPlot({
-      xlength <- genes_info %>%
-        filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
-      
-      filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
-        filter(GENE==input$GENE) %>%
-        mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-        ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
-        geom_hline(yintercept=0, linetype=2,alpha=.2)+
-        geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
-        geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
-        geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
-        ylim(c(-0.2, 1.2))+ 
-        xlim(-50,xlength)+
-        geom_text_repel(aes(label = PROTEIN),
-                         box.padding   = 2, 
-                         point.padding = 1,
-                         segment.color = 'grey50',
-                         min.segment.length = 0
-                         ) +
-        ggtitle(as.character(input$GENE))+
-        theme_classic(base_size=18) +
-        theme(axis.title.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.y = element_blank()) + 
-        xlab("Amino acid position") +
-        theme(axis.text.x = element_text(size = 8)) +
-        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
-        theme(plot.margin = margin(0, 0, 0, 0)) + 
-        annotate(
-          "text", x = 1, y = Inf, label = "Drag over mutations to see more",
-          hjust = 0, vjust = 2, color = "black", size = 5
-        )
-      
+    xlength <- genes_info %>%
+      filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+    
+    filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
+      filter(GENE==input$GENE) %>%
+      mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
+      mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
+      ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
+      geom_hline(yintercept=0, linetype=2,alpha=.2)+
+      geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
+      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
+      geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
+      ylim(c(-0.2, 1.2))+ 
+      xlim(-50,xlength)+
+      geom_text_repel(aes(label = PROTEIN),
+                      box.padding   = 2, 
+                      point.padding = 1,
+                      segment.color = 'grey50',
+                      min.segment.length = 0
+      ) +
+      ggtitle(as.character(input$GENE))+
+      theme_classic(base_size=18) +
+      theme(axis.title.y=element_blank(),
+            axis.ticks.y=element_blank(),
+            plot.title = element_text(hjust = 0.5),
+            axis.text.y = element_blank()) + 
+      xlab("Amino acid position") +
+      theme(axis.text.x = element_text(size = 8)) +
+      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
+      theme(plot.margin = margin(0, 0, 0, 0)) + 
+      annotate(
+        "text", x = 1, y = Inf, label = "Drag over mutations to see more",
+        hjust = 0, vjust = 2, color = "black", size = 5
+      )
+    
   }, width = 750)
   
   #TODO: how can we find the y values to properly match up with each chromosome?
@@ -504,7 +526,7 @@ server <- function(input, output,session) {
   
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
-
+    
   }) 
 }
 
