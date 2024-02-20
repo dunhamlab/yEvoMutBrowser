@@ -385,9 +385,10 @@ server <- function(input, output,session) {
     # just add the same number of colors as number of annotations
     # ex. if there are 10 unique annotations, put 10 unique colors
     # in this color vector
-    color_vector <- c("red", "blue", "green", "orange", "purple",
-                      "cyan", "magenta", "yellow", "brown", "pink",
-                      "darkgreen", "lightblue", "violet", "gold", "gray")
+    color_vector <- c("#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
+                      "#7f7f7f", "#f7b6d2", "#e377c2", "#c49c94", "#8c564b",
+                      "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
+                      "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
     # gives us the number of unique annotations in filtered data
     unique_annotations <- filtered_data() %>%
