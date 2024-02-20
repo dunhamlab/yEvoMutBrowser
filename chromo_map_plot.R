@@ -49,6 +49,38 @@ filtered_genes <- data.frame(
   geneName = filtered_genes_data$GENE.x
 )
 
+library(dplyr)
+
+# Create an empty dataframe to store the final results
+final_gene <- data.frame()
+
+# Iterate through unique genes
+unique_genes <- unique(filtered_genes_data$GENE.x)
+for (gene in unique_genes) {
+  # Filter data for the current gene
+  print(gene)
+  gene_data <- filtered_genes_data %>% filter(GENE.x == gene)
+  
+  # Count the number of repetitions
+  num_repeats <- nrow(gene_data)
+  
+  # Get the associated columns
+  gene_info <- gene_data[1, c("CHROM.x", "START", "STOP", "GENE.x")]
+  
+  # Add the number of repeats as a new column
+  gene_info$repeats <- num_repeats
+  
+  # Add this gene to the final dataframe
+  final_gene <- rbind(final_gene, gene_info)
+}
+
+# Print the final dataframe
+print(final_gene)
+
+
+
+
+
 # Define a mapping from chromosome names to numbers
 chromosome_mapping <- c(
   'chrM' = 1, 
@@ -73,6 +105,11 @@ chromosome_mapping <- c(
 # Add a new column to the dataframe with mapped chromosome numbers
 filtered_genes$chromosome_as_num <- chromosome_mapping[filtered_genes$chromosome]
 chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
+final_gene$chromosome_as_num <- chromosome_mapping[final_gene$CHROM.x]
+
+# -------------------------------------------------------------------------
+
+
 
 # Display the updated dataframe
 print(filtered_genes)
@@ -82,13 +119,20 @@ print(chromosomes)
 p <- ggplot() +
   geom_bar(data = chromosomes, aes(x = length, y = chromosome), stat = 'identity', fill = 'lightblue', width = 0.5) +
 
-  geom_rect(data = filtered_genes, aes(ymin = chromosome_as_num - 0.4,
+  # geom_rect(data = filtered_genes, aes(ymin = chromosome_as_num - 0.4,
+  #                                      ymax = chromosome_as_num + 0.4,
+  #                                      xmin = start, 
+  #                                      xmax = end,
+  #                                      text = geneName), 
+  geom_rect(data = final_gene, aes(ymin = chromosome_as_num - 0.4,
                                        ymax = chromosome_as_num + 0.4,
-                                       xmin = start, 
-                                       xmax = end,
-                                       text = geneName), 
+                                       xmin = START, 
+                                       xmax = STOP,
+                                       text = paste("Gene Name: ",GENE.x),
+                                       fill = repeats), 
           
-            fill = 'red', alpha = 0.5) +
+           , alpha = 0.5) +
+  scale_fill_gradient(low = "navy", high = "red",limits = c(0, 25)) +
   #geom_rect(data = filtered_genes, aes(ymin = 1, ymax = 20, xmin = 1, xmax = 20), fill = "red") + 
   labs(title = 'Chromosomes with Genes Overlay',
        y = 'Chromosome',
