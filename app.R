@@ -233,7 +233,8 @@ server <- function(input, output,session) {
   
   # Render the dataframe in the tableOutput
   output$data_table <- renderTable({
-    filtered_data()
+    filtered_data() %>%
+      select(CHROM, POS, ANNOTATION, GENE, PROTEIN, condition, instructor, year, sample, REF, ALT)
   })
   
   #Display settings
