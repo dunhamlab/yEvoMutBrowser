@@ -130,6 +130,80 @@ server <- function(input, output,session) {
   
 
   
+<<<<<<< Updated upstream
+=======
+  #filtering dataframe based on menu selection
+  filtered_data <- reactive({
+    data <- mutation_data()
+    if(!is.null(input$View)){
+      if (input$View == "View By Class") {
+        # Get the selected values from the dropdown menus
+        selected_instructor <- input$instructor
+        selected_year <- input$year
+        selected_sample <- input$sample
+        #filtering based on selections if NOT all selected
+        if (selected_instructor != "All Selected") {
+          data <- data %>% filter(instructor == selected_instructor)
+        }
+        if (selected_year != "All Selected") {
+          data <- data %>% filter(year == selected_year)
+        }
+        if (selected_sample != "All Selected") {
+          data <- data %>% filter(sample == selected_sample)
+        }
+      } else if (input$View == "View By Selection Condition") {
+        selected_condition <- input$condition
+        selected_background <- input$background
+        
+        if (selected_condition != "All Selected") {
+          data <- data %>% filter(condition == selected_condition)
+        }
+        
+        if (selected_background != "All Selected") {
+          data <- data %>% filter(background == selected_background)
+        }
+      }
+    }
+    data <- data[complete.cases(data), ]
+    data 
+  })
+  
+  #download button functionality
+  output$downloadBtn <- downloadHandler(
+    filename = function() {
+      # Set the filename for the downloaded file
+      if(is.null(input$View)){
+        "master_table.csv"
+      }else if (input$View == "View By Class") {
+        selected_instructor <- input$instructor
+        selected_year <- input$year
+        selected_sample <- input$sample
+        if (selected_sample != "All Selected") {
+          paste0(selected_instructor, "_",selected_year,"_",selected_sample,".csv")
+        }else if (selected_year != "All Selected") {
+          paste0(selected_instructor, "_",selected_year,".csv")
+        }else if (selected_instructor != "All Selected") {
+          paste0(selected_instructor,".csv")
+        }
+        
+      }else if (input$View == "View By Selection Condition") {
+        if(input$background != "All Selected"){
+          paste0(input$condition,"_",input$background,".csv")
+        }else{
+          paste0(input$condition,".csv")
+        }
+      }
+    },
+    content = function(file) {
+      # Write the data to a CSV file
+      write.csv(filtered_data(), file)
+    }
+  )
+  
+  # storing a bool to see if a file has been uploaded
+  # if a file has be uploaded, using the condition that if output$filesUploaded 
+  # is true, we can auto-open the class view
+>>>>>>> Stashed changes
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
   })
@@ -209,7 +283,154 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
+<<<<<<< Updated upstream
   output$plot1 <- renderPlot({
+=======
+  #TODO: replace chromosome and gene data w the correct path
+  
+  # Define the desired order of categories
+  desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII', 'chrI')
+
+
+  # Convert category to a factor with the desired order
+  chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
+  
+  # Chromosomal data for chromoplot
+  chromosomes <- data.frame(
+    chromosome = chrom_info$CHROM,
+    length = chrom_info$length,
+    chrom_num = chrom_info$chromplot_num
+  )
+  
+  #merge(genes_info,chromosomes, by = "CHROM")
+  
+  # Define a mapping from chromosome names to numbers
+  chromosome_mapping <- c(
+    'chrM' = 1,
+    'chrXVI' = 2,
+    'chrXV' = 3,
+    'chrXIV' = 4,
+    'chrXIII' = 5,
+    'chrXII' = 6,
+    'chrXI' = 7,
+    'chrX' = 8,
+    'chrIX' = 9,
+    'chrVIII' = 10,
+    'chrVII' = 11,
+    'chrVI' = 12,
+    'chrV' = 13,
+    'chrIV' = 14,
+    'chrIII' = 15,
+    'chrII' = 16,
+    'chrI' = 17
+  )
+
+  mutations_locations <- reactive({
+    # Extract the current values of the reactive data frames
+    mutation_data_value <- filtered_data()
+    # Merge the data frames based on the "REGION" column
+    merged <- merge(mutation_data_value, genes_info, by = "REGION")
+    # Adding chrom as num
+    merged$chromosome_as_num <-chromosome_mapping[merged$CHROM]
+    #returning merged
+    merged
+  })
+
+  #To pull out only the genes that mutated
+  mutated_genes <- reactive({
+    # To pull out only the genes that mutated
+    data.frame(
+      chromosome = mutations_locations()$CHROM.x,
+      start = mutations_locations()$START,
+      end = mutations_locations()$STOP,
+      geneName = mutations_locations()$GENE.y,
+      chrom_as_num = mutations_locations()$chromosome_as_num
+      
+    )
+  })
+
+  #chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
+
+  output$chromPlot <- renderPlotly({
+    # Plotting
+    p <- ggplot() +
+      geom_bar(data = chromosomes, aes(x = length, y = chromosome_as_num), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
+      geom_rect(data = mutated_genes(), aes(ymin = chromosome_as_num - 0.4, # swapped ymin and ymax
+                                           ymax = chromosome_as_num + 0.4,
+                                           xmin = start,
+                                           xmax = end,),
+#something wrong with this line           #text = geneName),
+                fill = 'red', alpha = 0.5) +
+      labs(title = 'Location of mutations along chromosomes',
+           y = 'Chromosome', # changed x-axis label to Chromosome
+           x = 'Position along chromosome') # changed y-axis label to Length
+
+    # Convert ggplot2 plot to plotly
+    p <- ggplotly(p)
+
+    # Add formatting
+    p <- layout(
+      p,
+      plot_bgcolor = "rgba(0,0,0,0)",   # Set plot background color to transparent
+      paper_bgcolor = "rgba(0,0,0,0)",  # Set paper background color to transparent
+      xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
+      yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
+    )
+  })
+  
+ 
+  
+  
+  
+  # Maps specific annotation to specific color
+  annotat_colormap <- c()
+  
+  output$varPieChart <- renderPlot({
+    # Color vector for each annotation in Pie Chart
+    # just add the same number of colors as number of annotations
+    # ex. if there are 10 unique annotations, put 10 unique colors
+    # in this color vector
+    color_vector <- c("red", "blue", "green", "orange", "purple",
+                      "cyan", "magenta", "yellow", "brown", "pink",
+                      "darkgreen", "lightblue", "violet", "gold", "gray")
+    
+    # gives us the number of unique annotations in filtered data
+    unique_annotations <- filtered_data() %>%
+      distinct(ANNOTATION) %>% pull(ANNOTATION)
+    
+    # if there are new annotations that have not been mapped to a color
+    # put them in this named vector with [annotation = color] 
+    new_anno_vector <- c()
+    # keep track of which unique index in the color_vector we will choose
+    # for our new annotations
+    cur_anno_length = length(annotat_colormap) + 1
+    # check along all unique annotations
+    for (i in seq_along(unique_annotations)) {
+      # if there are new annotations, add it to the color map 
+      # and set it to next available color
+      if (!(unique_annotations[i] %in% names(annotat_colormap))){
+        # get the new unused color for our new annotation
+        new_color = color_vector[cur_anno_length]
+        # add this new annotation and color name-value pair to a vector
+        new_anno_vector <- c(new_anno_vector, setNames(new_color,unique_annotations[i]))
+        # increment to cur_anno_length to next unique color
+        cur_anno_length = cur_anno_length + 1
+      }
+    }
+    # now combine back into annotat_colormap
+    # and permanently update (does not reset unless you close and rerun the program)
+    annotat_colormap <<- c(annotat_colormap, new_anno_vector)
+    
+    blank_theme <- theme_minimal()+
+      theme(
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(),
+        panel.grid=element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title=element_text(size=14, face="bold"))
+>>>>>>> Stashed changes
     
     filtered_data() %>% 
         mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
