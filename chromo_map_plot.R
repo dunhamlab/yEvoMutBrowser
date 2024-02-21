@@ -58,7 +58,6 @@ final_gene <- data.frame()
 unique_genes <- unique(filtered_genes_data$GENE.x)
 for (gene in unique_genes) {
   # Filter data for the current gene
-  print(gene)
   gene_data <- filtered_genes_data %>% filter(GENE.x == gene)
   
   # Count the number of repetitions

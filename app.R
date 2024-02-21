@@ -322,20 +322,48 @@ server <- function(input, output,session) {
   
   #TODO: replace chromosome and gene data w the correct path
   
+  # Define the desired order of categories
+  desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII','chrI')
+  # Convert category to a factor with the desired order
+  chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
 
+  #merge(genes_info,chromosomes, by = “CHROM”)
+  # Define a mapping from chromosome names to numbers
+  chromosome_mapping <- c(
+    'chrM' = 1,
+    'chrXVI' = 2,
+    'chrXV' = 3,
+    'chrXIV' = 4,
+    'chrXIII' = 5,
+    'chrXII' = 6,
+    'chrXI' = 7,
+    'chrX' = 8,
+    'chrIX' = 9,
+    'chrVIII' = 10,
+    'chrVII' = 11,
+    'chrVI' = 12,
+    'chrV' = 13,
+    'chrIV' = 14,
+    'chrIII' = 15,
+    'chrII' = 16,
+    'chrI' = 17
+  )
+  mutations_locations <- reactive({
+    # Extract the current values of the reactive data frames
+    mutation_data_value <- filtered_data()
+    # Merge the data frames based on the “REGION” column
+    merged <- merge(mutation_data_value, genes_info, by = 'REGION')
+    # Adding chrom as num
+    merged$chromosome_as_num <-chromosome_mapping[merged$CHROM.x]
+    #returning merged
+    merged
+  })
   
   # Chromosomal data for chromoplot
   chromosomes <- data.frame(
     chromosome = chrom_info$CHROM,
     length = chrom_info$length
   )
-  
-  mutations_locations <- reactive({
-    # Extract the current values of the reactive data frames
-    mutation_data_value <- filtered_data()
-    # Merge the data frames based on the "REGION" column
-    merge(mutation_data_value, genes_info, by = "REGION")
-  })
   
   #To pull out only the genes that mutated
   mutated_genes <- reactive({
@@ -344,32 +372,65 @@ server <- function(input, output,session) {
       chromosome = mutations_locations()$CHROM.x,
       start = mutations_locations()$START,
       end = mutations_locations()$STOP,
-      geneName = mutations_locations()$GENE.y
+      geneName = mutations_locations()$GENE.y,
+      chrom_as_num = mutations_locations()$chromosome_as_num
     )
   })
   
+  # Create an empty dataframe to store the final results
+  final_gene <- reactive({
+  final_gene_static <- data.frame()
+    
+  # Iterate through unique genes
+  unique_genes <- unique(filtered_genes_data$GENE.x)
+  for (gene in unique_genes) {
+    # Filter data for the current gene
+    gene_data <- filtered_genes_data %>% filter(GENE.x == gene)
+    
+    # Count the number of repetitions
+    num_repeats <- nrow(gene_data)
+    
+    # Get the associated columns
+    gene_info <- gene_data[1, c("CHROM.x", "START", "STOP", "GENE.x")]
+    
+    # Add the number of repeats as a new column
+    gene_info$repeats <- num_repeats
+    
+    # Add this gene to the final dataframe
+    final_gene_static <- rbind(final_gene_static, gene_info)
+  }
+  final_gene_static$chrom_as_num <- chromosome_mapping[final_gene_static$CHROM.x]
+  
+  final_gene_static
+  })
+  
+  
+  #chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
   output$chromPlot <- renderPlotly({
+    print(mutated_genes())
+    print(chromosomes)
     # Plotting
     p <- ggplot() +
       geom_bar(data = chromosomes, aes(x = length, y = chromosome), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
-      geom_rect(data = mutated_genes(), aes(ymin = as.numeric(factor(chromosome)) - 0.4, # swapped ymin and ymax
-                                           ymax = as.numeric(factor(chromosome)) + 0.4,
-                                           xmin = start,
-                                           xmax = end,
-                                           text = geneName),
-                fill = 'red', alpha = 0.5) +
+      geom_rect(data = final_gene(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+                                            ymax = chrom_as_num + 0.4,
+                                            xmin = START,
+                                            xmax = STOP,
+                text = paste("Gene Name: ",GENE.x),
+                fill = repeats), 
+    
+    , alpha = 0.5) +
+    scale_fill_gradient(low = "navy", high = "red",limits = c(0, 25)) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
-    
     # Convert ggplot2 plot to plotly
     p <- ggplotly(p)
-    
     # Add formatting
     p <- layout(
       p,
-      plot_bgcolor = "rgba(0,0,0,0)",   # Set plot background color to transparent
-      paper_bgcolor = "rgba(0,0,0,0)",  # Set paper background color to transparent
+      plot_bgcolor = 'rgba(0,0,0,0)',   # Set plot background color to transparent
+      paper_bgcolor = 'rgba(0,0,0,0)',  # Set paper background color to transparent
       xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
       yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
     )
