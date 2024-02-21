@@ -57,6 +57,7 @@ ui <-  navbarPage(
            sidebarLayout(
              # Left side, Class vs Cumulative View and options 
              sidebarPanel(
+               width = 3,
                fileInput("datafile", "Optional: Upload additional CSV File", accept = ".csv"),
                # conditionalPanel(
                #   # Asks for instructor/year so we can modify user uploaded file so we can combine it
@@ -94,8 +95,7 @@ ui <-  navbarPage(
              mainPanel(
                tabsetPanel(
                  type = "tabs",
-                 #tabPanel("Chromosome Map", plotlyOutput("chromPlot", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
-                 tabPanel("Chromosome Map", plotlyOutput("chromPlot"),verbatimTextOutput("info")),
+                 tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotOutput("varPieChart", click = "plot_click"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
                  tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
@@ -330,80 +330,29 @@ server <- function(input, output,session) {
   #merge(genes_info,chromosomes, by = “CHROM”)
   # Define a mapping from chromosome names to numbers
   chromosome_mapping <- c(
-    'chrM' = 1,
-    'chrXVI' = 2,
-    'chrXV' = 3,
-    'chrXIV' = 4,
-    'chrXIII' = 5,
-    'chrXII' = 6,
-    'chrXI' = 7,
-    'chrX' = 8,
-    'chrIX' = 9,
-    'chrVIII' = 10,
-    'chrVII' = 11,
-    'chrVI' = 12,
-    'chrV' = 13,
-    'chrIV' = 14,
-    'chrIII' = 15,
-    'chrII' = 16,
-    'chrI' = 17
-  )
-  mutations_locations <- reactive({
-    # Extract the current values of the reactive data frames
-    mutation_data_value <- filtered_data()
-    # Merge the data frames based on the “REGION” column
-    merged <- merge(mutation_data_value, genes_info, by = 'REGION')
-    # Adding chrom as num
-    merged$chromosome_as_num <-chromosome_mapping[merged$CHROM.x]
-    #returning merged
-    merged
-  })
-  
-  # Chromosomal data for chromoplot
-  chromosomes <- data.frame(
-    chromosome = chrom_info$CHROM,
-    length = chrom_info$length
+    chrM = 1, chrXVI = 2, chrXV = 3, chrXIV = 4, chrXIII = 5, chrXII = 6,
+    chrXI = 7, chrX = 8, chrIX = 9, chrVIII = 10, chrVII = 11, chrVI = 12,
+    chrV = 13, chrIV = 14, chrIII = 15, chrII = 16, chrI = 17
   )
   
-  #To pull out only the genes that mutated
-  mutated_genes <- reactive({
-    # To pull out only the genes that mutated
-    data.frame(
-      chromosome = mutations_locations()$CHROM.x,
-      start = mutations_locations()$START,
-      end = mutations_locations()$STOP,
-      geneName = mutations_locations()$GENE.y,
-      chrom_as_num = mutations_locations()$chromosome_as_num
-    )
-  })
   
   # Create an empty dataframe to store the final results
   final_gene <- reactive({
-    
-    final_gene_static <- data.frame()
     mutation_data_value <- filtered_data()
     # Merge the data frames based on the “REGION” column
     mutation_data_value <- merge(mutation_data_value, genes_info, by = 'REGION')
       
     # Iterate through unique genes
-    unique_genes <- unique(mutation_data_value$GENE.y)
-    for (gene in unique_genes) {
-      # Filter data for the current gene
-      gene_data <- mutation_data_value %>% filter(GENE.y == gene)
-      
-      # Count the number of repetitions
-      num_repeats <- nrow(gene_data)
-      
-      # Get the associated columns
-      gene_info_one <- gene_data[1, c("CHROM.x", "START", "STOP", "GENE.y")]
-      
-      # Add the number of repeats as a new column
-      gene_info_one$repeats <- num_repeats
-      
-      # Add this gene to the final dataframe
-      final_gene_static <- rbind(final_gene_static, gene_info_one)
-    }
-    final_gene_static$chrom_as_num <- chromosome_mapping[final_gene_static$CHROM.x]
+    final_gene_static <- mutation_data_value %>%
+      group_by(GENE.y) %>%
+      summarize(
+        CHROM.x = first(CHROM.x),
+        START = first(START),
+        STOP = first(STOP),
+        repeats = n(),
+        chrom_as_num = first(chromosome_mapping[match(first(CHROM.x), names(chromosome_mapping))])
+      ) %>%
+      ungroup()
     
     final_gene_static
   })
@@ -411,8 +360,6 @@ server <- function(input, output,session) {
   
   #chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
   output$chromPlot <- renderPlotly({
-    print(final_gene())
-    print("final gene was printed")
     # Plotting
     p <- ggplot() +
       geom_bar(data = chrom_info, aes(x = length, y = CHROM), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
@@ -423,7 +370,7 @@ server <- function(input, output,session) {
                 text = paste("Gene Name: ",GENE.y),
                 fill = repeats), 
     
-    , alpha = 0.5) +
+    , alpha = 1) +
     scale_fill_gradient(low = "navy", high = "red",limits = c(0, 25)) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
