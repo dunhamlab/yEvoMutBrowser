@@ -144,35 +144,26 @@ server <- function(input, output,session) {
   #filtering dataframe based on menu selection
   filtered_data <- reactive({
     data <- mutation_data()
-    if(!is.null(input$View)){
-      if (input$View == "View By Class") {
-        # Get the selected values from the dropdown menus
-        selected_instructor <- input$instructor
-        selected_year <- input$year
-        selected_sample <- input$sample
         #filtering based on selections if NOT all selected
-        if (selected_instructor != "All Selected") {
-          data <- data %>% filter(instructor == selected_instructor)
+        if (input$instructor != "All Selected") {
+          data <- data %>% filter(instructor == input$instructor)
         }
-        if (selected_year != "All Selected") {
-          data <- data %>% filter(year == selected_year)
+        if (input$year != "All Selected") {
+          data <- data %>% filter(year == input$year)
         }
-        if (selected_sample != "All Selected") {
-          data <- data %>% filter(sample == selected_sample)
+        if (input$sample != "All Selected") {
+          data <- data %>% filter(sample == input$sample)
         }
-      } else if (input$View == "View By Selection Condition") {
         selected_condition <- input$condition
         selected_background <- input$background
         
-        if (selected_condition != "All Selected") {
-          data <- data %>% filter(condition == selected_condition)
+        if (input$condition != "All Selected") {
+          data <- data %>% filter(condition == input$condition)
         }
         
-        if (selected_background != "All Selected") {
-          data <- data %>% filter(background == selected_background)
+        if (input$background != "All Selected") {
+          data <- data %>% filter(background == input$background)
         }
-      }
-    }
     data 
   })
   
@@ -243,11 +234,17 @@ server <- function(input, output,session) {
       if (input$View == "View By Class") { 
         shinyjs::disable("cumulView")
         shinyjs::enable("classView")
+        updateTextInput(session, "condition", value = "All Selected")
+        updateTextInput(session, "background", value = "All Selected")
+        
       }
       else if(input$View == "View By Selection Condition"){
         shinyjs::enable("cumulView")
         shinyjs::disable("classView")
         #shinyjs:disable("background")
+        updateTextInput(session, "instructor", value = "All Selected")
+        updateTextInput(session, "year", value = "All Selected")
+        updateTextInput(session, "sample", value = "All Selected")
       }
     } else {
       shinyjs::disable("classView")
@@ -258,7 +255,7 @@ server <- function(input, output,session) {
   #Handling behaviors for button selections
   observe({
     options <- c(as.character(mutation_data() %>% filter(condition == input$condition) %>% pull(background)))
-    print(options)
+    #print(options)
     if(length(unique(options)) != 1){ 
       updateSelectInput(session, "background", choices = c('All Selected', options))
       shinyjs::enable("background")
@@ -362,16 +359,21 @@ server <- function(input, output,session) {
   output$chromPlot <- renderPlotly({
     # Plotting
     p <- ggplot() +
-      geom_bar(data = chrom_info, aes(x = length, y = CHROM), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
+      geom_rect(data = chrom_info,
+                aes(xmin = 0, xmax = length, ymin = CHROM, ymax = CHROM,
+                    text = CHROM),
+                fill = 'lightblue', alpha = 1) +
+      geom_rect(data = chrom_info, 
+                aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2, 
+                    text = CHROM), 
+                fill = 'lightblue', alpha = 1) +
       geom_rect(data = final_gene(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
                                             ymax = chrom_as_num + 0.4,
                                             xmin = START,
                                             xmax = STOP,
                 text = paste("Gene Name: ",GENE.y),
-                fill = repeats), 
-    
-    , alpha = 1) +
-    scale_fill_gradient(low = "navy", high = "red",limits = c(0, 25)) +
+                fill = repeats),  , alpha = 1) +
+    scale_fill_gradient(low = "navy", high = "red",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
