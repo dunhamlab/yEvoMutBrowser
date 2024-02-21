@@ -379,44 +379,48 @@ server <- function(input, output,session) {
   
   # Create an empty dataframe to store the final results
   final_gene <- reactive({
-  final_gene_static <- data.frame()
     
-  # Iterate through unique genes
-  unique_genes <- unique(filtered_genes_data$GENE.x)
-  for (gene in unique_genes) {
-    # Filter data for the current gene
-    gene_data <- filtered_genes_data %>% filter(GENE.x == gene)
+    final_gene_static <- data.frame()
+    mutation_data_value <- filtered_data()
+    # Merge the data frames based on the “REGION” column
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = 'REGION')
+      
+    # Iterate through unique genes
+    unique_genes <- unique(mutation_data_value$GENE.y)
+    for (gene in unique_genes) {
+      # Filter data for the current gene
+      gene_data <- mutation_data_value %>% filter(GENE.y == gene)
+      
+      # Count the number of repetitions
+      num_repeats <- nrow(gene_data)
+      
+      # Get the associated columns
+      gene_info_one <- gene_data[1, c("CHROM.x", "START", "STOP", "GENE.y")]
+      
+      # Add the number of repeats as a new column
+      gene_info_one$repeats <- num_repeats
+      
+      # Add this gene to the final dataframe
+      final_gene_static <- rbind(final_gene_static, gene_info_one)
+    }
+    final_gene_static$chrom_as_num <- chromosome_mapping[final_gene_static$CHROM.x]
     
-    # Count the number of repetitions
-    num_repeats <- nrow(gene_data)
-    
-    # Get the associated columns
-    gene_info <- gene_data[1, c("CHROM.x", "START", "STOP", "GENE.x")]
-    
-    # Add the number of repeats as a new column
-    gene_info$repeats <- num_repeats
-    
-    # Add this gene to the final dataframe
-    final_gene_static <- rbind(final_gene_static, gene_info)
-  }
-  final_gene_static$chrom_as_num <- chromosome_mapping[final_gene_static$CHROM.x]
-  
-  final_gene_static
+    final_gene_static
   })
   
   
   #chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
   output$chromPlot <- renderPlotly({
-    print(mutated_genes())
-    print(chromosomes)
+    print(final_gene())
+    print("final gene was printed")
     # Plotting
     p <- ggplot() +
-      geom_bar(data = chromosomes, aes(x = length, y = chromosome), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
+      geom_bar(data = chrom_info, aes(x = length, y = CHROM), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
       geom_rect(data = final_gene(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
                                             ymax = chrom_as_num + 0.4,
                                             xmin = START,
                                             xmax = STOP,
-                text = paste("Gene Name: ",GENE.x),
+                text = paste("Gene Name: ",GENE.y),
                 fill = repeats), 
     
     , alpha = 0.5) +
