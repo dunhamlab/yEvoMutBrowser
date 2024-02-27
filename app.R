@@ -96,8 +96,6 @@ ui <-  navbarPage(
                tabsetPanel(
                  type = "tabs",
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
-                 #tabPanel("Chromosome Map", plotlyOutput("chromPlot", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
-                 tabPanel("Chromosome Map", plotlyOutput("chromPlot"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
                  tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
@@ -465,23 +463,20 @@ server <- function(input, output,session) {
     # )
     
     p <- plot_ly(cur_data, labels = ~ANNOTATION, values = ~percent, type = 'pie', text = ~paste(ANNOTATION, ": ", round(percent, digits = 2), "%"),
-              hoverinfo = "text", outsidetextfont = list(size = 7), textinfo = "text", marker = list(colors = color_vector)) %>%
+              hoverinfo = "text", outsidetextfont = list(size = 8), textinfo = "text", marker = list(colors = color_vector)) %>%
       layout(title = "Percentage of Variants by Type",
              showlegend = TRUE,
-             legend = list(x = 0.9, y = 0.1),
+             legend = list(x = 0.95, y = 0.1),
+             plot_bgcolor = 'rgba(0,0,0,0)',
+             paper_bgcolor = 'rgba(0,0,0,0)',
              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
     
     p %>% layout( showlegend = TRUE, 
-                 margin = list(l = 60, r = 60, b = 60, t = 60))
+                 legend = list(font = list(size = 7)),
+                 margin = list(l = 75, r = 75, b = 75, t = 75))
                  # Adjust the margin to make the pie chart bigger or smaller.
                  # Larger values means a smaller pie chart
-                 # Adjust the x component of the domain to shift the pie chart
-                 # Increase the value to shift the chart to the right
-                 # Decrease the value to shift the chart to the left
-                 # The values for x and y range from 0 to 1
-                 # For example, setting x = c(0.2, 0.8) would shift the chart to the right
-                 # by 0.2 of the plot width
   })
   
   
