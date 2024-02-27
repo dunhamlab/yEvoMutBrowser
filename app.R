@@ -95,7 +95,6 @@ ui <-  navbarPage(
              mainPanel(
                tabsetPanel(
                  type = "tabs",
-                 tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  #tabPanel("Chromosome Map", plotlyOutput("chromPlot", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
