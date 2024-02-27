@@ -96,7 +96,9 @@ ui <-  navbarPage(
                tabsetPanel(
                  type = "tabs",
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
-                 tabPanel("Variant Pie Chart", plotOutput("varPieChart", click = "plot_click"), verbatimTextOutput("text")),
+                 #tabPanel("Chromosome Map", plotlyOutput("chromPlot", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
+                 tabPanel("Chromosome Map", plotlyOutput("chromPlot"),verbatimTextOutput("info")),
+                 tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
                  tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
                           selectInput("GENE", "Gene", choices = c('')),
@@ -394,7 +396,7 @@ server <- function(input, output,session) {
   # Maps specific annotation to specific color
   annotat_colormap <- c()
   
-  output$varPieChart <- renderPlot({
+  output$varPieChart <- renderPlotly({
     # Color vector for each annotation in Pie Chart
     # just add the same number of colors as number of annotations
     # ex. if there are 10 unique annotations, put 10 unique colors
@@ -431,27 +433,57 @@ server <- function(input, output,session) {
     # and permanently update (does not reset unless you close and rerun the program)
     annotat_colormap <<- c(annotat_colormap, new_anno_vector)
     
-    blank_theme <- theme_minimal()+
-      theme(
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        panel.border = element_blank(),
-        panel.grid=element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        plot.title=element_text(size=14, face="bold"))
-    
-    filtered_data() %>% 
+    cur_data <- filtered_data() %>%
+      arrange(ANNOTATION) %>% 
       count(ANNOTATION) %>% 
-      mutate(percent=n/sum(n)*100) %>% 
-      ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
-      geom_bar(stat="identity", width=1) +
-      coord_polar("y", start=0) + 
-      ggtitle("Percentage of Variants by Type") + 
-      geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
-      blank_theme + 
-      scale_fill_manual(values=annotat_colormap)
+      mutate(percent=n/sum(n)*100)
+    
+    # code for trying to hardcode colors to annotation (WIP)
+    # print(cur_data)
+    
+    # colors_list <- list(
+    # "coding-nonsynonymous" = "#93dae5", 
+    # "5'-upstream"= "#17becf", 
+    # "intergenic" = "#dbdb8d", 
+    # "coding-synonymous"  = "#bcbd22", 
+    # "ARS" =  "#c7c7c7",
+    # "telomere" =  "#7f7f7f", 
+    # "LTR_retrotransposon" =  "#f7b6d2", 
+    # "intron" =  "#e377c2",
+    # "rRNA" =  "#c49c94",
+    # "tRNA" =  "#8c564b"
+    # "" =  "#c5b0d5",
+    # "" =  "#9467bd", 
+    # "" =  "#ff9896",
+    # "" =  "#d62728",
+    # "" =  "#98df8a",
+    # "" =  "#2ca02c",
+    # "" =  "#ffbb78",
+    # "" =  "#ff7f0e",
+    # "" =  "#aec7e8", 
+    # "" =  "#1f77b4"
+    # )
+    
+    p <- plot_ly(cur_data, labels = ~ANNOTATION, values = ~percent, type = 'pie', text = ~paste(ANNOTATION, ": ", round(percent, digits = 2), "%"),
+              hoverinfo = "text", outsidetextfont = list(size = 7), textinfo = "text", marker = list(colors = color_vector)) %>%
+      layout(title = "Percentage of Variants by Type",
+             showlegend = TRUE,
+             legend = list(x = 0.9, y = 0.1),
+             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+    
+    p %>% layout( showlegend = TRUE, 
+                 margin = list(l = 60, r = 60, b = 60, t = 60))
+                 # Adjust the margin to make the pie chart bigger or smaller.
+                 # Larger values means a smaller pie chart
+                 # Adjust the x component of the domain to shift the pie chart
+                 # Increase the value to shift the chart to the right
+                 # Decrease the value to shift the chart to the left
+                 # The values for x and y range from 0 to 1
+                 # For example, setting x = c(0.2, 0.8) would shift the chart to the right
+                 # by 0.2 of the plot width
   })
+  
   
   
   #TODO: figure out what ref, alt, are from and what info we need here?
