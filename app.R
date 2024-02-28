@@ -384,11 +384,11 @@ server <- function(input, output,session) {
         CHROM.x = first(CHROM.x),
         START = first(START),
         STOP = first(STOP),
-        repeats = n(),
+        counts = n(),
         chrom_as_num = first(chromosome_mapping[match(first(CHROM.x), names(chromosome_mapping))])
       ) %>%
       ungroup()
-    
+
     final_gene_static
   })
   
@@ -397,6 +397,7 @@ server <- function(input, output,session) {
     validate(
       need(final_gene()$START, formatted_loading_message)
     )
+    
     # Plotting
     p <- ggplot() +
       geom_rect(data = chrom_info,
@@ -412,8 +413,8 @@ server <- function(input, output,session) {
                                             xmin = START,
                                             xmax = STOP,
                 text = paste("Gene Name: ",GENE.y),
-                fill = repeats), alpha = 1) +
-    scale_fill_gradient(low = "navy", high = "red",) +
+                fill = counts), alpha = 1) +
+    scale_fill_gradient(low = "deeppink", high = "red",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
