@@ -59,13 +59,14 @@ ui <-  navbarPage(
              sidebarPanel(
                width = 3,
                fileInput("datafile", "Optional: Upload additional CSV File", accept = ".csv"),
-               # conditionalPanel(
-               #   # Asks for instructor/year so we can modify user uploaded file so we can combine it
-               # with our current data
-               #   condition = "output.filesUploaded",
-               #   textInput("inputted_instructor", "Who is your Instructor"),
-               #   textInput("inputted_year", "What is the current year")
-               # ),
+               conditionalPanel(
+    # Asks for instructor/year so we can modify user uploaded file so we can combine it
+    # with our current data
+                 condition = "output.filesUploaded",
+                 textInput("inputted_instructor", "Who is your Instructor"),
+                 textInput("inputted_year", "What is the current year"),
+                 actionButton("submit_teach_year", "Submit Teacher and Year")
+               ),
                radioButtons("View", "Select an option:",
                             choices = c("View By Class", "View By Selection Condition"),
                             selected = character(0)),
@@ -128,15 +129,34 @@ server <- function(input, output,session) {
   })
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
-  observeEvent(input$datafile, {
+
+  #TODO:change "final" name to new file name (new file as in the new system we are making)
+  observeEvent(input$submit_teach_year, {
     file <- input$datafile
-    if (!is.null(file) && all(names(mut_backend) == names(read.csv(file$datapath, sep = ",")))) {
-      df <- rbind(mut_backend,read.csv(file$datapath, sep = ","))
+    data <- read.csv(file$datapath)
+    required_columns <- c("CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "ANNOTATION", "REGION", "GENE", "PROTEIN", "seq_file", 
+                          "background", "condition", "sample")
+    if (!is.null(file) && all(required_columns %in% colnames(data))) {
+      # Add instructor and year columns
+      data$instructor <- rep(input$inputted_instructor, nrow(data))
+      data$year <- rep(input$inputted_year, nrow(data))
+      # Rearrange columns
+      data <- data[, c("CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "ANNOTATION", "REGION", "GENE", "PROTEIN", "seq_file", 
+                       "background", "condition", "instructor", "year", "sample")]
+      df <- rbind(mut_backend, data)
+      # df <- read.csv(file$datapath, sep = ",")
       mutation_data(df)
+
     } else {
+      # Handle the case where required columns are missing
+      print("Some required columns are missing.")
       mutation_data(mut_backend)
+      
     }
   })
+  
+  
+  
   
   
   #filtering dataframe based on menu selection
