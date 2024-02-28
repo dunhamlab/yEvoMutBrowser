@@ -384,7 +384,7 @@ server <- function(input, output,session) {
         CHROM.x = first(CHROM.x),
         START = first(START),
         STOP = first(STOP),
-        counts = n(),
+        Counts = n(),
         chrom_as_num = first(chromosome_mapping[match(first(CHROM.x), names(chromosome_mapping))])
       ) %>%
       ungroup()
@@ -413,8 +413,8 @@ server <- function(input, output,session) {
                                             xmin = START,
                                             xmax = STOP,
                 text = paste("Gene Name: ",GENE.y),
-                fill = counts), alpha = 1) +
-    scale_fill_gradient(low = "deeppink", high = "red",) +
+                fill = Counts), alpha = 1) +
+    scale_fill_gradient(low = "pink", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
