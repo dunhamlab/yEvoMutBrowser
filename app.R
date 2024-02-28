@@ -316,8 +316,18 @@ server <- function(input, output,session) {
   
   tabPanel("Background",
            uiOutput("pdf_viewer") )
-  
-  #TODO: replace chromosome and gene data w the correct path
+  #to create loading message below: 
+  loading_message <- "Loading..."
+  # Calculate the number of empty spaces needed on each side
+  total_spaces <- 180  # Total number of characters to occupy the line
+  message_length <- nchar(loading_message)
+  spaces_on_each_side <- floor((total_spaces - message_length) / 2)
+  # Construct the string with spaces on each side of the loading message
+  formatted_loading_message <- sprintf("%s%s%s",
+                                        "\n\n\n\n\n\n\n\n",
+                                        paste(rep(" ", spaces_on_each_side), collapse = ""),
+                                        loading_message,
+                                        paste(rep(" ", spaces_on_each_side), collapse = ""))
   
   # Define the desired order of categories
   desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII','chrI')
@@ -357,6 +367,9 @@ server <- function(input, output,session) {
   
   #chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
   output$chromPlot <- renderPlotly({
+    validate(
+      need(final_gene()$START, formatted_loading_message)
+    )
     # Plotting
     p <- ggplot() +
       geom_rect(data = chrom_info,
