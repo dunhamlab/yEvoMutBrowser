@@ -146,6 +146,7 @@ server <- function(input, output,session) {
       df <- rbind(mut_backend, data)
       # df <- read.csv(file$datapath, sep = ",")
       mutation_data(df)
+      
 
     } else {
       # Handle the case where required columns are missing
@@ -313,10 +314,18 @@ server <- function(input, output,session) {
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(mutation_data()[mutation_data()$sample==input$sample, "GENE"]%>% discard(is.na))
-    } else {as.character(filtered_data() %>% pull(GENE) %>% discard(is.na)) })
+    if(input$sample != "All Selected") {
+      choices <- mutation_data()[mutation_data()$sample == input$sample, "GENE"]
+    } else {
+      choices <- filtered_data() %>% pull(GENE)
+    }
     
+    # Filter choices to include only those present in genes_info
+    choices <- choices[choices %in% genes_info$GENE]
+    
+    updateSelectInput(session, "GENE", choices = as.character(choices))
   })
+  
   
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
