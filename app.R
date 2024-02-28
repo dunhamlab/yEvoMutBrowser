@@ -1,7 +1,7 @@
 # List of required packages
 required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                        "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
-                       "purrr", "PLColors", "shinyjs", "viridis", "plotly")
+                       "purrr", "shinyjs", "viridis", "plotly")
 
 # Check if packages are installed, and if not, install them
 new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
