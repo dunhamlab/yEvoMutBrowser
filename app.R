@@ -128,12 +128,10 @@ server <- function(input, output,session) {
   })
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
-  #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$datafile, {
     file <- input$datafile
     if (!is.null(file) && all(names(mut_backend) == names(read.csv(file$datapath, sep = ",")))) {
       df <- rbind(mut_backend,read.csv(file$datapath, sep = ","))
-      #df <- read.csv(file$datapath, sep = ",")
       mutation_data(df)
     } else {
       mutation_data(mut_backend)
@@ -300,7 +298,6 @@ server <- function(input, output,session) {
     
   })
   
-  #TODO: make sure gene info and sgdid info is coming from the right place ->should all be handled within filtering function(?)
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
@@ -317,14 +314,26 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
-  #TODO: replace chromosome and gene data w the correct path
+  
+  #to create loading message below: 
+  loading_message <- "Loading..."
+  # Calculate the number of empty spaces needed on each side
+  total_spaces <- 180  # Total number of characters to occupy the line
+  message_length <- nchar(loading_message)
+  spaces_on_each_side <- floor((total_spaces - message_length) / 2)
+  # Construct the string with spaces on each side of the loading message
+  formatted_loading_message <- sprintf("%s%s%s",
+                                        "\n\n\n\n\n\n\n\n",
+                                        paste(rep(" ", spaces_on_each_side), collapse = ""),
+                                        loading_message,
+                                        paste(rep(" ", spaces_on_each_side), collapse = ""))
+  
   
   # Define the desired order of categories
   desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII','chrI')
   # Convert category to a factor with the desired order
   chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
 
-  #merge(genes_info,chromosomes, by = “CHROM”)
   # Define a mapping from chromosome names to numbers
   chromosome_mapping <- c(
     chrM = 1, chrXVI = 2, chrXV = 3, chrXIV = 4, chrXIII = 5, chrXII = 6,
@@ -355,8 +364,10 @@ server <- function(input, output,session) {
   })
   
   
-  #chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
   output$chromPlot <- renderPlotly({
+    validate(
+      need(final_gene()$START, formatted_loading_message)
+    )
     # Plotting
     p <- ggplot() +
       geom_rect(data = chrom_info,
@@ -372,7 +383,7 @@ server <- function(input, output,session) {
                                             xmin = START,
                                             xmax = STOP,
                 text = paste("Gene Name: ",GENE.y),
-                fill = repeats),  , alpha = 1) +
+                fill = repeats), alpha = 1) +
     scale_fill_gradient(low = "navy", high = "red",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
@@ -503,7 +514,6 @@ server <- function(input, output,session) {
   
   ranges <- reactiveValues(x = NULL, y = NULL)
   
-  #TODO: AA_POS what is going on here lol and do we have the right info
   output$geneViewPlot <- renderPlot({
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
@@ -542,7 +552,6 @@ server <- function(input, output,session) {
     
   }, width = 750)
   
-  #TODO: how can we find the y values to properly match up with each chromosome?
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
   observeEvent(input$geneViewPlot_dblclick, {
