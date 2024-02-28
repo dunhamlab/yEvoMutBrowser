@@ -347,7 +347,7 @@ server <- function(input, output,session) {
   #to create loading message below: 
   loading_message <- "Loading..."
   # Calculate the number of empty spaces needed on each side
-  total_spaces <- 180  # Total number of characters to occupy the line
+  total_spaces <- 160  # Total number of characters to occupy the line
   message_length <- nchar(loading_message)
   spaces_on_each_side <- floor((total_spaces - message_length) / 2)
   # Construct the string with spaces on each side of the loading message
@@ -543,8 +543,21 @@ server <- function(input, output,session) {
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
-  
+  # Showing please select gene message
+  # Construct the string with spaces on each side of the loading message
+  geneview_message <- "Please select a gene below"
+  # Calculate the number of empty spaces needed on each side
+  gene_message_length <- nchar(geneview_message)
+  gene_spaces_on_each_side <- floor((total_spaces - gene_message_length) / 2)
+  select_gene_message <- sprintf("%s%s%s",
+                                       "\n\n\n\n\n\n\n\n",
+                                       paste(rep(" ", gene_spaces_on_each_side), collapse = ""),
+                                       geneview_message,
+                                       paste(rep(" ", gene_spaces_on_each_side), collapse = ""))
   output$geneViewPlot <- renderPlot({
+    validate(
+      need(input$GENE, select_gene_message)
+    )
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
