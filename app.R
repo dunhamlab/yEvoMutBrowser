@@ -411,9 +411,9 @@ server <- function(input, output,session) {
       geom_rect(data = final_gene(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
                                             ymax = chrom_as_num + 0.4,
                                             xmin = START,
-                                            xmax = STOP,
+                                            xmax = START + 8000,
                 text = paste("Gene Name: ",GENE.y),
-                fill = Counts), alpha = 1) +
+                fill = Counts), alpha = 1, color = "black", size = 0.1) +
     scale_fill_gradient(low = "pink", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
