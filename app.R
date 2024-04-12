@@ -323,6 +323,8 @@ server <- function(input, output,session) {
     # Filter choices to include only those present in genes_info
     choices <- choices[choices %in% genes_info$GENE]
     
+    choices <- sort(choices)
+    
     updateSelectInput(session, "GENE", choices = as.character(choices))
   })
   
