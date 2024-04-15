@@ -375,21 +375,22 @@ server <- function(input, output,session) {
   final_gene <- reactive({
     mutation_data_value <- filtered_data()
     # Merge the data frames based on the “REGION” column
-    mutation_data_value <- merge(mutation_data_value, genes_info, by = 'REGION')
+    common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
       
     # Iterate through unique genes
     final_gene_static <- mutation_data_value %>%
-      group_by(GENE.y) %>%
+      group_by(GENE) %>%
       summarize(
-        CHROM.x = first(CHROM.x),
+        CHROM = first(CHROM),
         START = first(START),
         STOP = first(STOP),
         Counts = n(),
-        chrom_as_num = first(chromosome_mapping[match(first(CHROM.x), names(chromosome_mapping))])
+        chrom_as_num = first(chromosome_mapping[match(first(CHROM), names(chromosome_mapping))])
       ) %>%
       ungroup()
 
-    final_gene_static
+    return(final_gene_static)
   })
   
   
@@ -399,21 +400,32 @@ server <- function(input, output,session) {
     )
     
     # Plotting
+    cat(file = stderr(), "TESTING LOGGING\n")
+    #browser()
+    final_gene_data <- final_gene()
+    final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
+    
+    scale_y_custom <- ggplot2::scale_y_continuous(
+      breaks = rev(as.numeric(chrom_info$CHROM)),
+      labels = rev(as.character(chrom_info$CHROM))
+    )
+    
     p <- ggplot() +
       geom_rect(data = chrom_info,
-                aes(xmin = 0, xmax = length, ymin = CHROM, ymax = CHROM,
+                aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - .02, ymax = as.numeric(factor(CHROM)) + .02, text = CHROM
+                    ),
+                fill = 'lightblue', alpha = 1) +
+      geom_rect(data = chrom_info,
+                aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2,
                     text = CHROM),
                 fill = 'lightblue', alpha = 1) +
-      geom_rect(data = chrom_info, 
-                aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2, 
-                    text = CHROM), 
-                fill = 'lightblue', alpha = 1) +
-      geom_rect(data = final_gene(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+      geom_rect(data = final_gene_data, aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
                                             ymax = chrom_as_num + 0.4,
                                             xmin = START,
                                             xmax = START + 8000,
-                text = paste("Gene Name: ",GENE.y),
+                text = paste("Gene Name: ",GENE),
                 fill = Counts), alpha = 1, color = "black", size = 0.1) +
+    scale_y_custom +
     scale_fill_gradient(low = "pink", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
