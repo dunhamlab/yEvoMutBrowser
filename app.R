@@ -323,6 +323,8 @@ server <- function(input, output,session) {
     # Filter choices to include only those present in genes_info
     choices <- choices[choices %in% genes_info$GENE]
     
+    choices <- sort(choices)
+    
     updateSelectInput(session, "GENE", choices = as.character(choices))
   })
   
@@ -442,11 +444,6 @@ server <- function(input, output,session) {
     )
   })
   
-  
-  
-  # Maps specific annotation to specific color
-  annotat_colormap <- c()
-  
   output$varPieChart <- renderPlotly({
     # Color vector for each annotation in Pie Chart
     # just add the same number of colors as number of annotations
@@ -457,79 +454,46 @@ server <- function(input, output,session) {
                       "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
                       "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
+    pie_df <- data.frame(
+      ANNOTATION = c("coding-nonsynonymous", "5'-upstream", "intergenic", "coding-synonymous",
+                     "ARS", "telomere", "LTR_retrotransposon", "intron", "rRNA", "tRNA"),
+      count = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      percent = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+    
+    # TODO: If user inputs new annotation, be flexible enough to add to pie chart
     # gives us the number of unique annotations in filtered data
-    unique_annotations <- filtered_data() %>%
-      distinct(ANNOTATION) %>% pull(ANNOTATION)
+    # unique_annotations <- filtered_data() %>%
+    #   distinct(ANNOTATION) %>% pull(ANNOTATION)
     
-    # if there are new annotations that have not been mapped to a color
-    # put them in this named vector with [annotation = color] 
-    new_anno_vector <- c()
-    # keep track of which unique index in the color_vector we will choose
-    # for our new annotations
-    cur_anno_length = length(annotat_colormap) + 1
-    # check along all unique annotations
-    for (i in seq_along(unique_annotations)) {
-      # if there are new annotations, add it to the color map 
-      # and set it to next available color
-      if (!(unique_annotations[i] %in% names(annotat_colormap))){
-        # get the new unused color for our new annotation
-        new_color = color_vector[cur_anno_length]
-        # add this new annotation and color name-value pair to a vector
-        new_anno_vector <- c(new_anno_vector, setNames(new_color,unique_annotations[i]))
-        # increment to cur_anno_length to next unique color
-        cur_anno_length = cur_anno_length + 1
-      }
-    }
-    # now combine back into annotat_colormap
-    # and permanently update (does not reset unless you close and rerun the program)
-    annotat_colormap <<- c(annotat_colormap, new_anno_vector)
-    
-    cur_data <- filtered_data() %>%
+    pie_data <- filtered_data() %>%
       arrange(ANNOTATION) %>% 
       count(ANNOTATION) %>% 
-      mutate(percent=n/sum(n)*100)
+      mutate(percent = n/sum(n) * 100)
     
-    # code for trying to hardcode colors to annotation (WIP)
-    # print(cur_data)
+    # Update pie_df with counts from filtered_data
+    pie_df$count[match(pie_data$ANNOTATION, pie_df$ANNOTATION)] <- pie_data$n
     
-    # colors_list <- list(
-    # "coding-nonsynonymous" = "#93dae5", 
-    # "5'-upstream"= "#17becf", 
-    # "intergenic" = "#dbdb8d", 
-    # "coding-synonymous"  = "#bcbd22", 
-    # "ARS" =  "#c7c7c7",
-    # "telomere" =  "#7f7f7f", 
-    # "LTR_retrotransposon" =  "#f7b6d2", 
-    # "intron" =  "#e377c2",
-    # "rRNA" =  "#c49c94",
-    # "tRNA" =  "#8c564b"
-    # "" =  "#c5b0d5",
-    # "" =  "#9467bd", 
-    # "" =  "#ff9896",
-    # "" =  "#d62728",
-    # "" =  "#98df8a",
-    # "" =  "#2ca02c",
-    # "" =  "#ffbb78",
-    # "" =  "#ff7f0e",
-    # "" =  "#aec7e8", 
-    # "" =  "#1f77b4"
-    # )
+    # Calculate percent
+    pie_df$percent <- pie_df$count / sum(pie_df$count) * 100
     
-    p <- plot_ly(cur_data, labels = ~ANNOTATION, values = ~percent, type = 'pie', text = ~paste(ANNOTATION, ": ", round(percent, digits = 2), "%"),
-              hoverinfo = "text", outsidetextfont = list(size = 8), textinfo = "text", marker = list(colors = color_vector)) %>%
-      layout(title = "Percentage of Variants by Type",
-             showlegend = TRUE,
+    # Arrange the data alphabetically
+    sorted_pie_df <- arrange(pie_df, ANNOTATION)
+    
+    p <- plot_ly(sorted_pie_df, labels = ~ANNOTATION, values = ~percent, type = 'pie', text = ~paste(ANNOTATION, ": ", round(percent, digits = 2), "%"),
+                 hoverinfo = "text", outsidetextfont = list(size = 8), textinfo = "text", marker = list(colors = color_vector)) %>%
+      layout(title = list(text = "Percentage of Variants by Type", x = 1, y = 0.95, xanchor = "right", yanchor = "top"),
              legend = list(x = 0.95, y = 0.1),
              plot_bgcolor = 'rgba(0,0,0,0)',
              paper_bgcolor = 'rgba(0,0,0,0)',
              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
     
-    p %>% layout( showlegend = TRUE, 
+    p %>% layout(showlegend = TRUE, 
                  legend = list(font = list(size = 7)),
                  margin = list(l = 75, r = 75, b = 75, t = 75))
-                 # Adjust the margin to make the pie chart bigger or smaller.
-                 # Larger values means a smaller pie chart
+    # Adjust the margin to make the pie chart bigger or smaller.
+    # Larger values means a smaller pie chart
   })
   
   
