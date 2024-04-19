@@ -468,7 +468,7 @@ server <- function(input, output,session) {
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
     # Convert ggplot2 plot to plotly
-    p <- ggplotly(p)
+    p <- ggplotly(p, tooltip = "text")
     # Add formatting
     p <- layout(
       p,
