@@ -1,13 +1,13 @@
 # List of required packages
-# Added "PLColors" in required packages -> not sure if this was intentionally left out
 required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                        "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
-                       "purrr", "PLColors", "shinyjs")
+                       "purrr", "shinyjs", "viridis", "plotly")
 
 # Check if packages are installed, and if not, install them
 new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages)
 
+#loading necessary libraries
 library(devtools)
 library(shiny)
 library(shinythemes)
@@ -15,16 +15,24 @@ library(DBI)
 library(RSQLite)
 library(ggplot2) ## visualization data
 library(dplyr)
-library(tidyr) ## handling data ## df must be tidy to use a lot of packages 
-library(PLColors)
+library(viridis)
+library(tidyr) ## handling data, df must be tidy to use a lot of packages 
 library(forcats)
 library(ggrepel)
 library(purrr)
 library(shinyjs)
+library(plotly)
 
 
-#loading in the final VCF file 
-final <- read.csv("final_allVCF.csv")
+
+#loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
+mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
+
+#loading in the genes data file
+genes_info <- read.csv("gene_info.csv")
+
+#loading in the chromosomes data file
+chrom_info <- read.csv("chromosome_info.csv")
 
 #need to add this to upload the yEvo icon the theme 
 addResourcePath(prefix = 'img', directoryPath = 'img')
@@ -47,124 +55,134 @@ ui <-  navbarPage(
   theme = shinytheme("cerulean"),
   tabPanel("Data Visualizations",
            sidebarLayout(
-             # left side, Class vs Cumulative View and options 
+             # Left side, Class vs Cumulative View and options 
              sidebarPanel(
-               fileInput("datafile", "Choose CSV File", accept = ".csv"),
-               #div("", style = "height: 20px;"),  # Create a 20px vertical space
-               checkboxInput("classView", "View Class Data"),
-               checkboxInput("cumulView", "View Cumulative Data"),
-               div("", style = "height: 20px;"),  # Create a 20px vertical space
+               width = 3,
+               fileInput("datafile", "Optional: Upload additional CSV File", accept = ".csv"),
+               conditionalPanel(
+    # Asks for instructor/year so we can modify user uploaded file so we can combine it
+    # with our current data
+                 condition = "output.filesUploaded",
+                 textInput("inputted_instructor", "Who is your Instructor"),
+                 textInput("inputted_year", "What is the current year"),
+                 actionButton("submit_teach_year", "Submit Teacher and Year")
+               ),
+               radioButtons("View", "Select an option:",
+                            choices = c("View By Class", "View By Selection Condition"),
+                            selected = character(0)),
+               div("", style = "height: 10px;"),  # Create a 10px vertical space
+               
+               #create download button here
+               downloadButton("downloadBtn", "Download the following data"),
+               
+               div("", style = "height: 10px;"),  # Create a 10px vertical space
+               
                # Only shows on condition observeEvent
                conditionalPanel(
                  # links condition to button via button key 
-                 condition = "input.uploadData || input.classView",
+                 condition = "input.uploadData || input.classView || output.selectedClassView",
                  selectInput("instructor", "Instructor", choices = c('')),
                  selectInput("year", "Year", choices = c('')),
-                 selectInput("sample", "Lab Group", choices = c('')),
-
+                 # PLEASE NOTE: "sample" is called "Sample Name" within ui to make it easier to understand, but the official name in the df is sample                 
+                 selectInput("sample", "Sample Name", choices = c('')),
                ),
                conditionalPanel(
-                 condition = "input.cumulView",
-                 selectInput("condition", "Condition", choices = c('None Selected', final %>% count(condition) %>% pull(condition))),
+                 condition = "input.cumulView || output.selectedCumulView",
+                 selectInput("condition", "Condition", choices = c('All Selected', mut_backend %>% count(condition) %>% pull(condition))),
                  selectInput("background", "Background", choices = c('')),
                ),
-
              ),
              # Right side, Data Visualization
              mainPanel(
                tabsetPanel(
                  type = "tabs",
-                 tabPanel("Chromosome Map", plotOutput("plot1", brush = brushOpts(id = "plot_brush", fill = "#ccc", direction = "x")),verbatimTextOutput("info")),
-                 tabPanel("Variant Pie Chart", plotOutput("plot", click = "plot_click"), verbatimTextOutput("text")),
-                 tabPanel("SNP Counts", plotOutput("plot2", click = "plot_click")),
-                 tabPanel("Gene View", value = "Geneview", plotOutput("plot3", dblclick = "plot3_dblclick", brush = brushOpts(id = "plot3_brush", resetOnNew = TRUE)),
-                          selectInput("GENE", "Gene", choices = c('')), 
-                          selectInput("SGDID", "SGDID", choices = c('')),
+                 tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
+                 tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
+                 tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
+                 tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
+                          selectInput("GENE", "Gene", choices = c('')),
                           uiOutput("url"),
                           verbatimTextOutput("text1")),
                  tabPanel("Table", tableOutput("data_table")),
                )
              )
            )
-  )
-)
+  ),
+  tabPanel("Tutorial",
+           div(img(src="img/how-to-WIDE.png",
+                   height="65%", width="65%"),
+               style="text-align: center;")
+  ),
+  tabPanel("Background",
+           uiOutput("pdf_viewer"))
+) #END OF UI
 
-tabPanel("Background",
-         uiOutput("pdf_viewer") )
-
+# Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
-  uploaded_data <- reactiveVal(read.csv("final_allVCF.csv"))
-  shinyjs::hide("cumulDropdowns") # Initially hide cumulative dropdowns
-  
-  debug = TRUE
+  #initially setting default file of all mutation data
+  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
+  shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
   output$info <- renderText({
-    xy_range_str <- function(e) {
-      if(is.null(e)) return("Drag over variant tick mark to see details\n")
-      paste0("Variant Gene: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(GENE), "\n",
-             "Reference: ", final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(REF),"\n",
-             "Variant: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(ALT),"\n",
-             "Position: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(POS),"\n",
-             "Chromosome: ",final %>% filter(if (input$sample != "All Selected") {sample==input$sample} else {condition==input$condition}) %>% filter(POS > round(e$xmin, 1)) %>% filter(POS < round(e$xmax, 1)) %>% select(Chromosome))
-    }
-    
-    paste0(
-      xy_range_str(input$plot_brush)
-    )
+    return("Drag over variant tick mark to see details\n")
   })
-  #######added by Virginia   
   # Initialize a reactive variable for the dataframe
-  # Function to read and store the uploaded data as a dataframe
-  observeEvent(input$datafile, {
+  # Function to read and append the uploaded data to the cumulative dataframe
+
+  #TODO:change "final" name to new file name (new file as in the new system we are making)
+  observeEvent(input$submit_teach_year, {
     file <- input$datafile
-    if (!is.null(file) && all(names(final) == names(read.csv(file$datapath, sep = ",")))) {
-      df <- rbind(final,read.csv(file$datapath, sep = ","))
-      #df <- read.csv(file$datapath, sep = ",")
-      uploaded_data(df)
+    data <- read.csv(file$datapath)
+    required_columns <- c("CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "ANNOTATION", "REGION", "GENE", "PROTEIN", "seq_file", 
+                          "background", "condition", "sample")
+    if (!is.null(file) && all(required_columns %in% colnames(data))) {
+      # Add instructor and year columns
+      data$instructor <- rep(input$inputted_instructor, nrow(data))
+      data$year <- rep(input$inputted_year, nrow(data))
+      # Rearrange columns
+      data <- data[, c("CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "ANNOTATION", "REGION", "GENE", "PROTEIN", "seq_file", 
+                       "background", "condition", "instructor", "year", "sample")]
+      df <- rbind(mut_backend, data)
+      # df <- read.csv(file$datapath, sep = ",")
+      mutation_data(df)
+      
 
     } else {
-      uploaded_data(final)
+      # Handle the case where required columns are missing
+      print("Some required columns are missing.")
+      mutation_data(mut_backend)
+      
     }
   })
   
-
   
-<<<<<<< Updated upstream
-=======
+  
+  
+  
   #filtering dataframe based on menu selection
   filtered_data <- reactive({
     data <- mutation_data()
-    if(!is.null(input$View)){
-      if (input$View == "View By Class") {
-        # Get the selected values from the dropdown menus
-        selected_instructor <- input$instructor
-        selected_year <- input$year
-        selected_sample <- input$sample
         #filtering based on selections if NOT all selected
-        if (selected_instructor != "All Selected") {
-          data <- data %>% filter(instructor == selected_instructor)
+        if (input$instructor != "All Selected") {
+          data <- data %>% filter(instructor == input$instructor)
         }
-        if (selected_year != "All Selected") {
-          data <- data %>% filter(year == selected_year)
+        if (input$year != "All Selected") {
+          data <- data %>% filter(year == input$year)
         }
-        if (selected_sample != "All Selected") {
-          data <- data %>% filter(sample == selected_sample)
+        if (input$sample != "All Selected") {
+          data <- data %>% filter(sample == input$sample)
         }
-      } else if (input$View == "View By Selection Condition") {
         selected_condition <- input$condition
         selected_background <- input$background
         
-        if (selected_condition != "All Selected") {
-          data <- data %>% filter(condition == selected_condition)
+        if (input$condition != "All Selected") {
+          data <- data %>% filter(condition == input$condition)
         }
         
-        if (selected_background != "All Selected") {
-          data <- data %>% filter(background == selected_background)
+        if (input$background != "All Selected") {
+          data <- data %>% filter(background == input$background)
         }
-      }
-    }
-    data <- data[complete.cases(data), ]
     data 
   })
   
@@ -203,76 +221,120 @@ server <- function(input, output,session) {
   # storing a bool to see if a file has been uploaded
   # if a file has be uploaded, using the condition that if output$filesUploaded 
   # is true, we can auto-open the class view
->>>>>>> Stashed changes
   output$filesUploaded <- reactive({
     val <- !(is.null(input$datafile))
   })
+  
   outputOptions(output, 'filesUploaded', suspendWhenHidden=FALSE)
+  
+  output$selectedClassView <- reactive({
+    if(!is.null(input$View)){
+      value <- (input$View == "View By Class")
+    }
+  })
+  outputOptions(output, 'selectedClassView', suspendWhenHidden=FALSE)
+  
+  output$selectedCumulView <- reactive({
+    if(!is.null(input$View)){
+      value <- (input$View == "View By Selection Condition")
+    }
+  })
+  outputOptions(output, 'selectedCumulView', suspendWhenHidden=FALSE)
   
   # Render the dataframe in the tableOutput
   output$data_table <- renderTable({
-    uploaded_data()
+    filtered_data() %>%
+      select(CHROM, POS, ANNOTATION, GENE, PROTEIN, condition, instructor, year, sample, REF, ALT)
   })
   
-  ###########finished by Virginia   
-
-  
+  #Display settings
   observe({
-    if (input$classView) { 
+    if(!is.null(input$View)){
+      if (input$View == "View By Class") { 
+        shinyjs::disable("cumulView")
+        shinyjs::enable("classView")
+        updateTextInput(session, "condition", value = "All Selected")
+        updateTextInput(session, "background", value = "All Selected")
+        
+      }
+      else if(input$View == "View By Selection Condition"){
+        shinyjs::enable("cumulView")
+        shinyjs::disable("classView")
+        #shinyjs:disable("background")
+        updateTextInput(session, "instructor", value = "All Selected")
+        updateTextInput(session, "year", value = "All Selected")
+        updateTextInput(session, "sample", value = "All Selected")
+      }
+    } else {
+      shinyjs::disable("classView")
       shinyjs::disable("cumulView")
     }
-    else {
-    shinyjs::enable("cumulView")
-    }
-  })
-  observe({
-    if (input$cumulView) { 
-      shinyjs::disable("classView")
-    }
-    else {
-      shinyjs::enable("classView")
-    }
   })
   
-
+  #Handling behaviors for button selections
+  observe({
+    options <- c(as.character(mutation_data() %>% filter(condition == input$condition) %>% pull(background)))
+    #print(options)
+    if(length(unique(options)) != 1){ 
+      updateSelectInput(session, "background", choices = c('All Selected', options))
+      shinyjs::enable("background")
+    }else{
+      updateSelectInput(session, "background", choices = c(options))
+      shinyjs::disable("background")
+    }
+  })
+  #making the background not a button before selecting a condition
+  observe({
+    if(input$condition == "All Selected"){
+      shinyjs::disable("background")
+    }
+  })
   
   observe({
-    updateSelectInput(session, "background", choices = c('None Selected', as.character(uploaded_data() %>% filter(condition==input$condition) %>% pull(background))))
-  }) 
+    updateSelectInput(session, "instructor", choices = c("All Selected", unique(mutation_data()$instructor)))
+  })
   
-  observe({
-    updateSelectInput(session, "instructor", choices = c('All Selected', unique(uploaded_data()$instructor)))
-  }) 
   
   observe({
     if (input$instructor == "All Selected") {
-      updateSelectInput(session, "year", choices = c("All Selected", unique(uploaded_data()$year)))
+      updateSelectInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)))
     } else {
-      updateSelectInput(session, "year", choices = c("All Selected", as.character(uploaded_data()[uploaded_data()$instructor == input$instructor, "year"])))
+      updateSelectInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])))
     }
   })
   
-  
+  observe({
+    updateSelectInput(session, "instructor", choices = c('All Selected', unique(mutation_data()$instructor)))
+  }) 
   
   
   observe({
-    updateSelectInput(session, "sample", choices = c("All Selected", as.character(uploaded_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
+    updateSelectInput(session, "sample", choices = c("All Selected", as.character(mutation_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
   
   
   observe({
-    updateSelectInput(session, "GENE", choices = if(input$sample!="All Selected") { as.character(uploaded_data()[uploaded_data()$sample==input$sample, "GENE"]%>% discard(is.na))
-    } else {as.character(uploaded_data() %>% filter(condition==input$condition) %>% filter(background==input$background) %>% pull(GENE) %>% discard(is.na)) })
+    if(input$sample != "All Selected") {
+      choices <- mutation_data()[mutation_data()$sample == input$sample, "GENE"]
+    } else {
+      choices <- filtered_data() %>% pull(GENE)
+    }
+    
+    # Filter choices to include only those present in genes_info
+    choices <- choices[choices %in% genes_info$GENE]
+    
+    choices <- sort(choices)
+    
+    updateSelectInput(session, "GENE", choices = as.character(choices))
   })
   
   
-  observe({
-    updateSelectInput(session, "SGDID", choices  = as.character(uploaded_data()[uploaded_data()$GENE==input$GENE, "SGDID"] %>% discard(is.na) %>% unique()))
-  })
-  
-  
+  # Learn about Gene button within gene viewer
+  sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
-    url <- a("Learn about Gene",href=paste0(link,input$SGDID),class="btn btn-default", target='_blank')
+    sgdid_values <- as.character(genes_info[genes_info$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
+    sgdid$value <- sgdid_values
+    url <- a("Learn about Gene",href=paste0(link, sgdid$value),class="btn btn-default", target='_blank')
     url
   })
   
@@ -283,336 +345,224 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
-<<<<<<< Updated upstream
-  output$plot1 <- renderPlot({
-=======
-  #TODO: replace chromosome and gene data w the correct path
+  
+  #to create loading message below: 
+  loading_message <- "Loading..."
+  # Calculate the number of empty spaces needed on each side
+  total_spaces <- 160  # Total number of characters to occupy the line
+  message_length <- nchar(loading_message)
+  spaces_on_each_side <- floor((total_spaces - message_length) / 2)
+  # Construct the string with spaces on each side of the loading message
+  formatted_loading_message <- sprintf("%s%s%s",
+                                        "\n\n\n\n\n\n\n\n",
+                                        paste(rep(" ", spaces_on_each_side), collapse = ""),
+                                        loading_message,
+                                        paste(rep(" ", spaces_on_each_side), collapse = ""))
+  
   
   # Define the desired order of categories
-  desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII', 'chrI')
-
-
+  desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII','chrI')
   # Convert category to a factor with the desired order
   chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
-  
-  # Chromosomal data for chromoplot
-  chromosomes <- data.frame(
-    chromosome = chrom_info$CHROM,
-    length = chrom_info$length,
-    chrom_num = chrom_info$chromplot_num
-  )
-  
-  #merge(genes_info,chromosomes, by = "CHROM")
-  
+
   # Define a mapping from chromosome names to numbers
   chromosome_mapping <- c(
-    'chrM' = 1,
-    'chrXVI' = 2,
-    'chrXV' = 3,
-    'chrXIV' = 4,
-    'chrXIII' = 5,
-    'chrXII' = 6,
-    'chrXI' = 7,
-    'chrX' = 8,
-    'chrIX' = 9,
-    'chrVIII' = 10,
-    'chrVII' = 11,
-    'chrVI' = 12,
-    'chrV' = 13,
-    'chrIV' = 14,
-    'chrIII' = 15,
-    'chrII' = 16,
-    'chrI' = 17
+    chrM = 1, chrXVI = 2, chrXV = 3, chrXIV = 4, chrXIII = 5, chrXII = 6,
+    chrXI = 7, chrX = 8, chrIX = 9, chrVIII = 10, chrVII = 11, chrVI = 12,
+    chrV = 13, chrIV = 14, chrIII = 15, chrII = 16, chrI = 17
   )
-
-  mutations_locations <- reactive({
-    # Extract the current values of the reactive data frames
+  
+  
+  # Create an empty dataframe to store the final results
+  final_gene <- reactive({
     mutation_data_value <- filtered_data()
-    # Merge the data frames based on the "REGION" column
-    merged <- merge(mutation_data_value, genes_info, by = "REGION")
-    # Adding chrom as num
-    merged$chromosome_as_num <-chromosome_mapping[merged$CHROM]
-    #returning merged
-    merged
-  })
-
-  #To pull out only the genes that mutated
-  mutated_genes <- reactive({
-    # To pull out only the genes that mutated
-    data.frame(
-      chromosome = mutations_locations()$CHROM.x,
-      start = mutations_locations()$START,
-      end = mutations_locations()$STOP,
-      geneName = mutations_locations()$GENE.y,
-      chrom_as_num = mutations_locations()$chromosome_as_num
+    # Merge the data frames based on the “REGION” column
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = 'REGION')
       
-    )
+    # Iterate through unique genes
+    final_gene_static <- mutation_data_value %>%
+      group_by(GENE.y) %>%
+      summarize(
+        CHROM.x = first(CHROM.x),
+        START = first(START),
+        STOP = first(STOP),
+        Counts = n(),
+        chrom_as_num = first(chromosome_mapping[match(first(CHROM.x), names(chromosome_mapping))])
+      ) %>%
+      ungroup()
+
+    final_gene_static
   })
-
-  #chromosomes$chromosome_as_num <- chromosome_mapping[chromosomes$chromosome]
-
+  
+  
   output$chromPlot <- renderPlotly({
+    validate(
+      need(final_gene()$START, formatted_loading_message)
+    )
+    
     # Plotting
     p <- ggplot() +
-      geom_bar(data = chromosomes, aes(x = length, y = chromosome_as_num), stat = 'identity', fill = 'lightblue', width = 0.5) + # swapped x and y
-      geom_rect(data = mutated_genes(), aes(ymin = chromosome_as_num - 0.4, # swapped ymin and ymax
-                                           ymax = chromosome_as_num + 0.4,
-                                           xmin = start,
-                                           xmax = end,),
-#something wrong with this line           #text = geneName),
-                fill = 'red', alpha = 0.5) +
+      geom_rect(data = chrom_info,
+                aes(xmin = 0, xmax = length, ymin = CHROM, ymax = CHROM,
+                    text = CHROM),
+                fill = 'lightblue', alpha = 1) +
+      geom_rect(data = chrom_info, 
+                aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2, 
+                    text = CHROM), 
+                fill = 'lightblue', alpha = 1) +
+      geom_rect(data = final_gene(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+                                            ymax = chrom_as_num + 0.4,
+                                            xmin = START,
+                                            xmax = START + 8000,
+                text = paste("Gene Name: ",GENE.y),
+                fill = Counts), alpha = 1, color = "black", size = 0.1) +
+    scale_fill_gradient(low = "pink", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
-
     # Convert ggplot2 plot to plotly
     p <- ggplotly(p)
-
     # Add formatting
     p <- layout(
       p,
-      plot_bgcolor = "rgba(0,0,0,0)",   # Set plot background color to transparent
-      paper_bgcolor = "rgba(0,0,0,0)",  # Set paper background color to transparent
+      plot_bgcolor = 'rgba(0,0,0,0)',   # Set plot background color to transparent
+      paper_bgcolor = 'rgba(0,0,0,0)',  # Set paper background color to transparent
       xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
       yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
     )
   })
   
- 
-  
-  
-  
-  # Maps specific annotation to specific color
-  annotat_colormap <- c()
-  
-  output$varPieChart <- renderPlot({
+  output$varPieChart <- renderPlotly({
     # Color vector for each annotation in Pie Chart
     # just add the same number of colors as number of annotations
     # ex. if there are 10 unique annotations, put 10 unique colors
     # in this color vector
-    color_vector <- c("red", "blue", "green", "orange", "purple",
-                      "cyan", "magenta", "yellow", "brown", "pink",
-                      "darkgreen", "lightblue", "violet", "gold", "gray")
+    color_vector <- c("#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
+                      "#7f7f7f", "#f7b6d2", "#e377c2", "#c49c94", "#8c564b",
+                      "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
+                      "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
+    pie_df <- data.frame(
+      ANNOTATION = c("coding-nonsynonymous", "5'-upstream", "intergenic", "coding-synonymous",
+                     "ARS", "telomere", "LTR_retrotransposon", "intron", "rRNA", "tRNA"),
+      count = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      percent = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+    
+    # TODO: If user inputs new annotation, be flexible enough to add to pie chart
     # gives us the number of unique annotations in filtered data
-    unique_annotations <- filtered_data() %>%
-      distinct(ANNOTATION) %>% pull(ANNOTATION)
+    # unique_annotations <- filtered_data() %>%
+    #   distinct(ANNOTATION) %>% pull(ANNOTATION)
     
-    # if there are new annotations that have not been mapped to a color
-    # put them in this named vector with [annotation = color] 
-    new_anno_vector <- c()
-    # keep track of which unique index in the color_vector we will choose
-    # for our new annotations
-    cur_anno_length = length(annotat_colormap) + 1
-    # check along all unique annotations
-    for (i in seq_along(unique_annotations)) {
-      # if there are new annotations, add it to the color map 
-      # and set it to next available color
-      if (!(unique_annotations[i] %in% names(annotat_colormap))){
-        # get the new unused color for our new annotation
-        new_color = color_vector[cur_anno_length]
-        # add this new annotation and color name-value pair to a vector
-        new_anno_vector <- c(new_anno_vector, setNames(new_color,unique_annotations[i]))
-        # increment to cur_anno_length to next unique color
-        cur_anno_length = cur_anno_length + 1
-      }
-    }
-    # now combine back into annotat_colormap
-    # and permanently update (does not reset unless you close and rerun the program)
-    annotat_colormap <<- c(annotat_colormap, new_anno_vector)
+    pie_data <- filtered_data() %>%
+      arrange(ANNOTATION) %>% 
+      count(ANNOTATION) %>% 
+      mutate(percent = n/sum(n) * 100)
     
-    blank_theme <- theme_minimal()+
-      theme(
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        panel.border = element_blank(),
-        panel.grid=element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        plot.title=element_text(size=14, face="bold"))
->>>>>>> Stashed changes
+    # Update pie_df with counts from filtered_data
+    pie_df$count[match(pie_data$ANNOTATION, pie_df$ANNOTATION)] <- pie_data$n
     
-    filtered_data() %>% 
-        mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) %>%
-        ggplot() +
-        facet_grid(vars(Chromosome),switch = "y") +
-        geom_segment(aes(color=Chromosome),x = 1, y = 0, xend = filtered_data()$Length, yend = 0, size=4.1,lineend = "round") +
-        geom_segment(x = filtered_data()$cent1, y = 0, xend = filtered_data()$cent2, yend = 0, size=4.1,lineend = "round", color="black") +
-        scale_color_manual(values=pl_palette("lorax",17)) +
-        geom_point(aes(x=POS,y=0),shape = "|", size=2.9, data=filtered_data()
-                   %>% mutate(Chromosome=forcats::fct_relevel(Chromosome,'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','M')) #%>% 
-                    # filter(sample==input$sample)
-                   ) + 
-        theme(axis.text.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              panel.background = element_blank()
-        ) +
-        xlim(c(0,1540000)) +
-        ggtitle("Where do variants fall on chromosomes") + 
-        xlab("Position along chromosome") + ylab("Chromosome") +
-        theme(strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              legend.position="none")
+    # Calculate percent
+    pie_df$percent <- pie_df$count / sum(pie_df$count) * 100
     
-      })
-  
-  output$plot <- renderPlot({
+    # Arrange the data alphabetically
+    sorted_pie_df <- arrange(pie_df, ANNOTATION)
     
-      num <- final %>% filter(condition==input$condition) %>% 
-        filter(background==input$background) %>%
-        count(ANNOTATION) %>% summarise(n = n()) %>% as.numeric()
-      
-      blank_theme <- theme_minimal()+
-        theme(
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.border = element_blank(),
-          panel.grid=element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          plot.title=element_text(size=14, face="bold"))
-      
-      final %>% filter(sample==input$sample) %>% 
-        count(ANNOTATION) %>% 
-        mutate(percent=n/sum(n)*100) %>% 
-        ggplot(aes(x="",y=percent,fill=ANNOTATION)) + 
-        geom_bar(stat="identity", width=1) +
-        coord_polar("y", start=0) + 
-        ggtitle("Percentage of Variants by Type") + 
-        geom_text(aes(label = round(percent), digits = 0),position = position_stack(vjust = 0.5),col="white") + 
-        blank_theme + 
-        scale_fill_manual(values=pl_palette("lorax",num))
+    p <- plot_ly(sorted_pie_df, labels = ~ANNOTATION, values = ~percent, type = 'pie', text = ~paste(ANNOTATION, ": ", round(percent, digits = 2), "%"),
+                 hoverinfo = "text", outsidetextfont = list(size = 8), textinfo = "text", marker = list(colors = color_vector)) %>%
+      layout(title = list(text = "Percentage of Variants by Type", x = 1, y = 0.95, xanchor = "right", yanchor = "top"),
+             legend = list(x = 0.95, y = 0.1),
+             plot_bgcolor = 'rgba(0,0,0,0)',
+             paper_bgcolor = 'rgba(0,0,0,0)',
+             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+    
+    p %>% layout(showlegend = TRUE, 
+                 legend = list(font = list(size = 7)),
+                 margin = list(l = 75, r = 75, b = 75, t = 75))
+    # Adjust the margin to make the pie chart bigger or smaller.
+    # Larger values means a smaller pie chart
   })
   
   
-  output$plot2 <- renderPlot({
-    if(input$classView) {
-      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample) %>% mutate(length = nchar(transition)) %>% 
-        filter(sample==input$sample[1]) %>%
-        count(transition) %>% 
-        summarise(n = n()) %>% as.numeric()
-      
-      
-      final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,sample) %>% 
-        filter(sample==input$sample[1]) %>%
-        mutate(length = nchar(transition)) %>% 
-        #filter(length >= 3) %>%  
-        mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
-        ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
-        geom_bar() + theme_bw() + 
-        scale_fill_manual(values=pl_palette("lorax",num)) + 
-        theme(legend.position = "none",
-              strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-        ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
-    } else {
-      num <- final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% select(transition,sample,condition,background) %>% mutate(length = nchar(transition)) %>% 
-        filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        count(transition) %>% 
-        summarise(n = n()) %>% as.numeric()
-      
-      
-      final %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
-        select(transition,sample,condition,background) %>% 
-        filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        mutate(length = nchar(transition)) %>% 
-        #filter(length >= 3) %>%  
-        mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
-        ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
-        geom_bar() + theme_bw() + 
-        scale_fill_manual(values=pl_palette("lorax",num)) + 
-        theme(legend.position = "none",
-              strip.text.y.left = element_text(angle = 0),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-        ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
-    }
+  
+  #TODO: figure out what ref, alt, are from and what info we need here?
+  output$snpCountPlot <- renderPlot({
+    # counting number of transitions to display to set for colors and plot
+    num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
+      mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
+      count(transition) %>% summarise(n = n()) %>% as.numeric()
+    
+    filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
+      mutate(length = nchar(transition)) %>% 
+      mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
+      ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
+      geom_bar() + theme_bw() + 
+      scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
+      theme(legend.position = "none",
+            strip.text.y.left = element_text(angle = 0),
+            plot.title = element_text(hjust = 0.5),
+            axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
+      ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
-  
-  output$plot3 <- renderPlot({
-    if(input$classView) {
-      
-      xlength <- final %>% filter(sample==input$sample[1]) %>%
-        filter(GENE==input$GENE[1]) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
-      
-      final %>% 
-        filter(sample==input$sample[1]) %>%
-        filter(GENE==input$GENE[1]) %>%
-        mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-        ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
-        #facet_grid(rows=vars(GENE))+
-        geom_hline(yintercept=0, linetype=2,alpha=.2)+
-        #geom_segment(aes(x=-10,xend=PROTEIN_LENGTH+10,y=0,yend=0), size=20, color = "pink") + 
-        geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
-        geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
-        geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
-        ylim(c(-0.2, 1.2))+ 
-        xlim(-50,xlength)+
-        geom_label_repel(aes(label = PROTEIN),
-                         box.padding   = 1, 
-                         point.padding = 1,
-                         segment.color = 'grey50') +
-        ggtitle(as.character(input$GENE[1]))+
-        theme_classic() +
-        theme(axis.title.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.y = element_blank()) + 
-        xlab("Amino acid position") +
-        theme(axis.text.x = element_text(size = 8)) +
-        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
-        theme(plot.margin = margin(0, 0, 0, 0))
-      
-    } else {
-      
-      xlength <- final %>% filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
-      
-      final %>% 
-        filter(condition==input$condition) %>%
-        filter(background==input$background) %>%
-        filter(GENE==input$GENE[1]) %>%
-        mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-        mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-        ggplot(aes(x=as.numeric(AA_POS),y=1)) + 
-        #facet_grid(rows=vars(GENE))+
-        geom_hline(yintercept=0, linetype=2,alpha=.2)+
-        #geom_segment(aes(x=-10,xend=PROTEIN_LENGTH+10,y=0,yend=0), size=20, color = "pink") + 
-        geom_segment(aes(x=0,xend=PROTEIN_LENGTH,y=0,yend=0), size=15, color = "cornflowerblue") +
-        geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=1), color = "pink") +
-        geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=1, size=2)+
-        ylim(c(-2,2))+ 
-        xlim(-20,xlength)+
-        geom_label_repel(aes(label = as.character(PROTEIN)),
-                         # box.padding   = 1, 
-                         #point.padding = 1,
-                         segment.color = 'grey50') +
-        ggtitle(as.character(input$GENE[1]))+
-        theme_classic() +
-        theme(axis.title.y=element_blank(),
-              axis.ticks.y=element_blank(),
-              plot.title = element_text(hjust = 0.5),
-              axis.text.y = element_blank()) + 
-        xlab("Amino acid position") +
-        theme(axis.text.x = element_text(size = 8)) +
-        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
-        theme(plot.margin = margin(0, 0, 0, 0))
-    }
+  # Showing please select gene message
+  # Construct the string with spaces on each side of the loading message
+  geneview_message <- "Please select a gene below"
+  # Calculate the number of empty spaces needed on each side
+  gene_message_length <- nchar(geneview_message)
+  gene_spaces_on_each_side <- floor((total_spaces - gene_message_length) / 2)
+  select_gene_message <- sprintf("%s%s%s",
+                                       "\n\n\n\n\n\n\n\n",
+                                       paste(rep(" ", gene_spaces_on_each_side), collapse = ""),
+                                       geneview_message,
+                                       paste(rep(" ", gene_spaces_on_each_side), collapse = ""))
+  output$geneViewPlot <- renderPlot({
+    validate(
+      need(input$GENE, select_gene_message)
+    )
+    xlength <- genes_info %>%
+      filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
-  }, width = 1000)
+    filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
+      filter(GENE==input$GENE) %>%
+      mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
+      mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
+      ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
+      geom_hline(yintercept=0, linetype=2,alpha=.2)+
+      geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
+      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
+      geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
+      ylim(c(-0.2, 1.2))+ 
+      xlim(-50,xlength)+
+      geom_text_repel(aes(label = PROTEIN),
+                      box.padding   = 2, 
+                      point.padding = 1,
+                      segment.color = 'grey50',
+                      min.segment.length = 0
+      ) +
+      ggtitle(as.character(input$GENE))+
+      theme_classic(base_size=18) +
+      theme(axis.title.y=element_blank(),
+            axis.ticks.y=element_blank(),
+            plot.title = element_text(hjust = 0.5),
+            axis.text.y = element_blank()) + 
+      xlab("Amino acid position") +
+      theme(axis.text.x = element_text(size = 8)) +
+      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
+      theme(plot.margin = margin(0, 0, 0, 0)) + 
+      annotate(
+        "text", x = 1, y = Inf, label = "Drag over mutations to see more",
+        hjust = 0, vjust = 2, color = "black", size = 5
+      )
+    
+  }, width = 750)
   
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
-  observeEvent(input$plot3_dblclick, {
-    brush <- input$plot3_brush
+  observeEvent(input$geneViewPlot_dblclick, {
+    brush <- input$geneViewPlot_brush
     if (!is.null(brush)) {
       ranges$x <- c(brush$xmin, brush$xmax)
       ranges$y <- c(brush$ymin, brush$ymax)
@@ -634,26 +584,7 @@ server <- function(input, output,session) {
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
     
-#    if (file.exists("final_allVCF.csv")) {
-#     # Read the existing CSV file
-#      existing_data <- read.csv("final_allVCF.csv")
-#      
-#      # Read the new CSV file
-#      new_data <- read.csv(new_csv_path)
-#      
-#      # Append the new data to the existing data
-#    combined_data <- rbind(existing_data, new_data)
-#      
-#      # Write the combined data back to the existing CSV file
-#      write.csv(combined_data, "final_allVCF.csv", row.names = FALSE)
-#      
-#      output$message <- renderText("CSV files appended successfully.")
-#    } else {
-#      output$message <- renderText("Error: Existing CSV file not found.")
-#    } 
   }) 
-  
 }
 
 shinyApp(ui, server)
-
