@@ -7,6 +7,7 @@ required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite",
 new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages)
 
+### %% Imports
 #loading necessary libraries
 library(devtools)
 library(shiny)
@@ -22,8 +23,6 @@ library(ggrepel)
 library(purrr)
 library(shinyjs)
 library(plotly)
-
-
 
 #loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
 mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
@@ -99,10 +98,10 @@ ui <-  navbarPage(
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
-                 tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
-                          selectInput("GENE", "Gene", choices = c('')),
-                          uiOutput("url"),
-                          verbatimTextOutput("text1")),
+                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene")),
+                         selectInput("GENE", "Gene", choices = c('')),
+                         # uiOutput("url"),
+                         # verbatimTextOutput("text1")),
                  tabPanel("Table", tableOutput("data_table")),
                )
              )
@@ -155,10 +154,6 @@ server <- function(input, output,session) {
       
     }
   })
-  
-  
-  
-  
   
   #filtering dataframe based on menu selection
   filtered_data <- reactive({
@@ -294,7 +289,6 @@ server <- function(input, output,session) {
     updateSelectInput(session, "instructor", choices = c("All Selected", unique(mutation_data()$instructor)))
   })
   
-  
   observe({
     if (input$instructor == "All Selected") {
       updateSelectInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)))
@@ -307,11 +301,9 @@ server <- function(input, output,session) {
     updateSelectInput(session, "instructor", choices = c('All Selected', unique(mutation_data()$instructor)))
   }) 
   
-  
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(mutation_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
-  
   
   observe({
     if(input$sample != "All Selected") {
@@ -343,7 +335,6 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
-  
   #to create loading message below: 
   loading_message <- "Loading..."
   # Calculate the number of empty spaces needed on each side
@@ -357,7 +348,6 @@ server <- function(input, output,session) {
                                         loading_message,
                                         paste(rep(" ", spaces_on_each_side), collapse = ""))
   
-  
   # Define the desired order of categories
   desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII','chrI')
   # Convert category to a factor with the desired order
@@ -369,7 +359,6 @@ server <- function(input, output,session) {
     chrXI = 7, chrX = 8, chrIX = 9, chrVIII = 10, chrVII = 11, chrVI = 12,
     chrV = 13, chrIV = 14, chrIII = 15, chrII = 16, chrI = 17
   )
-  
   
   # Create an empty dataframe to store the final results
   final_gene <- reactive({
@@ -392,7 +381,6 @@ server <- function(input, output,session) {
 
     return(final_gene_static)
   })
-  
   
   output$chromPlot <- renderPlotly({
     validate(
@@ -441,8 +429,6 @@ server <- function(input, output,session) {
       yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
     )
   })
-  
-  
   
   # Maps specific annotation to specific color
   annotat_colormap <- c()
@@ -527,12 +513,12 @@ server <- function(input, output,session) {
     
     p %>% layout( showlegend = TRUE, 
                  legend = list(font = list(size = 7)),
+                 legend = list(font = list(size = 7)),
+                 legend = list(font = list(size = 7)),
                  margin = list(l = 75, r = 75, b = 75, t = 75))
                  # Adjust the margin to make the pie chart bigger or smaller.
                  # Larger values means a smaller pie chart
   })
-  
-  
   
   #TODO: figure out what ref, alt, are from and what info we need here?
   output$snpCountPlot <- renderPlot({
@@ -566,26 +552,41 @@ server <- function(input, output,session) {
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""),
                                        geneview_message,
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""))
-  output$geneViewPlot <- renderPlot({
+  
+  output$geneViewPlot <- renderPlotly({
     validate(
       need(input$GENE, select_gene_message)
     )
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
-    filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
+    filtered_data() %>% #mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% # create a new column "AA_POS" and fill it with the numbers in protein column
+      # mutate(
+      #   "AA_POS" = stringr::str_extract(PROTEIN, "[0-9]+"),
+      #   "Char_before" = stringr::str_extract(PROTEIN, "(?<=[A-Za-z])[0-9]+"),
+      #   "Char_after" = stringr::str_extract(PROTEIN, "[0-9]+(?=[A-Za-z])")
+      # )%>%
+      
+      mutate(
+        AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
+        AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
+        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
+      )%>%
+    
+    
       filter(GENE==input$GENE) %>%
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-      ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
-      geom_hline(yintercept=0, linetype=2,alpha=.2)+
+      # ggplot(aes(x=as.numeric(AA_POS), y=.5)) + 
+      p <- ggplot(aes(x=as.numeric(AA_POS), y=.5, text = paste(AA_WT , '->', AA_M))) +
+      geom_hline(yintercept=0, linetype=2,alpha=.2, )+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
       geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
       geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
       ylim(c(-0.2, 1.2))+ 
       xlim(-50,xlength)+
       geom_text_repel(aes(label = PROTEIN),
-                      box.padding   = 2, 
+                      box.padding   = 2,
                       point.padding = 1,
                       segment.color = 'grey50',
                       min.segment.length = 0
@@ -595,7 +596,9 @@ server <- function(input, output,session) {
       theme(axis.title.y=element_blank(),
             axis.ticks.y=element_blank(),
             plot.title = element_text(hjust = 0.5),
-            axis.text.y = element_blank()) + 
+            axis.text.y = element_blank(),
+            plot.margin = margin(20, 0, 0, 0) # Adjust top margin for space between title and plot
+      ) + 
       xlab("Amino acid position") +
       theme(axis.text.x = element_text(size = 8)) +
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
@@ -603,9 +606,20 @@ server <- function(input, output,session) {
       annotate(
         "text", x = 1, y = Inf, label = "Drag over mutations to see more",
         hjust = 0, vjust = 2, color = "black", size = 5
-      )
-    
-  }, width = 750)
+      ) + 
+    guides(color = FALSE)  # Remove the legend for color
+    # Convert ggplot2 plot to plotly
+    p <- ggplotly(p)
+    # Add formatting
+    p <- layout(
+      p,
+      plot_bgcolor = 'rgba(0,0,0,0)',   # Set plot background color to transparent
+      paper_bgcolor = 'rgba(0,0,0,0)',  # Set paper background color to transparent
+      xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
+      yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
+    )
+  })
+  })
   
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
