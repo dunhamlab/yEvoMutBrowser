@@ -23,6 +23,7 @@ library(ggrepel)
 library(purrr)
 library(shinyjs)
 library(plotly)
+library(stringr)
 
 #loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
 mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
@@ -560,26 +561,25 @@ server <- function(input, output,session) {
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
-    filtered_data() %>% #mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% # create a new column "AA_POS" and fill it with the numbers in protein column
-      # mutate(
-      #   "AA_POS" = stringr::str_extract(PROTEIN, "[0-9]+"),
-      #   "Char_before" = stringr::str_extract(PROTEIN, "(?<=[A-Za-z])[0-9]+"),
-      #   "Char_after" = stringr::str_extract(PROTEIN, "[0-9]+(?=[A-Za-z])")
-      # )%>%
-      
+    p <- filtered_data() %>%
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
         AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
-      )%>%
-    
-    
+      ) %>%
       filter(GENE==input$GENE) %>%
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-      # ggplot(aes(x=as.numeric(AA_POS), y=.5)) + 
-      p <- ggplot(aes(x=as.numeric(AA_POS), y=.5, text = paste(AA_WT , '->', AA_M))) +
-      geom_hline(yintercept=0, linetype=2,alpha=.2, )+
+      
+      ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
+                            text = ifelse(is.na(PROTEIN), paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION), paste0(AA_WT, '->', AA_M, "\nAnnotation: ", ANNOTATION))))+
+                 
+                 
+      # ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
+      #            text = ifelse(PROTEIN == "1NA", 
+      #                          paste0("Non-coding Mutation \nAnnotation: ", ANNOTATION), 
+      #                          paste0(AA_WT, '->', AA_M, "\n Annotation: ", ANNOTATION)))) +
+      geom_hline(yintercept=0, linetype=2,alpha=.2)+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
       geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
       geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
@@ -607,19 +607,11 @@ server <- function(input, output,session) {
         "text", x = 1, y = Inf, label = "Drag over mutations to see more",
         hjust = 0, vjust = 2, color = "black", size = 5
       ) + 
-    guides(color = FALSE)  # Remove the legend for color
-    # Convert ggplot2 plot to plotly
-    p <- ggplotly(p)
-    # Add formatting
-    p <- layout(
-      p,
-      plot_bgcolor = 'rgba(0,0,0,0)',   # Set plot background color to transparent
-      paper_bgcolor = 'rgba(0,0,0,0)',  # Set paper background color to transparent
-      xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
-      yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
-    )
+      guides(color = FALSE)
+    
+    ggplotly(p, tooltip="text")
   })
-  })
+  
   
   # When a double-click happens, check if there's a brush on the plot.
   # If so, zoom to the brush bounds; if not, reset the zoom.
