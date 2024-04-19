@@ -348,10 +348,12 @@ server <- function(input, output,session) {
   
   #to create loading message below: 
   loading_message <- "Loading..."
+  
   # Calculate the number of empty spaces needed on each side
   total_spaces <- 160  # Total number of characters to occupy the line
   message_length <- nchar(loading_message)
   spaces_on_each_side <- floor((total_spaces - message_length) / 2)
+  
   # Construct the string with spaces on each side of the loading message
   formatted_loading_message <- sprintf("%s%s%s",
                                         "\n\n\n\n\n\n\n\n",
@@ -365,16 +367,16 @@ server <- function(input, output,session) {
   # Convert category to a factor with the desired order
   chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
 
-  # Define a mapping from chromosome names to numbers
+  #Define a mapping from chromosome names to numbers
   chromosome_mapping <- c(
     chrM = 1, chrXVI = 2, chrXV = 3, chrXIV = 4, chrXIII = 5, chrXII = 6,
     chrXI = 7, chrX = 8, chrIX = 9, chrVIII = 10, chrVII = 11, chrVI = 12,
     chrV = 13, chrIV = 14, chrIII = 15, chrII = 16, chrI = 17
   )
+
   
-  
-  # Create an empty dataframe to store the final results
-  final_gene <- reactive({
+  # Create an empty dataframes to store the final results, and to split up singletons and multiple mutations for mapping colors independently
+  final_gene_singletons <- reactive({
     mutation_data_value <- filtered_data()
     # Merge the data frames based on the “REGION” column
     mutation_data_value <- merge(mutation_data_value, genes_info, by = 'REGION')
@@ -391,17 +393,40 @@ server <- function(input, output,session) {
       ) %>%
       ungroup()
 
+    final_gene_static <- final_gene_static%>% filter(Counts == 1)
+    final_gene_static
+  })
+  
+  final_gene_multi_mut <- reactive({
+    mutation_data_value <- filtered_data()
+    # Merge the data frames based on the “REGION” column
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = 'REGION')
+    
+    # Iterate through unique genes
+    final_gene_static <- mutation_data_value %>%
+      group_by(GENE.y) %>%
+      summarize(
+        CHROM.x = first(CHROM.x),
+        START = first(START),
+        STOP = first(STOP),
+        Counts = n(),
+        chrom_as_num = first(chromosome_mapping[match(first(CHROM.x), names(chromosome_mapping))])
+      ) %>%
+      ungroup()
+    
+    final_gene_static <- final_gene_static%>% filter(Counts > 1)
     final_gene_static
   })
   
   
   output$chromPlot <- renderPlotly({
     validate(
-      need(final_gene()$START, formatted_loading_message)
+      need(final_gene_multi_mut()$START, formatted_loading_message)
     )
     
     # Plotting
     p <- ggplot() +
+
       geom_rect(data = chrom_info,
                 aes(xmin = 0, xmax = length, ymin = CHROM, ymax = CHROM,
                     text = CHROM),
@@ -410,13 +435,19 @@ server <- function(input, output,session) {
                 aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2, 
                     text = CHROM), 
                 fill = 'lightblue', alpha = 1) +
-      geom_rect(data = final_gene(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+      geom_rect(data = final_gene_singletons(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
                                             ymax = chrom_as_num + 0.4,
                                             xmin = START,
                                             xmax = START + 8000,
-                text = paste("Gene Name: ",GENE.y),
+                text = paste0("Gene Name: ",GENE.y,"\n", "Independent Mutations: ",Counts)),
+                fill = "white", alpha = 1, color = "black", size = 0.1) +
+      geom_rect(data = final_gene_multi_mut(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+                                                    ymax = chrom_as_num + 0.4,
+                                                    xmin = START,
+                                                    xmax = START + 8000,
+                                                    text = paste0("Gene Name: ",GENE.y,"\n", "Independent Mutations: ", Counts),
                 fill = Counts), alpha = 1, color = "black", size = 0.1) +
-    scale_fill_gradient(low = "pink", high = "red4",) +
+      scale_fill_gradient(low = "mistyrose", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
