@@ -401,6 +401,10 @@ server <- function(input, output,session) {
       labels = rev(as.character(chrom_info$CHROM))
     )
     
+    final_gene_singletons <- final_gene_data[final_gene_data$Counts == 1, ]
+    if (any(final_gene_data$Counts >= 2)) {
+      final_gene_multi_muts <- final_gene_data[final_gene_data$Counts >= 2, ]
+    } 
     p <- ggplot() +
       geom_rect(data = chrom_info,
                 aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - .02, ymax = as.numeric(factor(CHROM)) + .02, text = CHROM
@@ -410,17 +414,25 @@ server <- function(input, output,session) {
                 aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2,
                     text = CHROM),
                 fill = 'lightblue', alpha = 1) +
-      geom_rect(data = final_gene_data, aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
-                                            ymax = chrom_as_num + 0.4,
-                                            xmin = START,
-                                            xmax = START + 8000,
-                text = paste("Gene Name: ",GENE),
-                fill = Counts), alpha = 1, color = "black", size = 0.1) +
-    scale_y_custom +
-    scale_fill_gradient(low = "pink", high = "red4",) +
+      geom_rect(data = final_gene_singletons, aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+                                                  ymax = chrom_as_num + 0.4,
+                                                  xmin = START,
+                                                  xmax = START + 8000,
+                                                  text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts)),
+                fill = "white", alpha = 1, color = "black", size = 0.1) +
+      scale_y_custom +
+      scale_fill_gradient(low = "pink", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
+    if (exists("final_gene_multi_muts")) {
+      p <- p + geom_rect(data = final_gene_multi_muts, 
+                         aes(ymin = chrom_as_num - 0.4, ymax = chrom_as_num + 0.4,
+                             xmin = START, xmax = START + 8000,
+                             text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts), fill = Counts),
+                         alpha = 1, color = "black", size = 0.1)
+    }
+      
     # Convert ggplot2 plot to plotly
     p <- ggplotly(p)
     # Add formatting
