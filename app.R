@@ -99,8 +99,8 @@ ui <-  navbarPage(
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
-                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene")),
-                         selectInput("GENE", "Gene", choices = c('')),
+                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
+                         selectInput("GENE", "Gene", choices = c(''))),
                          # uiOutput("url"),
                          # verbatimTextOutput("text1")),
                  tabPanel("Table", tableOutput("data_table")),
@@ -130,7 +130,6 @@ server <- function(input, output,session) {
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
 
-  #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$submit_teach_year, {
     file <- input$datafile
     data <- read.csv(file$datapath)
@@ -523,6 +522,7 @@ server <- function(input, output,session) {
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
+  
   # Showing please select gene message
   # Construct the string with spaces on each side of the loading message
   geneview_message <- "Please select a gene below"
@@ -554,12 +554,6 @@ server <- function(input, output,session) {
       
       ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
                             text = ifelse(is.na(PROTEIN), paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION), paste0(AA_WT, '->', AA_M, "\nAnnotation: ", ANNOTATION))))+
-                 
-                 
-      # ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
-      #            text = ifelse(PROTEIN == "1NA", 
-      #                          paste0("Non-coding Mutation \nAnnotation: ", ANNOTATION), 
-      #                          paste0(AA_WT, '->', AA_M, "\n Annotation: ", ANNOTATION)))) +
       geom_hline(yintercept=0, linetype=2,alpha=.2)+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
       geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
@@ -593,28 +587,6 @@ server <- function(input, output,session) {
     ggplotly(p, tooltip="text")
   })
   
-  
-  # When a double-click happens, check if there's a brush on the plot.
-  # If so, zoom to the brush bounds; if not, reset the zoom.
-  observeEvent(input$geneViewPlot_dblclick, {
-    brush <- input$geneViewPlot_brush
-    if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
-      
-    } else {
-      ranges$x <- NULL
-      ranges$y <- NULL
-    }
-  })
-  
-  output$text <- renderText({ paste("Mutations Types:","- A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
-                                    "- A synonymous mutation is a change in the DNA sequence that codes for amino acids in a protein sequence," ,"but does not change the encoded amino acid.",
-                                    "- The 5′ untranslated region (also known as 5′ UTR) is the region of a messenger RNA (mRNA) that is directly","upstream from the initiation codon. It is not usually translated.",
-                                    "- Intergenic regions are the stretches of DNA located between genes.",
-                                    "- An autonomously replicating sequence (ARS) contains the origin of replication in the yeast genome.", sep="\n")})
-  
-  output$text1 <- renderText({ "The plot can be zoomed in by clicking and draggin and then double-clicking on the box.\n Reset view by double clicking again."})
   
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
