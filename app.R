@@ -418,7 +418,7 @@ server <- function(input, output,session) {
                                                   ymax = chrom_as_num + 0.4,
                                                   xmin = START,
                                                   xmax = START + 8000,
-                                                  text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts)),
+                                                  text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
                 fill = "white", alpha = 1, color = "black", size = 0.1) +
       scale_y_custom +
       scale_fill_gradient(low = "pink", high = "red4",) +
@@ -429,12 +429,12 @@ server <- function(input, output,session) {
       p <- p + geom_rect(data = final_gene_multi_muts, 
                          aes(ymin = chrom_as_num - 0.4, ymax = chrom_as_num + 0.4,
                              xmin = START, xmax = START + 8000,
-                             text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts), fill = Counts),
+                             text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts), fill = Counts),
                          alpha = 1, color = "black", size = 0.1)
     }
       
     # Convert ggplot2 plot to plotly
-    p <- ggplotly(p)
+    p <- ggplotly(p,tooltip = "text")
     # Add formatting
     p <- layout(
       p,
