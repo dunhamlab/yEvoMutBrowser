@@ -444,9 +444,6 @@ server <- function(input, output,session) {
     )
   })
   
-  # Maps specific annotation to specific color
-  annotat_colormap <- c()
-  
   output$varPieChart <- renderPlotly({
     # Color vector for each annotation in Pie Chart
     # just add the same number of colors as number of annotations
@@ -457,11 +454,15 @@ server <- function(input, output,session) {
                       "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
                       "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
+    all_unique_anno <- mutation_data() %>%
+      distinct(ANNOTATION) %>% pull(ANNOTATION)
+    
+    all_unique_anno <- sort(all_unique_anno)
+    
     pie_df <- data.frame(
-      ANNOTATION = c("coding-nonsynonymous", "5'-upstream", "intergenic", "coding-synonymous",
-                     "ARS", "telomere", "LTR_retrotransposon", "intron", "rRNA", "tRNA"),
-      count = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-      percent = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+      ANNOTATION = all_unique_anno,
+      count = numeric(length(all_unique_anno)),
+      percent = numeric(length(all_unique_anno))
     )
     
     # TODO: If user inputs new annotation, be flexible enough to add to pie chart
