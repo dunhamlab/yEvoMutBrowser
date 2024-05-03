@@ -99,8 +99,8 @@ ui <-  navbarPage(
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
-                 tabPanel("Gene View", div("", style = "height: 30px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene")),
-                         selectInput("GENE", "Gene", choices = c('')),
+                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
+                         selectInput("GENE", "Gene", choices = c(''))),
                          # uiOutput("url"),
                          # verbatimTextOutput("text1")),
                  tabPanel("Table", tableOutput("data_table")),
@@ -130,7 +130,6 @@ server <- function(input, output,session) {
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
 
-  #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$submit_teach_year, {
     file <- input$datafile
     data <- read.csv(file$datapath)
@@ -418,7 +417,7 @@ server <- function(input, output,session) {
                                                   ymax = chrom_as_num + 0.4,
                                                   xmin = START,
                                                   xmax = START + 8000,
-                                                  text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts)),
+                                                  text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
                 fill = "white", alpha = 1, color = "black", size = 0.1) +
       scale_y_custom +
       scale_fill_gradient(low = "pink", high = "red4",) +
@@ -429,12 +428,12 @@ server <- function(input, output,session) {
       p <- p + geom_rect(data = final_gene_multi_muts, 
                          aes(ymin = chrom_as_num - 0.4, ymax = chrom_as_num + 0.4,
                              xmin = START, xmax = START + 8000,
-                             text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts), fill = Counts),
+                             text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts), fill = Counts),
                          alpha = 1, color = "black", size = 0.1)
     }
       
     # Convert ggplot2 plot to plotly
-    p <- ggplotly(p)
+    p <- ggplotly(p,tooltip = "text")
     # Add formatting
     p <- layout(
       p,
@@ -444,9 +443,6 @@ server <- function(input, output,session) {
       yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
     )
   })
-  
-  # Maps specific annotation to specific color
-  annotat_colormap <- c()
   
   output$varPieChart <- renderPlotly({
     # Color vector for each annotation in Pie Chart
@@ -458,11 +454,15 @@ server <- function(input, output,session) {
                       "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
                       "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
+    all_unique_anno <- mutation_data() %>%
+      distinct(ANNOTATION) %>% pull(ANNOTATION)
+    
+    all_unique_anno <- sort(all_unique_anno)
+    
     pie_df <- data.frame(
-      ANNOTATION = c("coding-nonsynonymous", "5'-upstream", "intergenic", "coding-synonymous",
-                     "ARS", "telomere", "LTR_retrotransposon", "intron", "rRNA", "tRNA"),
-      count = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-      percent = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+      ANNOTATION = all_unique_anno,
+      count = numeric(length(all_unique_anno)),
+      percent = numeric(length(all_unique_anno))
     )
     
     # TODO: If user inputs new annotation, be flexible enough to add to pie chart
@@ -523,6 +523,7 @@ server <- function(input, output,session) {
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
+  
   # Showing please select gene message
   # Construct the string with spaces on each side of the loading message
   geneview_message <- "Please select a gene below"
@@ -554,12 +555,6 @@ server <- function(input, output,session) {
       
       ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
                             text = ifelse(is.na(PROTEIN), paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION), paste0(AA_WT, '->', AA_M, "\nAnnotation: ", ANNOTATION))))+
-                 
-                 
-      # ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
-      #            text = ifelse(PROTEIN == "1NA", 
-      #                          paste0("Non-coding Mutation \nAnnotation: ", ANNOTATION), 
-      #                          paste0(AA_WT, '->', AA_M, "\n Annotation: ", ANNOTATION)))) +
       geom_hline(yintercept=0, linetype=2,alpha=.2)+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
       geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
@@ -593,28 +588,6 @@ server <- function(input, output,session) {
     ggplotly(p, tooltip="text")
   })
   
-  
-  # When a double-click happens, check if there's a brush on the plot.
-  # If so, zoom to the brush bounds; if not, reset the zoom.
-  observeEvent(input$geneViewPlot_dblclick, {
-    brush <- input$geneViewPlot_brush
-    if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
-      
-    } else {
-      ranges$x <- NULL
-      ranges$y <- NULL
-    }
-  })
-  
-  output$text <- renderText({ paste("Mutations Types:","- A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
-                                    "- A synonymous mutation is a change in the DNA sequence that codes for amino acids in a protein sequence," ,"but does not change the encoded amino acid.",
-                                    "- The 5′ untranslated region (also known as 5′ UTR) is the region of a messenger RNA (mRNA) that is directly","upstream from the initiation codon. It is not usually translated.",
-                                    "- Intergenic regions are the stretches of DNA located between genes.",
-                                    "- An autonomously replicating sequence (ARS) contains the origin of replication in the yeast genome.", sep="\n")})
-  
-  output$text1 <- renderText({ "The plot can be zoomed in by clicking and draggin and then double-clicking on the box.\n Reset view by double clicking again."})
   
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
