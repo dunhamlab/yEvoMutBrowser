@@ -26,7 +26,7 @@ library(plotly)
 library(stringr)
 
 #loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
-mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
+mut_backend <- read.csv("all_yEvo_vcf_spring2024.csv") #used to be called final, and used to run off of final_allVCF
 
 #loading in the genes data file
 genes_info <- read.csv("gene_info.csv")
