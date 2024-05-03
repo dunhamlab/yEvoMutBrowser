@@ -120,7 +120,7 @@ ui <-  navbarPage(
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
   #initially setting default file of all mutation data
-  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
+  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf_spring2024.csv")) 
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
