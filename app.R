@@ -99,7 +99,7 @@ ui <-  navbarPage(
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
-                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene")),
+                 tabPanel("Gene View", div("", style = "height: 30px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene")),
                          selectInput("GENE", "Gene", choices = c('')),
                          # uiOutput("url"),
                          # verbatimTextOutput("text1")),
@@ -576,7 +576,7 @@ server <- function(input, output,session) {
       theme_classic(base_size=18) +
       theme(axis.title.y=element_blank(),
             axis.ticks.y=element_blank(),
-            plot.title = element_text(hjust = 0.5),
+            plot.title = element_text(hjust = 0.5),  # Adjust top margin for title
             axis.text.y = element_blank(),
             plot.margin = margin(20, 0, 0, 0) # Adjust top margin for space between title and plot
       ) + 
