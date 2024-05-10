@@ -100,9 +100,8 @@ ui <-  navbarPage(
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
                  tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
-                         selectInput("GENE", "Gene", choices = c(''))),
-                         # uiOutput("url"),
-                         # verbatimTextOutput("text1")),
+                         selectInput("GENE", "Gene", choices = c('')),
+                         uiOutput("url")),
                  tabPanel("Table", tableOutput("data_table")),
                )
              )
