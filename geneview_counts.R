@@ -1,7 +1,7 @@
 library(dplyr)
 library(stringr)
 
-mutation_data <- read.csv("all_yEvo_vcf.csv")
+mut_backend <- read.csv("all_yEvo_vcf.csv")
 genes_info <- read.csv("gene_info.csv")
 chromosome_mapping <- c(
   chrM = 1, chrXVI = 2, chrXV = 3, chrXIV = 4, chrXIII = 5, chrXII = 6,
@@ -12,20 +12,19 @@ chromosome_mapping <- c(
 
 gene_name <- "PDR1"
 
-mutation_data_value <- mutation_data
+mutation_data_value <- mut_backend
+
 # Merge the data frames based on the “REGION” column
 common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
 mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
 
 mutation_data_value <- mutation_data_value[order(mutation_data_value$GENE),]
-# Using logical indexing
-cur_gene <- mutation_data_value[mutation_data_value$GENE == gene_name, ]
 
 # Using subset() function
 cur_gene <- subset(mutation_data_value, GENE == gene_name)
 
-  # Iterate through unique genes
-final_gene_static <- cur_gene %>%
+# Iterate through unique genes
+count_proteins <- cur_gene %>%
     group_by(POS) %>%
   summarize(
       GENE = first(GENE),

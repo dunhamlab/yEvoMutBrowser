@@ -541,7 +541,10 @@ server <- function(input, output,session) {
     )
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+# TESTING
     
+    
+#TESTING
     p <- filtered_data() %>%
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
