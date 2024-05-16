@@ -541,22 +541,45 @@ server <- function(input, output,session) {
     )
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+    
 # TESTING
+    gene_name <- input$GENE
     
+    mutation_data_value <- mut_backend
     
+    # Merge the data frames based on the “REGION” column
+    common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
+    
+    mutation_data_value <- mutation_data_value[order(mutation_data_value$GENE),]
+    
+    # Using subset() function
+    cur_gene <- subset(mutation_data_value, GENE == gene_name)
+    
+    # Iterate through unique genes
+    count_proteins <- cur_gene %>%
+      group_by(POS) %>%
+      summarize(
+        GENE = first(GENE),
+        PROTEIN = first(PROTEIN),
+        ANNOTATION = first(ANNOTATION),
+        Counts = n(),
+      ) %>%
+      ungroup()
 #TESTING
-    p <- filtered_data() %>%
+    
+    p <- count_proteins %>%
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
         AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
       ) %>%
-      filter(GENE==input$GENE) %>%
+      # filter(GENE==input$GENE) %>%
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
       
       ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
-                            text = ifelse(is.na(PROTEIN), paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION), paste0(AA_WT, '->', AA_M, "\nAnnotation: ", ANNOTATION))))+
+                            text = ifelse(is.na(PROTEIN), paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts), paste0(AA_WT, '->', AA_M, "\nAnnotation: ", ANNOTATION, '\nCount: ', Counts))))+
       geom_hline(yintercept=0, linetype=2,alpha=.2)+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
       geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
