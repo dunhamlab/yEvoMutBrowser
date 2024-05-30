@@ -542,7 +542,7 @@ server <- function(input, output,session) {
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
-# TESTING
+    # TESTING
     gene_name <- input$GENE
     
     mutation_data_value <- mut_backend
@@ -563,12 +563,67 @@ server <- function(input, output,session) {
         GENE = first(GENE),
         PROTEIN = first(PROTEIN),
         ANNOTATION = first(ANNOTATION),
-        Counts = n(),
+        COUNTS = n(),
+        Letter1 = substr(PROTEIN, 1, 1),  # Extract the first character
+        Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract the numbers
+        Letter2 = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN))
       ) %>%
       ungroup()
-#TESTING
     
-    p <- count_proteins %>%
+    count_proteins_same <- count_proteins %>%
+      group_by(Numbers) %>%
+      summarize(
+        GENE = first(GENE),
+        PROTEIN = paste(unique(PROTEIN), collapse = ", "),
+        ANNOTATION = first(ANNOTATION),
+        Counts_diff_mutation = paste(unique(COUNTS), collapse = ", "),
+        Counts_tot = sum(COUNTS)
+      ) %>%
+      ungroup()
+    count_proteins_same$PROTEIN <- sapply(count_proteins_same$PROTEIN, FUN = strsplit, split = ",", simplify = TRUE)
+    count_proteins_same$Counts_diff_mutation <- sapply(count_proteins_same$Counts_diff_mutation, FUN = strsplit, split = ",", simplify = TRUE)
+    
+    combined_strings <- character(nrow(count_proteins_same))  # Pre-allocate character vector
+    for (i in 1:nrow(count_proteins_same)) {
+      current_protein <- (count_proteins_same$PROTEIN[i])
+      current_counts <- count_proteins_same$Counts_diff_mutation[i]
+      
+      split_string <- strsplit(current_protein[[1]], ",")
+      split_counts <- strsplit(current_counts[[1]], ",")
+      
+      if (length(split_string) > 1) {
+        cur <- list()
+        for (j in 1:length(split_string)) {
+          current_protein = split_string[j]
+          current_protein <- str_trim(current_protein)
+          current_counts = split_counts[j]
+          Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
+          Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
+          Letter2 <- substr(current_protein, nchar(current_protein), nchar(current_protein))
+          print(current_protein)
+          print(Letter1)
+          cur <- c(cur, paste("Count ", Letter1, '->', Letter2, ": ", current_counts, "\n"))
+        }
+        combined_strings[i] <- sapply(cur, function(x) paste(x)) %>% paste(collapse = "")
+      }
+      else {
+        Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
+        Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
+        Letter2 <- substr(current_protein, nchar(current_protein), nchar(current_protein))
+        combined_strings[i] <- paste("Count ", Letter1, '->', Letter2, ": ", current_counts)
+      }
+    }
+    count_proteins_same$combined <- combined_strings
+    
+    
+#TESTING
+    max_count <- max(count_proteins$COUNTS)
+    
+    p <- count_proteins_same %>%
+      # mutate(
+      #   unique_proteins = unlist(strsplit(PROTEIN, ", ")),
+      #   individual_counts = as.numeric(unlist(strsplit(Counts_diff_mutation, ", ")))
+      #   ) %>%
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
@@ -578,13 +633,16 @@ server <- function(input, output,session) {
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
       
-      ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
-                            text = ifelse(is.na(PROTEIN), paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts), paste0(AA_WT, '->', AA_M, "\nAnnotation: ", ANNOTATION, '\nCount: ', Counts))))+
+      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 1, 
+                            text = ifelse(is.na(PROTEIN), 
+                                   paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts_diff_mutation), 
+                                   paste0(combined, '\nPosition: ', AA_POS))))+
       geom_hline(yintercept=0, linetype=2,alpha=.2)+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
-      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
-      geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
-      ylim(c(-0.2, 1.2))+ 
+      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=Counts_tot), color = "pink") +
+      geom_point(aes(x=as.numeric(AA_POS), y=Counts_tot,color=ANNOTATION), size=2) +
+      
+      # ylim(c(-0.2, 10))+ 
       xlim(-50,xlength)+
       geom_text_repel(aes(label = PROTEIN),
                       box.padding   = 2,
