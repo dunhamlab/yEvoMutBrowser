@@ -580,9 +580,9 @@ server <- function(input, output,session) {
       group_by(Numbers) %>%
       summarize(
         GENE = first(GENE),
-        PROTEIN = paste(unique(PROTEIN), collapse = ", "),
+        PROTEIN = paste((PROTEIN), collapse = ", "),
         ANNOTATION = first(ANNOTATION),
-        Counts_diff_mutation = paste(unique(COUNTS), collapse = ", "),
+        Counts_diff_mutation = paste((COUNTS), collapse = ", "),
         Counts_tot = sum(COUNTS)
       ) %>%
       ungroup()
