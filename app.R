@@ -107,10 +107,9 @@ ui <-  navbarPage(
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
-                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene")),
+                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
                          selectInput("GENE", "Gene", choices = c('')),
-                         # uiOutput("url"),
-                         # verbatimTextOutput("text1")),
+                         uiOutput("url")),
                  tabPanel("Table", tableOutput("data_table")),
                )
              )
@@ -141,7 +140,6 @@ server <- function(input, output,session) {
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
 
-  #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$submit_teach_year, {
     file <- input$datafile
     data <- read.csv(file$datapath)
@@ -422,7 +420,7 @@ server <- function(input, output,session) {
                                                   ymax = chrom_as_num + 0.4,
                                                   xmin = START,
                                                   xmax = START + 8000,
-                                                  text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts)),
+                                                  text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
                 fill = "white", alpha = 1, color = "black", size = 0.1) +
       scale_y_custom +
       scale_fill_gradient(low = "pink", high = "red4",) +
@@ -433,12 +431,12 @@ server <- function(input, output,session) {
       p <- p + geom_rect(data = final_gene_multi_muts, 
                          aes(ymin = chrom_as_num - 0.4, ymax = chrom_as_num + 0.4,
                              xmin = START, xmax = START + 8000,
-                             text = paste0("Gene Name: ", GENE, "Independent Mutations: ", Counts), fill = Counts),
+                             text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts), fill = Counts),
                          alpha = 1, color = "black", size = 0.1)
     }
       
     # Convert ggplot2 plot to plotly
-    p <- ggplotly(p)
+    p <- ggplotly(p,tooltip = "text")
     # Add formatting
     p <- layout(
       p,
@@ -449,11 +447,9 @@ server <- function(input, output,session) {
     )
   })
   
-  # Maps specific annotation to specific color
-  annotat_colormap <- c()
-  
+  # Render Pie Chart
   output$varPieChart <- renderPlotly({
-    # Color vector for each annotation in Pie Chart
+    # Color vector for annotations 
     # just add the same number of colors as number of annotations
     # ex. if there are 10 unique annotations, put 10 unique colors
     # in this color vector
@@ -462,13 +458,24 @@ server <- function(input, output,session) {
                       "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
                       "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
-    pie_df <- data.frame(
-      ANNOTATION = c("coding-nonsynonymous", "5'-upstream", "intergenic", "coding-synonymous",
-                     "ARS", "telomere", "LTR_retrotransposon", "intron", "rRNA", "tRNA"),
-      count = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-      percent = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    )
+    # Filter and get a vector of unique annotations (no duplicates)
+    all_unique_anno <- mutation_data() %>%
+      distinct(ANNOTATION) %>% pull(ANNOTATION)
     
+    # sort the annotations
+    all_unique_anno <- sort(all_unique_anno)
+    
+    # initialize a data frame which has 3 columns: Annotations, count of annotations, and percentage
+    pie_df <- data.frame(
+      ANNOTATION = all_unique_anno,
+      count = numeric(length(all_unique_anno)),
+      percent = numeric(length(all_unique_anno))
+    )
+
+    # filter the filtered data further:
+    # sort the data alphabetically
+    # count the number of annotations
+    # get a percentage for each annotation
     pie_data <- filtered_data() %>%
       arrange(ANNOTATION) %>% 
       count(ANNOTATION) %>% 
@@ -497,10 +504,9 @@ server <- function(input, output,session) {
                  legend = list(font = list(size = 7)),
                  legend = list(font = list(size = 7)),
                  margin = list(l = 75, r = 75, b = 75, t = 75))
-    # Adjust the margin to make the pie chart bigger or smaller.
-    # Larger values means a smaller pie chart
   })
   
+  # Render SNP Plot
   output$snpCountPlot <- renderPlot({
     # counting number of transitions to display to set for colors and plot
     num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
@@ -521,6 +527,7 @@ server <- function(input, output,session) {
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
+  
   # Showing please select gene message
   # Construct the string with spaces on each side of the loading message
   geneview_message <- "Please select a gene below"
@@ -533,6 +540,7 @@ server <- function(input, output,session) {
                                        geneview_message,
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""))
   
+  # Render gene view plot
   output$geneViewPlot <- renderPlotly({
     validate(
       need(input$GENE, select_gene_message)
@@ -618,32 +626,22 @@ server <- function(input, output,session) {
     max_count <- max(count_proteins$COUNTS)
     
     p <- count_proteins_same %>%
-      # mutate(
-      #   unique_proteins = unlist(strsplit(PROTEIN, ", ")),
-      #   individual_counts = as.numeric(unlist(strsplit(Counts_diff_mutation, ", ")))
-      #   ) %>%
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
         AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
       ) %>%
-      filter(GENE==input$GENE) %>%
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
       
-      ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
-                            text = ifelse(is.na(PROTEIN), paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION), paste0(AA_WT, '->', AA_M, "\nAnnotation: ", ANNOTATION))))+
-                 
-                 
-      # ggplot(aes(x = as.numeric(AA_POS), y = 0.5, 
-      #            text = ifelse(PROTEIN == "1NA", 
-      #                          paste0("Non-coding Mutation \nAnnotation: ", ANNOTATION), 
-      #                          paste0(AA_WT, '->', AA_M, "\n Annotation: ", ANNOTATION)))) +
+      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 1, 
+                            text = ifelse(is.na(PROTEIN), 
+                                   paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts_diff_mutation), 
+                                   paste0(combined, '\nPosition: ', AA_POS))))+
       geom_hline(yintercept=0, linetype=2,alpha=.2)+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
-      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
-      geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
-      ylim(c(-0.2, 1.2))+ 
+      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=Counts_tot), color = "pink") +
+      geom_point(aes(x=as.numeric(AA_POS), y=Counts_tot,color=ANNOTATION), size=2) +
       xlim(-50,xlength)+
       geom_text_repel(aes(label = PROTEIN),
                       box.padding   = 2,
@@ -655,7 +653,7 @@ server <- function(input, output,session) {
       theme_classic(base_size=18) +
       theme(axis.title.y=element_blank(),
             axis.ticks.y=element_blank(),
-            plot.title = element_text(hjust = 0.5),
+            plot.title = element_text(hjust = 0.5),  # Adjust top margin for title
             axis.text.y = element_blank(),
             plot.margin = margin(20, 0, 0, 0) # Adjust top margin for space between title and plot
       ) + 
@@ -672,28 +670,6 @@ server <- function(input, output,session) {
     ggplotly(p, tooltip="text")
   })
   
-  
-  # When a double-click happens, check if there's a brush on the plot.
-  # If so, zoom to the brush bounds; if not, reset the zoom.
-  observeEvent(input$geneViewPlot_dblclick, {
-    brush <- input$geneViewPlot_brush
-    if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
-      
-    } else {
-      ranges$x <- NULL
-      ranges$y <- NULL
-    }
-  })
-  
-  output$text <- renderText({ paste("Mutations Types:","- A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
-                                    "- A synonymous mutation is a change in the DNA sequence that codes for amino acids in a protein sequence," ,"but does not change the encoded amino acid.",
-                                    "- The 5′ untranslated region (also known as 5′ UTR) is the region of a messenger RNA (mRNA) that is directly","upstream from the initiation codon. It is not usually translated.",
-                                    "- Intergenic regions are the stretches of DNA located between genes.",
-                                    "- An autonomously replicating sequence (ARS) contains the origin of replication in the yeast genome.", sep="\n")})
-  
-  output$text1 <- renderText({ "The plot can be zoomed in by clicking and draggin and then double-clicking on the box.\n Reset view by double clicking again."})
   
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
