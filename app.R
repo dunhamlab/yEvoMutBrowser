@@ -443,8 +443,9 @@ server <- function(input, output,session) {
     )
   })
   
+  # Render Pie Chart
   output$varPieChart <- renderPlotly({
-    # Color vector for each annotation in Pie Chart
+    # Color vector for annotations 
     # just add the same number of colors as number of annotations
     # ex. if there are 10 unique annotations, put 10 unique colors
     # in this color vector
@@ -453,22 +454,24 @@ server <- function(input, output,session) {
                       "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
                       "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
+    # Filter and get a vector of unique annotations (no duplicates)
     all_unique_anno <- mutation_data() %>%
       distinct(ANNOTATION) %>% pull(ANNOTATION)
     
+    # sort the annotations
     all_unique_anno <- sort(all_unique_anno)
     
+    # initialize a data frame which has 3 columns: Annotations, count of annotations, and percentage
     pie_df <- data.frame(
       ANNOTATION = all_unique_anno,
       count = numeric(length(all_unique_anno)),
       percent = numeric(length(all_unique_anno))
     )
-    
-    # TODO: If user inputs new annotation, be flexible enough to add to pie chart
-    # gives us the number of unique annotations in filtered data
-    # unique_annotations <- filtered_data() %>%
-    #   distinct(ANNOTATION) %>% pull(ANNOTATION)
-    
+
+    # filter the filtered data further:
+    # sort the data alphabetically
+    # count the number of annotations
+    # get a percentage for each annotation
     pie_data <- filtered_data() %>%
       arrange(ANNOTATION) %>% 
       count(ANNOTATION) %>% 
@@ -497,11 +500,9 @@ server <- function(input, output,session) {
                  legend = list(font = list(size = 7)),
                  legend = list(font = list(size = 7)),
                  margin = list(l = 75, r = 75, b = 75, t = 75))
-    # Adjust the margin to make the pie chart bigger or smaller.
-    # Larger values means a smaller pie chart
   })
   
-  #TODO: figure out what ref, alt, are from and what info we need here?
+  # Render SNP Plot
   output$snpCountPlot <- renderPlot({
     # counting number of transitions to display to set for colors and plot
     num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
@@ -535,6 +536,7 @@ server <- function(input, output,session) {
                                        geneview_message,
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""))
   
+  # Render gene view plot
   output$geneViewPlot <- renderPlotly({
     validate(
       need(input$GENE, select_gene_message)
@@ -620,16 +622,11 @@ server <- function(input, output,session) {
     max_count <- max(count_proteins$COUNTS)
     
     p <- count_proteins_same %>%
-      # mutate(
-      #   unique_proteins = unlist(strsplit(PROTEIN, ", ")),
-      #   individual_counts = as.numeric(unlist(strsplit(Counts_diff_mutation, ", ")))
-      #   ) %>%
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
         AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
       ) %>%
-      # filter(GENE==input$GENE) %>%
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
       
@@ -641,8 +638,6 @@ server <- function(input, output,session) {
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
       geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=Counts_tot), color = "pink") +
       geom_point(aes(x=as.numeric(AA_POS), y=Counts_tot,color=ANNOTATION), size=2) +
-      
-      # ylim(c(-0.2, 10))+ 
       xlim(-50,xlength)+
       geom_text_repel(aes(label = PROTEIN),
                       box.padding   = 2,
