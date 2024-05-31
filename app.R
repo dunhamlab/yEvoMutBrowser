@@ -1,3 +1,8 @@
+# If you are changing the 'masterfile' that the app is built off of (aka the initial database),
+# This needs to be changed in two locations:
+# mut_backend before the server is called, and mutation_data right after the server is called.
+
+
 # List of required packages
 required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                        "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
@@ -25,8 +30,11 @@ library(shinyjs)
 library(plotly)
 library(stringr)
 
-#loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
-mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
+# loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
+# THIS SHOULD NOT BE CHANGED IN THE CODE. If the overall master shifts you can modify it here, 
+# but mut_backend should not be written to anywere in the code it is designed to just fill in in the beginning, 
+# right before the reactive frame gets created.
+mut_backend <- read.csv("all_yEvo_vcf_spring2024.csv") 
 
 #loading in the genes data file
 genes_info <- read.csv("gene_info.csv")
@@ -119,8 +127,11 @@ ui <-  navbarPage(
 
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
+  
   #initially setting default file of all mutation data
-  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
+  #CHANGE MASTERFILE HERE IF NEEDED
+  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf_spring2024.csv")) 
+  
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
@@ -146,17 +157,15 @@ server <- function(input, output,session) {
       df <- rbind(mut_backend, data)
       # df <- read.csv(file$datapath, sep = ",")
       mutation_data(df)
-      
 
     } else {
       # Handle the case where required columns are missing
       print("Some required columns are missing.")
       mutation_data(mut_backend)
-      
     }
   })
   
-  #filtering dataframe based on menu selection
+  #filtering dataframe based on menu selection, most things from here on out should be based on filtered_data()
   filtered_data <- reactive({
     data <- mutation_data()
         #filtering based on selections if NOT all selected
@@ -175,7 +184,6 @@ server <- function(input, output,session) {
         if (input$condition != "All Selected") {
           data <- data %>% filter(condition == input$condition)
         }
-        
         if (input$background != "All Selected") {
           data <- data %>% filter(background == input$background)
         }
@@ -256,7 +264,6 @@ server <- function(input, output,session) {
       else if(input$View == "View By Selection Condition"){
         shinyjs::enable("cumulView")
         shinyjs::disable("classView")
-        #shinyjs:disable("background")
         updateTextInput(session, "instructor", value = "All Selected")
         updateTextInput(session, "year", value = "All Selected")
         updateTextInput(session, "sample", value = "All Selected")
@@ -270,7 +277,6 @@ server <- function(input, output,session) {
   #Handling behaviors for button selections
   observe({
     options <- c(as.character(mutation_data() %>% filter(condition == input$condition) %>% pull(background)))
-    #print(options)
     if(length(unique(options)) != 1){ 
       updateSelectInput(session, "background", choices = c('All Selected', options))
       shinyjs::enable("background")
@@ -338,7 +344,7 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
-  #to create loading message below: 
+  # to create loading message below: 
   loading_message <- "Loading..."
   # Calculate the number of empty spaces needed on each side
   total_spaces <- 160  # Total number of characters to occupy the line
@@ -391,8 +397,6 @@ server <- function(input, output,session) {
     )
     
     # Plotting
-    cat(file = stderr(), "TESTING LOGGING\n")
-    #browser()
     final_gene_data <- final_gene()
     final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
     
@@ -465,11 +469,6 @@ server <- function(input, output,session) {
       percent = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     
-    # TODO: If user inputs new annotation, be flexible enough to add to pie chart
-    # gives us the number of unique annotations in filtered data
-    # unique_annotations <- filtered_data() %>%
-    #   distinct(ANNOTATION) %>% pull(ANNOTATION)
-    
     pie_data <- filtered_data() %>%
       arrange(ANNOTATION) %>% 
       count(ANNOTATION) %>% 
@@ -502,7 +501,6 @@ server <- function(input, output,session) {
     # Larger values means a smaller pie chart
   })
   
-  #TODO: figure out what ref, alt, are from and what info we need here?
   output$snpCountPlot <- renderPlot({
     # counting number of transitions to display to set for colors and plot
     num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
@@ -542,7 +540,88 @@ server <- function(input, output,session) {
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
-    p <- filtered_data() %>%
+    # TESTING
+    gene_name <- input$GENE
+    
+    mutation_data_value <- filtered_data()
+    
+    # Merge the data frames based on the “REGION” column
+    common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
+    
+    mutation_data_value <- mutation_data_value[order(mutation_data_value$GENE),]
+    
+    # Using subset() function
+    cur_gene <- subset(mutation_data_value, GENE == gene_name)
+    
+    # Iterate through unique genes
+    count_proteins <- cur_gene %>%
+      group_by(POS) %>%
+      summarize(
+        GENE = first(GENE),
+        PROTEIN = first(PROTEIN),
+        ANNOTATION = first(ANNOTATION),
+        COUNTS = n(),
+        Letter1 = substr(PROTEIN, 1, 1),  # Extract the first character
+        Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract the numbers
+        Letter2 = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN))
+      ) %>%
+      ungroup()
+    
+    count_proteins_same <- count_proteins %>%
+      group_by(Numbers) %>%
+      summarize(
+        GENE = first(GENE),
+        PROTEIN = paste(unique(PROTEIN), collapse = ", "),
+        ANNOTATION = first(ANNOTATION),
+        Counts_diff_mutation = paste(unique(COUNTS), collapse = ", "),
+        Counts_tot = sum(COUNTS)
+      ) %>%
+      ungroup()
+    count_proteins_same$PROTEIN <- sapply(count_proteins_same$PROTEIN, FUN = strsplit, split = ",", simplify = TRUE)
+    count_proteins_same$Counts_diff_mutation <- sapply(count_proteins_same$Counts_diff_mutation, FUN = strsplit, split = ",", simplify = TRUE)
+    
+    combined_strings <- character(nrow(count_proteins_same))  # Pre-allocate character vector
+    for (i in 1:nrow(count_proteins_same)) {
+      current_protein <- (count_proteins_same$PROTEIN[i])
+      current_counts <- count_proteins_same$Counts_diff_mutation[i]
+      
+      split_string <- strsplit(current_protein[[1]], ",")
+      split_counts <- strsplit(current_counts[[1]], ",")
+      
+      if (length(split_string) > 1) {
+        cur <- list()
+        for (j in 1:length(split_string)) {
+          current_protein = split_string[j]
+          current_protein <- str_trim(current_protein)
+          current_counts = split_counts[j]
+          Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
+          Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
+          Letter2 <- substr(current_protein, nchar(current_protein), nchar(current_protein))
+          print(current_protein)
+          print(Letter1)
+          cur <- c(cur, paste("Count ", Letter1, '->', Letter2, ": ", current_counts, "\n"))
+        }
+        combined_strings[i] <- sapply(cur, function(x) paste(x)) %>% paste(collapse = "")
+      }
+      else {
+        Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
+        Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
+        Letter2 <- substr(current_protein, nchar(current_protein), nchar(current_protein))
+        combined_strings[i] <- paste("Count ", Letter1, '->', Letter2, ": ", current_counts)
+      }
+    }
+    count_proteins_same$combined <- combined_strings
+    
+    
+#TESTING
+    max_count <- max(count_proteins$COUNTS)
+    
+    p <- count_proteins_same %>%
+      # mutate(
+      #   unique_proteins = unlist(strsplit(PROTEIN, ", ")),
+      #   individual_counts = as.numeric(unlist(strsplit(Counts_diff_mutation, ", ")))
+      #   ) %>%
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
