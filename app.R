@@ -634,7 +634,7 @@ server <- function(input, output,session) {
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
       
-      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 1, 
+      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 4, 
                             text = ifelse(is.na(PROTEIN), 
                                    paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts_diff_mutation), 
                                    paste0(combined, '\nPosition: ', AA_POS))))+
