@@ -523,7 +523,7 @@ server <- function(input, output,session) {
             strip.text.y.left = element_text(angle = 0),
             plot.title = element_text(hjust = 0.5),
             axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-      ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
+      ggtitle("Single Nucleotide Changes")  + xlab("SNP call")
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
@@ -572,7 +572,7 @@ server <- function(input, output,session) {
         COUNTS = n(),
         Letter1 = substr(PROTEIN, 1, 1),  # Extract the first character
         Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract the numbers
-        Letter2 = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN))
+        Letter2 = str_extract(PROTEIN, "[a-zA-Z]+$")
       ) %>%
       ungroup()
     
@@ -605,7 +605,7 @@ server <- function(input, output,session) {
           current_counts = split_counts[j]
           Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
           Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
-          Letter2 <- substr(current_protein, nchar(current_protein), nchar(current_protein))
+          Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
           print(current_protein)
           print(Letter1)
           cur <- c(cur, paste("Count ", Letter1, '->', Letter2, ": ", current_counts, "\n"))
@@ -615,7 +615,7 @@ server <- function(input, output,session) {
       else {
         Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
         Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
-        Letter2 <- substr(current_protein, nchar(current_protein), nchar(current_protein))
+        Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
         combined_strings[i] <- paste("Count ", Letter1, '->', Letter2, ": ", current_counts)
       }
     }
