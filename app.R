@@ -508,34 +508,33 @@ server <- function(input, output,session) {
   
   # Render SNP Plot
   output$snpCountPlot <- renderPlot({
+    # categorizing data into appropriate categories for plotting
     categorized_data <- filtered_data() %>%
       mutate(transition = paste(REF, " to ", ALT, sep = "")) %>%
       mutate(transition = if_else(nchar(transition) > 6,"Indel",transition)) %>%
-      mutate(transition_category = case_when(
+      mutate(mutation_type = case_when(
         transition %in% c("A to G", "G to A", "C to T", "T to C") ~ "Transition",
         transition %in% c("A to T", "T to A", "C to G", "G to C", "A to C", "C to A", "T to G", "G to T") ~ "Transversion",
         TRUE ~ "Indel"
       ))
+    num_categories <- length(unique(categorized_data$mutation_type)) # in case we ever change categories
     
-    # Plot the data, coloring by category instead of individual transitions
-    ggplot(categorized_data, aes(x = as.factor(transition), fill = transition_category)) +
+    
+    # plotting the data with coloring by categories
+    ggplot(categorized_data, aes(x = as.factor(transition), fill = mutation_type)) +
       geom_bar() +
       theme_bw() +
-      scale_fill_manual(values = viridis::viridis(3, begin = 0.4, end = 1)) +
+      scale_fill_manual(values = viridis::viridis(num_categories, begin = 0.4, end = 1)) +
+      labs(fill = "Mutation Type") +
       theme(
         legend.position = "right",
         strip.text.y.left = element_text(angle = 0),
         plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+        axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)
       ) +
       ggtitle("Single Nucleotide Changes") +
       xlab("SNP call")
   })
-  #   # counting number of transitions to display to set for colors and plot
-  #   num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
-  #     mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
-  #     count(transition) %>% summarise(n = n()) %>% as.numeric()
-  #   
   #   filtered_data() %>% mutate(transition=paste(REF," to ",ALT, sep=""))  %>% 
   #     mutate(length = nchar(transition)) %>% 
   #     mutate(transition = if_else(nchar(transition) > 6,"Indel",transition)) %>%
