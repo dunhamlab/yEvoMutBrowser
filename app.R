@@ -508,23 +508,46 @@ server <- function(input, output,session) {
   
   # Render SNP Plot
   output$snpCountPlot <- renderPlot({
-    # counting number of transitions to display to set for colors and plot
-    num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
-      mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
-      count(transition) %>% summarise(n = n()) %>% as.numeric()
-    
-    filtered_data() %>% mutate(transition=paste(REF," to ",ALT, sep=""))  %>% 
-      mutate(length = nchar(transition)) %>% 
+    categorized_data <- filtered_data() %>%
+      mutate(transition = paste(REF, " to ", ALT, sep = "")) %>%
       mutate(transition = if_else(nchar(transition) > 6,"Indel",transition)) %>%
-      ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
-      geom_bar() + theme_bw() + 
-      scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
-      theme(legend.position = "none",
-            strip.text.y.left = element_text(angle = 0),
-            plot.title = element_text(hjust = 0.5),
-            axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-      ggtitle("Single Nucleotide Changes")  + xlab("SNP call")
+      mutate(transition_category = case_when(
+        transition %in% c("A to G", "G to A", "C to T", "T to C") ~ "Transition",
+        transition %in% c("A to T", "T to A", "C to G", "G to C", "A to C", "C to A", "T to G", "G to T") ~ "Transversion",
+        TRUE ~ "Indel"
+      ))
+    
+    # Plot the data, coloring by category instead of individual transitions
+    ggplot(categorized_data, aes(x = as.factor(transition), fill = transition_category)) +
+      geom_bar() +
+      theme_bw() +
+      scale_fill_manual(values = viridis::viridis(3, begin = 0.4, end = 1)) +
+      theme(
+        legend.position = "right",
+        strip.text.y.left = element_text(angle = 0),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+      ) +
+      ggtitle("Single Nucleotide Changes") +
+      xlab("SNP call")
   })
+  #   # counting number of transitions to display to set for colors and plot
+  #   num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
+  #     mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
+  #     count(transition) %>% summarise(n = n()) %>% as.numeric()
+  #   
+  #   filtered_data() %>% mutate(transition=paste(REF," to ",ALT, sep=""))  %>% 
+  #     mutate(length = nchar(transition)) %>% 
+  #     mutate(transition = if_else(nchar(transition) > 6,"Indel",transition)) %>%
+  #     ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
+  #     geom_bar() + theme_bw() + 
+  #     scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
+  #     theme(legend.position = "none",
+  #           strip.text.y.left = element_text(angle = 0),
+  #           plot.title = element_text(hjust = 0.5),
+  #           axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
+  #     ggtitle("Single Nucleotide Changes")  + xlab("SNP call")
+  # })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
   
