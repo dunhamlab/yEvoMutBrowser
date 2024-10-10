@@ -1,3 +1,8 @@
+# If you are changing the 'masterfile' that the app is built off of (aka the initial database),
+# This needs to be changed in two locations:
+# mut_backend before the server is called, and mutation_data right after the server is called.
+
+
 # List of required packages
 required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite", 
                        "ggplot2","dplyr", "tidyr", "forcats", "ggrepel",
@@ -7,6 +12,7 @@ required_packages <- c("devtools", "devtools", "shinythemes", "DBI", "RSQLite",
 new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages)
 
+### %% Imports
 #loading necessary libraries
 library(devtools)
 library(shiny)
@@ -22,11 +28,13 @@ library(ggrepel)
 library(purrr)
 library(shinyjs)
 library(plotly)
+library(stringr)
 
-
-
-#loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
-mut_backend <- read.csv("all_yEvo_vcf.csv") #used to be called final, and used to run off of final_allVCF
+# loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
+# THIS SHOULD NOT BE CHANGED IN THE CODE. If the overall master shifts you can modify it here, 
+# but mut_backend should not be written to anywere in the code it is designed to just fill in in the beginning, 
+# right before the reactive frame gets created.
+mut_backend <- read.csv("all_yEvo_vcf_spring2024.csv") 
 
 #loading in the genes data file
 genes_info <- read.csv("gene_info.csv")
@@ -99,10 +107,9 @@ ui <-  navbarPage(
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
-                 tabPanel("Gene View", value = "Geneview", plotOutput("geneViewPlot", dblclick = "geneViewPlot_dblclick", brush = brushOpts(id = "geneViewPlot_brush", resetOnNew = TRUE)),
-                          selectInput("GENE", "Gene", choices = c('')),
-                          uiOutput("url"),
-                          verbatimTextOutput("text1")),
+                 tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
+                         selectInput("GENE", "Gene", choices = c('')),
+                         uiOutput("url")),
                  tabPanel("Table", tableOutput("data_table")),
                )
              )
@@ -119,8 +126,11 @@ ui <-  navbarPage(
 
 # Now entering server, which handles everything dynamically
 server <- function(input, output,session) {
+  
   #initially setting default file of all mutation data
-  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf.csv")) 
+  #CHANGE MASTERFILE HERE IF NEEDED
+  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf_spring2024.csv")) 
+  
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
   # Displays Chromosome Map info; filtering by sample
@@ -130,7 +140,6 @@ server <- function(input, output,session) {
   # Initialize a reactive variable for the dataframe
   # Function to read and append the uploaded data to the cumulative dataframe
 
-  #TODO:change "final" name to new file name (new file as in the new system we are making)
   observeEvent(input$submit_teach_year, {
     file <- input$datafile
     data <- read.csv(file$datapath)
@@ -146,21 +155,15 @@ server <- function(input, output,session) {
       df <- rbind(mut_backend, data)
       # df <- read.csv(file$datapath, sep = ",")
       mutation_data(df)
-      
 
     } else {
       # Handle the case where required columns are missing
       print("Some required columns are missing.")
       mutation_data(mut_backend)
-      
     }
   })
   
-  
-  
-  
-  
-  #filtering dataframe based on menu selection
+  #filtering dataframe based on menu selection, most things from here on out should be based on filtered_data()
   filtered_data <- reactive({
     data <- mutation_data()
         #filtering based on selections if NOT all selected
@@ -179,7 +182,6 @@ server <- function(input, output,session) {
         if (input$condition != "All Selected") {
           data <- data %>% filter(condition == input$condition)
         }
-        
         if (input$background != "All Selected") {
           data <- data %>% filter(background == input$background)
         }
@@ -260,7 +262,6 @@ server <- function(input, output,session) {
       else if(input$View == "View By Selection Condition"){
         shinyjs::enable("cumulView")
         shinyjs::disable("classView")
-        #shinyjs:disable("background")
         updateTextInput(session, "instructor", value = "All Selected")
         updateTextInput(session, "year", value = "All Selected")
         updateTextInput(session, "sample", value = "All Selected")
@@ -274,7 +275,6 @@ server <- function(input, output,session) {
   #Handling behaviors for button selections
   observe({
     options <- c(as.character(mutation_data() %>% filter(condition == input$condition) %>% pull(background)))
-    #print(options)
     if(length(unique(options)) != 1){ 
       updateSelectInput(session, "background", choices = c('All Selected', options))
       shinyjs::enable("background")
@@ -294,7 +294,6 @@ server <- function(input, output,session) {
     updateSelectInput(session, "instructor", choices = c("All Selected", unique(mutation_data()$instructor)))
   })
   
-  
   observe({
     if (input$instructor == "All Selected") {
       updateSelectInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)))
@@ -307,11 +306,9 @@ server <- function(input, output,session) {
     updateSelectInput(session, "instructor", choices = c('All Selected', unique(mutation_data()$instructor)))
   }) 
   
-  
   observe({
     updateSelectInput(session, "sample", choices = c("All Selected", as.character(mutation_data() %>% filter(instructor==input$instructor) %>% filter(year==input$year) %>% pull(sample))))
   })
-  
   
   observe({
     if(input$sample != "All Selected") {
@@ -345,15 +342,12 @@ server <- function(input, output,session) {
   tabPanel("Background",
            uiOutput("pdf_viewer") )
   
-  
-  #to create loading message below: 
+  # to create loading message below: 
   loading_message <- "Loading..."
-  
   # Calculate the number of empty spaces needed on each side
   total_spaces <- 160  # Total number of characters to occupy the line
   message_length <- nchar(loading_message)
   spaces_on_each_side <- floor((total_spaces - message_length) / 2)
-  
   # Construct the string with spaces on each side of the loading message
   formatted_loading_message <- sprintf("%s%s%s",
                                         "\n\n\n\n\n\n\n\n",
@@ -361,81 +355,59 @@ server <- function(input, output,session) {
                                         loading_message,
                                         paste(rep(" ", spaces_on_each_side), collapse = ""))
   
-  
   # Define the desired order of categories
   desired_order <- c('chrM', 'chrXVI', 'chrXV', 'chrXIV', 'chrXIII', 'chrXII', 'chrXI', 'chrX', 'chrIX', 'chrVIII', 'chrVII', 'chrVI', 'chrV', 'chrIV', 'chrIII', 'chrII','chrI')
   # Convert category to a factor with the desired order
   chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
 
-  #Define a mapping from chromosome names to numbers
+  # Define a mapping from chromosome names to numbers
   chromosome_mapping <- c(
     chrM = 1, chrXVI = 2, chrXV = 3, chrXIV = 4, chrXIII = 5, chrXII = 6,
     chrXI = 7, chrX = 8, chrIX = 9, chrVIII = 10, chrVII = 11, chrVI = 12,
     chrV = 13, chrIV = 14, chrIII = 15, chrII = 16, chrI = 17
   )
+  
+  # Create an empty dataframe to store the final results
+  final_gene <- reactive({
+    mutation_data_value <- filtered_data()
+    # Merge the data frames based on the “REGION” column
+    common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
+      
+    # Iterate through unique genes
+    final_gene_static <- mutation_data_value %>%
+      group_by(GENE) %>%
+      summarize(
+        CHROM = first(CHROM),
+        START = first(START),
+        STOP = first(STOP),
+        Counts = n(),
+        chrom_as_num = first(chromosome_mapping[match(first(CHROM), names(chromosome_mapping))])
+      ) %>%
+      ungroup()
 
-  
-  
-  # Create an empty dataframe to store the final results FOR SINGLETONS
-  final_gene_singleton <- reactive({
-    mutation_data_value <- filtered_data()
-    # Merge the data frames based on the “REGION” column
-    common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
-    mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
-    # Iterate through unique genes
-    final_gene_static <- mutation_data_value %>%
-      group_by(GENE) %>%
-      summarize(
-        CHROM = first(CHROM),
-        START = first(START),
-        STOP = first(STOP),
-        Counts = n(),
-        chrom_as_num = first(chromosome_mapping[match(first(CHROM), names(chromosome_mapping))])
-      ) %>%
-      ungroup()
-    final_gene_static <- final_gene_static%>% filter(Counts == 1)
-    return(final_gene_static)
-  })
-  
-  # Create an empty dataframe to store the final results FOR SINGLETONS
-  final_gene_multi_mut <- reactive({
-    mutation_data_value <- filtered_data()
-    # Merge the data frames based on the “REGION” column
-    common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
-    mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
-    # Iterate through unique genes
-    final_gene_static <- mutation_data_value %>%
-      group_by(GENE) %>%
-      summarize(
-        CHROM = first(CHROM),
-        START = first(START),
-        STOP = first(STOP),
-        Counts = n(),
-        chrom_as_num = first(chromosome_mapping[match(first(CHROM), names(chromosome_mapping))])
-      ) %>%
-      ungroup()
-    final_gene_static <- final_gene_static%>% filter(Counts > 1)
     return(final_gene_static)
   })
   
   output$chromPlot <- renderPlotly({
     validate(
-      need(final_gene_multi_mut()$START, formatted_loading_message)
+      need(final_gene()$START, formatted_loading_message)
     )
     
     # Plotting
-    cat(file = stderr(), "TESTING LOGGING\n")
-    #browser()
-    #final_gene_data <- final_gene()
-    #final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
+    final_gene_data <- final_gene()
+    final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
     
     scale_y_custom <- ggplot2::scale_y_continuous(
       breaks = rev(as.numeric(chrom_info$CHROM)),
       labels = rev(as.character(chrom_info$CHROM))
     )
     
+    final_gene_singletons <- final_gene_data[final_gene_data$Counts == 1, ]
+    if (any(final_gene_data$Counts >= 2)) {
+      final_gene_multi_muts <- final_gene_data[final_gene_data$Counts >= 2, ]
+    } 
     p <- ggplot() +
-
       geom_rect(data = chrom_info,
                 aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - .02, ymax = as.numeric(factor(CHROM)) + .02, text = CHROM
                     ),
@@ -444,31 +416,27 @@ server <- function(input, output,session) {
                 aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2,
                     text = CHROM),
                 fill = 'lightblue', alpha = 1) +
-      geom_rect(data = final_gene_multi_mut(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
-                                            ymax = chrom_as_num + 0.4,
-                                            xmin = START,
-                                            xmax = START + 8000,
-                text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
+      geom_rect(data = final_gene_singletons, aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+                                                  ymax = chrom_as_num + 0.4,
+                                                  xmin = START,
+                                                  xmax = START + 8000,
+                                                  text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
                 fill = "white", alpha = 1, color = "black", size = 0.1) +
-      geom_rect(data = final_gene_multi_mut(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
-                                                    ymax = chrom_as_num + 0.4,
-                                                    xmin = START,
-                                                    xmax = START + 8000,
-                                                    text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ", Counts),
-                fill = Counts), alpha = 1, color = "black", size = 0.1) +
-    scale_fill_gradient(low = "mistyrose", high = "red4",) +
-      geom_rect(data = final_gene_singleton(), aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
-                                                   ymax = chrom_as_num + 0.4,
-                                                   xmin = START,
-                                                   xmax = START + 8000,
-                                                   text = paste0("Gene Name: ",GENE, "\n", "Independent Mutations: ", Counts)),
-                                                   fill = "white", alpha = 1, color = "black", size = 0.1) +
-      
+      scale_y_custom +
+      scale_fill_gradient(low = "pink", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
            y = 'Chromosome', # changed x-axis label to Chromosome
            x = 'Position along chromosome') # changed y-axis label to Length
+    if (exists("final_gene_multi_muts")) {
+      p <- p + geom_rect(data = final_gene_multi_muts, 
+                         aes(ymin = chrom_as_num - 0.4, ymax = chrom_as_num + 0.4,
+                             xmin = START, xmax = START + 8000,
+                             text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts), fill = Counts),
+                         alpha = 1, color = "black", size = 0.1)
+    }
+      
     # Convert ggplot2 plot to plotly
-    p <- ggplotly(p, tooltip = "text")
+    p <- ggplotly(p,tooltip = "text")
     # Add formatting
     p <- layout(
       p,
@@ -479,8 +447,9 @@ server <- function(input, output,session) {
     )
   })
   
+  # Render Pie Chart
   output$varPieChart <- renderPlotly({
-    # Color vector for each annotation in Pie Chart
+    # Color vector for annotations 
     # just add the same number of colors as number of annotations
     # ex. if there are 10 unique annotations, put 10 unique colors
     # in this color vector
@@ -489,18 +458,24 @@ server <- function(input, output,session) {
                       "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
                       "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
+    # Filter and get a vector of unique annotations (no duplicates)
+    all_unique_anno <- mutation_data() %>%
+      distinct(ANNOTATION) %>% pull(ANNOTATION)
+    
+    # sort the annotations
+    all_unique_anno <- sort(all_unique_anno)
+    
+    # initialize a data frame which has 3 columns: Annotations, count of annotations, and percentage
     pie_df <- data.frame(
-      ANNOTATION = c("coding-nonsynonymous", "5'-upstream", "intergenic", "coding-synonymous",
-                     "ARS", "telomere", "LTR_retrotransposon", "intron", "rRNA", "tRNA"),
-      count = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-      percent = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+      ANNOTATION = all_unique_anno,
+      count = numeric(length(all_unique_anno)),
+      percent = numeric(length(all_unique_anno))
     )
-    
-    # TODO: If user inputs new annotation, be flexible enough to add to pie chart
-    # gives us the number of unique annotations in filtered data
-    # unique_annotations <- filtered_data() %>%
-    #   distinct(ANNOTATION) %>% pull(ANNOTATION)
-    
+
+    # filter the filtered data further:
+    # sort the data alphabetically
+    # count the number of annotations
+    # get a percentage for each annotation
     pie_data <- filtered_data() %>%
       arrange(ANNOTATION) %>% 
       count(ANNOTATION) %>% 
@@ -526,14 +501,12 @@ server <- function(input, output,session) {
     
     p %>% layout(showlegend = TRUE, 
                  legend = list(font = list(size = 7)),
+                 legend = list(font = list(size = 7)),
+                 legend = list(font = list(size = 7)),
                  margin = list(l = 75, r = 75, b = 75, t = 75))
-    # Adjust the margin to make the pie chart bigger or smaller.
-    # Larger values means a smaller pie chart
   })
   
-  
-  
-  #TODO: figure out what ref, alt, are from and what info we need here?
+  # Render SNP Plot
   output$snpCountPlot <- renderPlot({
     # counting number of transitions to display to set for colors and plot
     num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
@@ -550,10 +523,11 @@ server <- function(input, output,session) {
             strip.text.y.left = element_text(angle = 0),
             plot.title = element_text(hjust = 0.5),
             axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-      ggtitle("Single Nucleotide transitions")  + xlab("SNP call")
+      ggtitle("Single Nucleotide Changes")  + xlab("SNP call")
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
+  
   # Showing please select gene message
   # Construct the string with spaces on each side of the loading message
   geneview_message <- "Please select a gene below"
@@ -565,26 +539,112 @@ server <- function(input, output,session) {
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""),
                                        geneview_message,
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""))
-  output$geneViewPlot <- renderPlot({
+  
+  # Render gene view plot
+  output$geneViewPlot <- renderPlotly({
     validate(
       need(input$GENE, select_gene_message)
     )
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
-    filtered_data() %>% mutate("AA_POS" = stringr::str_extract(PROTEIN, "([0-9])+")) %>% 
-      filter(GENE==input$GENE) %>%
+    # TESTING
+    gene_name <- input$GENE
+    
+    mutation_data_value <- filtered_data()
+    
+    # Merge the data frames based on the “REGION” column
+    common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
+    mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
+    
+    mutation_data_value <- mutation_data_value[order(mutation_data_value$GENE),]
+    
+    # Using subset() function
+    cur_gene <- subset(mutation_data_value, GENE == gene_name)
+    
+    # Iterate through unique genes
+    count_proteins <- cur_gene %>%
+      group_by(POS) %>%
+      summarize(
+        GENE = first(GENE),
+        PROTEIN = first(PROTEIN),
+        ANNOTATION = first(ANNOTATION),
+        COUNTS = n(),
+        Letter1 = substr(PROTEIN, 1, 1),  # Extract the first character
+        Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract the numbers
+        Letter2 = str_extract(PROTEIN, "[a-zA-Z]+$")
+      ) %>%
+      ungroup()
+    
+    count_proteins_same <- count_proteins %>%
+      group_by(Numbers) %>%
+      summarize(
+        GENE = first(GENE),
+        PROTEIN = paste((PROTEIN), collapse = ", "),
+        ANNOTATION = first(ANNOTATION),
+        Counts_diff_mutation = paste((COUNTS), collapse = ", "),
+        Counts_tot = sum(COUNTS)
+      ) %>%
+      ungroup()
+    count_proteins_same$PROTEIN <- sapply(count_proteins_same$PROTEIN, FUN = strsplit, split = ",", simplify = TRUE)
+    count_proteins_same$Counts_diff_mutation <- sapply(count_proteins_same$Counts_diff_mutation, FUN = strsplit, split = ",", simplify = TRUE)
+    
+    combined_strings <- character(nrow(count_proteins_same))  # Pre-allocate character vector
+    for (i in 1:nrow(count_proteins_same)) {
+      current_protein <- (count_proteins_same$PROTEIN[i])
+      current_counts <- count_proteins_same$Counts_diff_mutation[i]
+      
+      split_string <- strsplit(current_protein[[1]], ",")
+      split_counts <- strsplit(current_counts[[1]], ",")
+      
+      if (length(split_string) > 1) {
+        cur <- list()
+        for (j in 1:length(split_string)) {
+          current_protein = split_string[j]
+          current_protein <- str_trim(current_protein)
+          current_counts = split_counts[j]
+          Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
+          Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
+          Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
+          print(current_protein)
+          print(Letter1)
+          cur <- c(cur, paste("Count ", Letter1, '->', Letter2, ": ", current_counts, "\n"))
+        }
+        combined_strings[i] <- sapply(cur, function(x) paste(x)) %>% paste(collapse = "")
+      }
+      else {
+        Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
+        Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
+        Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
+        combined_strings[i] <- paste("Count ", Letter1, '->', Letter2, ": ", current_counts)
+      }
+    }
+    count_proteins_same$combined <- combined_strings
+    
+    
+#TESTING
+    max_count <- max(count_proteins$COUNTS)
+    
+    p <- count_proteins_same %>%
+      mutate(
+        AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
+        AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
+        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
+      ) %>%
       mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
       mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-      ggplot(aes(x=as.numeric(AA_POS),y=.5)) + 
+      
+      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 4, 
+                            text = ifelse(is.na(PROTEIN), 
+                                   paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts_diff_mutation), 
+                                   paste0(combined, '\nPosition: ', AA_POS))))+
       geom_hline(yintercept=0, linetype=2,alpha=.2)+
       geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
-      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=.5), color = "pink") +
-      geom_point(aes(x=as.numeric(AA_POS), color=ANNOTATION),y=0.5, size=2)+
-      ylim(c(-0.2, 1.2))+ 
+      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=Counts_tot), color = "pink") +
+      geom_point(aes(x=as.numeric(AA_POS), y=Counts_tot,color=ANNOTATION), size=2) +
       xlim(-50,xlength)+
       geom_text_repel(aes(label = PROTEIN),
-                      box.padding   = 2, 
+                      box.padding   = 2,
                       point.padding = 1,
                       segment.color = 'grey50',
                       min.segment.length = 0
@@ -593,8 +653,10 @@ server <- function(input, output,session) {
       theme_classic(base_size=18) +
       theme(axis.title.y=element_blank(),
             axis.ticks.y=element_blank(),
-            plot.title = element_text(hjust = 0.5),
-            axis.text.y = element_blank()) + 
+            plot.title = element_text(hjust = 0.5),  # Adjust top margin for title
+            axis.text.y = element_blank(),
+            plot.margin = margin(20, 0, 0, 0) # Adjust top margin for space between title and plot
+      ) + 
       xlab("Amino acid position") +
       theme(axis.text.x = element_text(size = 8)) +
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
@@ -602,31 +664,12 @@ server <- function(input, output,session) {
       annotate(
         "text", x = 1, y = Inf, label = "Drag over mutations to see more",
         hjust = 0, vjust = 2, color = "black", size = 5
-      )
+      ) + 
+      guides(color = FALSE)
     
-  }, width = 750)
-  
-  # When a double-click happens, check if there's a brush on the plot.
-  # If so, zoom to the brush bounds; if not, reset the zoom.
-  observeEvent(input$geneViewPlot_dblclick, {
-    brush <- input$geneViewPlot_brush
-    if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
-      
-    } else {
-      ranges$x <- NULL
-      ranges$y <- NULL
-    }
+    ggplotly(p, tooltip="text")
   })
   
-  output$text <- renderText({ paste("Mutations Types:","- A nonsynonymous substitution is a nucleotide mutation that alters the amino acid sequence of a protein.",
-                                    "- A synonymous mutation is a change in the DNA sequence that codes for amino acids in a protein sequence," ,"but does not change the encoded amino acid.",
-                                    "- The 5′ untranslated region (also known as 5′ UTR) is the region of a messenger RNA (mRNA) that is directly","upstream from the initiation codon. It is not usually translated.",
-                                    "- Intergenic regions are the stretches of DNA located between genes.",
-                                    "- An autonomously replicating sequence (ARS) contains the origin of replication in the yeast genome.", sep="\n")})
-  
-  output$text1 <- renderText({ "The plot can be zoomed in by clicking and draggin and then double-clicking on the box.\n Reset view by double clicking again."})
   
   observeEvent(input$append_btn, {
     new_csv_path <- input$new_csv$datapath
