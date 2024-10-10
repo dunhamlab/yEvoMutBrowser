@@ -513,9 +513,9 @@ server <- function(input, output,session) {
       mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
       count(transition) %>% summarise(n = n()) %>% as.numeric()
     
-    filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep=""))  %>% 
+    filtered_data() %>% mutate(transition=paste(REF," to ",ALT, sep=""))  %>% 
       mutate(length = nchar(transition)) %>% 
-      mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>%
+      mutate(transition = if_else(nchar(transition) > 6,"Indel",transition)) %>%
       ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
       geom_bar() + theme_bw() + 
       scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
