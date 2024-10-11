@@ -577,6 +577,7 @@ server <- function(input, output,session) {
     # Using subset() function
     cur_gene <- subset(mutation_data_value, GENE == gene_name)
     
+    pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$" # pattern for extracting the second part of protein
     # Iterate through unique genes
     count_proteins <- cur_gene %>%
       group_by(POS) %>%
@@ -587,7 +588,7 @@ server <- function(input, output,session) {
         COUNTS = n(),
         Letter1 = substr(PROTEIN, 1, 1),  # Extract the first character
         Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract the numbers
-        Letter2 = str_extract(PROTEIN, "[a-zA-Z]+$")
+        Letter2 = str_extract(PROTEIN, pattern)
       ) %>%
       ungroup()
     
@@ -620,7 +621,7 @@ server <- function(input, output,session) {
           current_counts = split_counts[j]
           Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
           Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
-          Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
+          Letter2 <- str_extract(current_protein, pattern)
           print(current_protein)
           print(Letter1)
           cur <- c(cur, paste("Count ", Letter1, '->', Letter2, ": ", current_counts, "\n"))
@@ -630,7 +631,7 @@ server <- function(input, output,session) {
       else {
         Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
         Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
-        Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
+        Letter2 <- str_extract(current_protein, pattern)
         combined_strings[i] <- paste("Count ", Letter1, '->', Letter2, ": ", current_counts)
       }
     }
