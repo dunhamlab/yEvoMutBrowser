@@ -106,7 +106,7 @@ ui <-  navbarPage(
                  type = "tabs",
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
-                 tabPanel("SNP Counts", plotOutput("snpCountPlot", click = "plot_click")),
+                 tabPanel("SNP Counts", plotlyOutput("snpCountPlot")), #, verbatimTextOutput("text")
                  tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
                          selectInput("GENE", "Gene", choices = c('')),
                          uiOutput("url")),
@@ -507,23 +507,38 @@ server <- function(input, output,session) {
   })
   
   # Render SNP Plot
-  output$snpCountPlot <- renderPlot({
-    # counting number of transitions to display to set for colors and plot
-    num <- filtered_data() %>% mutate(transition=paste(REF,"_",ALT, sep="")) %>% 
-      mutate(length = nchar(transition)) %>% mutate(transition = if_else(nchar(transition) > 3,"Indel",transition)) %>% 
-      count(transition) %>% summarise(n = n()) %>% as.numeric()
-    
-    filtered_data() %>% mutate(transition=paste(REF," to ",ALT, sep=""))  %>% 
-      mutate(length = nchar(transition)) %>% 
+  output$snpCountPlot <- renderPlotly({
+    # categorizing data into appropriate categories for plotting
+    categorized_data <- filtered_data() %>%
+      mutate(transition = paste(REF, " to ", ALT, sep = "")) %>%
       mutate(transition = if_else(nchar(transition) > 6,"Indel",transition)) %>%
-      ggplot(aes(x=as.factor(transition),fill=as.factor(transition))) + 
-      geom_bar() + theme_bw() + 
-      scale_fill_manual(values=viridis(n = num, begin = 0.4, end = 1)) + 
-      theme(legend.position = "none",
-            strip.text.y.left = element_text(angle = 0),
-            plot.title = element_text(hjust = 0.5),
-            axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)) + 
-      ggtitle("Single Nucleotide Changes")  + xlab("SNP call")
+      mutate(mutation_type = case_when(
+        transition %in% c("A to G", "G to A", "C to T", "T to C") ~ "Transition",
+        transition %in% c("A to T", "T to A", "C to G", "G to C", "A to C", "C to A", "T to G", "G to T") ~ "Transversion",
+        TRUE ~ "Indel"
+      ))
+    
+    num_categories <- length(unique(categorized_data$mutation_type)) # in case we ever change categories
+    # Getting counts to display in hover (if not displaying custom tooltip then can use categorized data directly)
+    summarized_data <- categorized_data %>%
+      group_by(transition, mutation_type) %>%
+      summarise(count = n(), .groups = 'drop')
+    
+    # plotting the data with coloring by categories
+    p <- ggplot(summarized_data, aes(x = as.factor(transition), fill = mutation_type,)) +
+      geom_bar(aes(y = count, text = paste(transition, '\nCount:', count,'\nMutation Type:', mutation_type)), stat = "identity") +
+      theme_bw() +
+      scale_fill_manual(values = viridis::viridis(num_categories, begin = 0.4, end = 1)) +
+      labs(fill = "Mutation Type") +
+      theme(
+        legend.position = "right",
+        strip.text.y.left = element_text(angle = 0),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)
+      ) +
+      ggtitle("Single Nucleotide Changes") +
+      xlab("SNP call")
+    p <- ggplotly(p, tooltip = "text")
   })
   
   ranges <- reactiveValues(x = NULL, y = NULL)
