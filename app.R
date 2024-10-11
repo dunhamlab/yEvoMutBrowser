@@ -106,7 +106,7 @@ ui <-  navbarPage(
                  type = "tabs",
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
-                 tabPanel("SNP Counts", plotlyOutput("snpCountPlot")), #, verbatimTextOutput("text")
+                 tabPanel("SNP Counts", plotlyOutput("snpCountPlot")),
                  tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
                          selectInput("GENE", "Gene", choices = c('')),
                          uiOutput("url")),
