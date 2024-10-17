@@ -641,49 +641,48 @@ server <- function(input, output,session) {
 #TESTING
     max_count <- max(count_proteins$COUNTS)
     
-    p <- count_proteins_same %>%
+    p <- count_proteins_same %>% 
       mutate(
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
         AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
       ) %>%
-      mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-      mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-      
-      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 4, 
-                            text = ifelse(is.na(PROTEIN), 
-                                   paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts_diff_mutation), 
-                                   paste0(combined, '\nPosition: ', AA_POS))))+
-      geom_hline(yintercept=0, linetype=2,alpha=.2)+
-      geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
-      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=Counts_tot), color = "pink") +
-      geom_point(aes(x=as.numeric(AA_POS), y=Counts_tot,color=ANNOTATION), size=2) +
-      xlim(-50,xlength)+
+      mutate(ANNOTATION= gsub("'", "", ANNOTATION)) %>%
+      mutate(AA_POS = if_else(ANNOTATION == "5-upstream", -15, as.numeric(AA_POS))) %>%
+      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 4,
+                 text = ifelse(is.na(PROTEIN),
+                               paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation),
+                               paste0(combined, '\nPosition: ', AA_POS)))) +
+      geom_hline(yintercept = 0, linetype = 2, alpha = .2) +
+      geom_segment(aes(x = 0, xend = xlength, y = 0, yend = 0), size = 15, color = "cornflowerblue") +
+      geom_segment(aes(x = as.numeric(AA_POS), xend = as.numeric(AA_POS), y = 0, yend = Counts_tot), color = "pink") +
+      geom_point(aes(x = as.numeric(AA_POS), y = Counts_tot, color = ANNOTATION), size = 2) +
+      xlim(-50, xlength) +
       geom_text_repel(aes(label = PROTEIN),
-                      box.padding   = 2,
+                      box.padding = 2,
                       point.padding = 1,
                       segment.color = 'grey50',
-                      min.segment.length = 0
+                      min.segment.length = 0) +
+      ggtitle(as.character(input$GENE)) +
+      theme_classic(base_size = 18) +
+      theme(
+        axis.title.y = element_text(),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.y = element_line(),
+        plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(20, 20, 0, 20)
       ) +
-      ggtitle(as.character(input$GENE))+
-      theme_classic(base_size=18) +
-      theme(axis.title.y=element_blank(),
-            axis.ticks.y=element_blank(),
-            plot.title = element_text(hjust = 0.5),  # Adjust top margin for title
-            axis.text.y = element_blank(),
-            plot.margin = margin(20, 0, 0, 0) # Adjust top margin for space between title and plot
-      ) + 
       xlab("Amino acid position") +
-      theme(axis.text.x = element_text(size = 8)) +
-      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
-      theme(plot.margin = margin(0, 0, 0, 0)) + 
+      ylab("Mutation Count") +
+      scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +  # Ensure only whole numbers
+      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
       annotate(
         "text", x = 1, y = Inf, label = "Drag over mutations to see more",
         hjust = 0, vjust = 2, color = "black", size = 5
-      ) + 
+      ) +
       guides(color = FALSE)
     
-    ggplotly(p, tooltip="text")
+    ggplotly(p, tooltip = "text")
   })
   
   
