@@ -560,24 +560,24 @@ server <- function(input, output,session) {
     validate(
       need(input$GENE, select_gene_message)
     )
+    # Determining x range for the plot
     xlength <- genes_info %>%
       filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
-    # TESTING
-    gene_name <- input$GENE
-    
     mutation_data_value <- filtered_data()
     
-    # Merge the data frames based on the “REGION” column
+    # Merge the data frames based on the common columns
     common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
     mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
-    
     mutation_data_value <- mutation_data_value[order(mutation_data_value$GENE),]
     
-    # Using subset() function
-    cur_gene <- subset(mutation_data_value, GENE == gene_name)
+    # Filter data for the specific gene
+    cur_gene <- filter(mutation_data_value, GENE == input$GENE)
     
-    # Iterate through unique genes
+    # Pattern for extracting the second part of protein
+    pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
+    
+    # Group and summarize protein counts
     count_proteins <- cur_gene %>%
       group_by(POS) %>%
       summarize(
@@ -587,102 +587,76 @@ server <- function(input, output,session) {
         COUNTS = n(),
         Letter1 = substr(PROTEIN, 1, 1),  # Extract the first character
         Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract the numbers
-        Letter2 = str_extract(PROTEIN, "[a-zA-Z]+$")
+        Letter2 = str_extract(PROTEIN, pattern)
       ) %>%
       ungroup()
     
+    # Group by position numbers and summarize
     count_proteins_same <- count_proteins %>%
       group_by(Numbers) %>%
       summarize(
         GENE = first(GENE),
-        PROTEIN = paste((PROTEIN), collapse = ", "),
+        PROTEIN = list(PROTEIN),
         ANNOTATION = first(ANNOTATION),
-        Counts_diff_mutation = paste((COUNTS), collapse = ", "),
+        Counts_diff_mutation = list(COUNTS),
         Counts_tot = sum(COUNTS)
       ) %>%
       ungroup()
-    count_proteins_same$PROTEIN <- sapply(count_proteins_same$PROTEIN, FUN = strsplit, split = ",", simplify = TRUE)
-    count_proteins_same$Counts_diff_mutation <- sapply(count_proteins_same$Counts_diff_mutation, FUN = strsplit, split = ",", simplify = TRUE)
     
-    combined_strings <- character(nrow(count_proteins_same))  # Pre-allocate character vector
-    for (i in 1:nrow(count_proteins_same)) {
-      current_protein <- (count_proteins_same$PROTEIN[i])
-      current_counts <- count_proteins_same$Counts_diff_mutation[i]
-      
-      split_string <- strsplit(current_protein[[1]], ",")
-      split_counts <- strsplit(current_counts[[1]], ",")
-      
-      if (length(split_string) > 1) {
-        cur <- list()
-        for (j in 1:length(split_string)) {
-          current_protein = split_string[j]
-          current_protein <- str_trim(current_protein)
-          current_counts = split_counts[j]
-          Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
-          Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
-          Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
-          print(current_protein)
-          print(Letter1)
-          cur <- c(cur, paste("Count ", Letter1, '->', Letter2, ": ", current_counts, "\n"))
-        }
-        combined_strings[i] <- sapply(cur, function(x) paste(x)) %>% paste(collapse = "")
-      }
-      else {
-        Letter1 <- substr(current_protein, 1, 1)  # Extract the first character
-        Numbers <- as.numeric(str_extract(current_protein, "[0-9]+"))  # Extract the numbers
-        Letter2 <- str_extract(current_protein, "[a-zA-Z]+$")
-        combined_strings[i] <- paste("Count ", Letter1, '->', Letter2, ": ", current_counts)
-      }
-    }
-    count_proteins_same$combined <- combined_strings
+    # Combine protein and count strings
+    count_proteins_same <- count_proteins_same %>%
+      mutate(
+        combined = map2_chr(PROTEIN, Counts_diff_mutation, function(prot, counts) {
+          prot_list <- str_split(prot, ", ") %>% unlist()
+          counts_list <- str_split(counts, ", ") %>% unlist()
+          
+          combined_strings <- map2_chr(prot_list, counts_list, function(p, c) {
+            Letter1 <- substr(p, 1, 1)
+            Numbers <- str_extract(p, "[0-9]+") %>% as.numeric()
+            Letter2 <- str_extract(p, pattern)
+            paste("Count", Letter1, '->', Letter2, ":", c, "\n", sep = " ")
+          })
+          
+          paste(combined_strings, collapse = "")
+        })
+      )
     
-    
-#TESTING
-    max_count <- max(count_proteins$COUNTS)
     
     p <- count_proteins_same %>%
       mutate(
+        PROTEIN = as.character(PROTEIN),
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
-        AA_POS = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract Amino Acid Position
-        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)) # Amino Acid Mutation
+        AA_POS = if_else(ANNOTATION == "5'-upstream", -15, as.numeric(str_extract(PROTEIN, "[0-9]+"))),  # Extract Amino Acid Position
+        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN))  # Amino Acid Mutation
       ) %>%
-      mutate(ANNOTATION= gsub("'","",ANNOTATION)) %>%
-      mutate(AA_POS = if_else(ANNOTATION=="5-upstream",-15,as.numeric(AA_POS))) %>%
-      
-      ggplot(aes(x = as.numeric(AA_POS), y = max_count + 4, 
-                            text = ifelse(is.na(PROTEIN), 
-                                   paste0('Non-coding Mutation\nAnnotation: ', ANNOTATION, '\nCount: ', Counts_diff_mutation), 
-                                   paste0(combined, '\nPosition: ', AA_POS))))+
-      geom_hline(yintercept=0, linetype=2,alpha=.2)+
-      geom_segment(aes(x=0,xend=xlength,y=0,yend=0), size=15, color = "cornflowerblue") +
-      geom_segment(aes(x=as.numeric(AA_POS),xend=as.numeric(AA_POS),y=0,yend=Counts_tot), color = "pink") +
-      geom_point(aes(x=as.numeric(AA_POS), y=Counts_tot,color=ANNOTATION), size=2) +
-      xlim(-50,xlength)+
-      geom_text_repel(aes(label = PROTEIN),
-                      box.padding   = 2,
-                      point.padding = 1,
-                      segment.color = 'grey50',
-                      min.segment.length = 0
+      ggplot(aes(
+        x = AA_POS, y = max(count_proteins$COUNTS) + 4,
+        text = ifelse(is.na(PROTEIN), paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation), paste0(combined, '\nPosition: ', AA_POS))
+      )) +
+      geom_hline(yintercept = 0, linetype = 2, alpha = .2) +
+      geom_segment(aes(x = 0, xend = xlength, y = 0, yend = 0), size = 15, color = "cornflowerblue") +
+      geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot), color = "pink") +
+      geom_point(aes(x = AA_POS, y = Counts_tot, color = ANNOTATION), size = 2) +
+      xlim(-50, xlength) +
+      geom_text_repel(aes(label = PROTEIN), box.padding = 2, point.padding = 1, segment.color = 'grey50', min.segment.length = 0) +
+      ggtitle(as.character(input$GENE)) +
+      theme_classic(base_size = 18) +
+      theme(
+        axis.text.x = element_text(size = 10),
+        axis.title.y = element_text(),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.y = element_line(),
+        plot.title = element_text(hjust = 0.5),
+        plot.margin = margin(20, 20, 0, 20)
       ) +
-      ggtitle(as.character(input$GENE))+
-      theme_classic(base_size=18) +
-      theme(axis.title.y=element_blank(),
-            axis.ticks.y=element_blank(),
-            plot.title = element_text(hjust = 0.5),  # Adjust top margin for title
-            axis.text.y = element_blank(),
-            plot.margin = margin(20, 0, 0, 0) # Adjust top margin for space between title and plot
-      ) + 
       xlab("Amino acid position") +
-      theme(axis.text.x = element_text(size = 8)) +
-      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
-      theme(plot.margin = margin(0, 0, 0, 0)) + 
-      annotate(
-        "text", x = 1, y = Inf, label = "Drag over mutations to see more",
-        hjust = 0, vjust = 2, color = "black", size = 5
-      ) + 
+      ylab("Mutation Count") +
+      scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +
+      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
+      annotate("text", x = 1, y = Inf, label = "Drag over mutations to see more", hjust = 0, vjust = 2, color = "black", size = 5) +
       guides(color = FALSE)
     
-    ggplotly(p, tooltip="text")
+    ggplotly(p, tooltip = "text")
   })
   
   
