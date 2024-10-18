@@ -621,6 +621,13 @@ server <- function(input, output,session) {
         })
       )
     
+    # Fixed colors for the different annotations
+    annotation_colors <- c(
+      "5'-upstream" = "#0072B2",
+      "missense" = "#CC79A7",
+      "nonsense" = "#009E73",
+      "coding-synonymous" = "#E69F00"
+    )
     
     p <- count_proteins_same %>%
       mutate(
@@ -631,7 +638,8 @@ server <- function(input, output,session) {
       ) %>%
       ggplot(aes(
         x = AA_POS, y = max(count_proteins$COUNTS) + 4,
-        text = ifelse(is.na(PROTEIN), paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation), paste0(combined, '\nPosition: ', AA_POS))
+        text = ifelse(is.na(PROTEIN), paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation), paste0(combined, '\nPosition: ', AA_POS)),
+        color = ANNOTATION
       )) +
       geom_hline(yintercept = 0, linetype = 2, alpha = .2) +
       geom_segment(aes(x = 0, xend = xlength, y = 0, yend = 0), size = 15, color = "cornflowerblue") +
@@ -652,9 +660,10 @@ server <- function(input, output,session) {
       xlab("Amino acid position") +
       ylab("Mutation Count") +
       scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +
+      scale_color_manual(values = annotation_colors) +  # Manual color scale
       coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
       annotate("text", x = 1, y = Inf, label = "Drag over mutations to see more", hjust = 0, vjust = 2, color = "black", size = 5) +
-      guides(color = FALSE)
+      guides(color = guide_legend(title = "Annotation"))
     
     ggplotly(p, tooltip = "text")
   })
