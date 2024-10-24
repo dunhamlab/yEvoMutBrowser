@@ -629,18 +629,33 @@ server <- function(input, output,session) {
       "coding-synonymous" = "#E69F00"
     )
     
+    all_annotations <- c("missense", "nonsense", "5'-upstream", "coding-synonymous")
+    
     p <- count_proteins_same %>%
       mutate(
         PROTEIN = as.character(PROTEIN),
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = if_else(ANNOTATION == "5'-upstream", -15, as.numeric(str_extract(PROTEIN, "[0-9]+"))),  # Extract Amino Acid Position
         AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),  # Amino Acid Mutation
+        ANNOTATION = factor(ANNOTATION, levels = all_annotations) 
       ) %>%
       ggplot(aes(
         x = AA_POS, y = max(count_proteins$COUNTS) + 4,
         text = ifelse(is.na(PROTEIN), paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation), paste0(combined, '\nPosition: ', AA_POS)),
         color = ANNOTATION
       )) +
+      # dummy geom_point to get legend showing all_annotations regardless of what data is displayed
+      geom_point(data = data.frame(
+          PROTEIN = rep(NA_character_, length(all_annotations)),
+          AA_WT = rep(NA_character_, length(all_annotations)),
+          AA_POS = rep(NA_real_, length(all_annotations)),
+          AA_M = rep(NA_character_, length(all_annotations)),
+          ANNOTATION = factor(all_annotations, levels = all_annotations),
+          Counts_diff_mutation = I(rep(list(numeric(0)), length(all_annotations))),
+          Counts_tot = rep(NA_integer_, length(all_annotations)),
+          combined = rep(NA_character_, length(all_annotations))
+      ), aes(y = 0, color = ANNOTATION), size = 2) +  
+      
       geom_hline(yintercept = 0, linetype = 2, alpha = .2) +
       geom_segment(aes(x = 0, xend = xlength, y = 0, yend = 0), size = 15, color = "cornflowerblue") +
       geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot), color = "pink") +
