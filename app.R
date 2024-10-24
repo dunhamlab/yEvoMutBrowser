@@ -634,7 +634,7 @@ server <- function(input, output,session) {
         PROTEIN = as.character(PROTEIN),
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = if_else(ANNOTATION == "5'-upstream", -15, as.numeric(str_extract(PROTEIN, "[0-9]+"))),  # Extract Amino Acid Position
-        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN))  # Amino Acid Mutation
+        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),  # Amino Acid Mutation
       ) %>%
       ggplot(aes(
         x = AA_POS, y = max(count_proteins$COUNTS) + 4,
@@ -648,11 +648,11 @@ server <- function(input, output,session) {
       xlim(-50, xlength) +
       geom_text_repel(aes(label = PROTEIN), box.padding = 2, point.padding = 1, segment.color = 'grey50', min.segment.length = 0) +
       ggtitle(as.character(input$GENE)) +
-      theme_classic(base_size = 18) +
+      theme_classic() +
       theme(
-        axis.text.x = element_text(size = 10),
+        axis.text.x = element_text(),
         axis.title.y = element_text(),
-        axis.text.y = element_text(size = 10),
+        axis.text.y = element_text(),
         axis.ticks.y = element_line(),
         plot.title = element_text(hjust = 0.5),
         plot.margin = margin(20, 20, 0, 20)
