@@ -506,40 +506,58 @@ server <- function(input, output,session) {
                  margin = list(l = 75, r = 75, b = 75, t = 75))
   })
   
-  # Render SNP Plot
   output$snpCountPlot <- renderPlotly({
-    # categorizing data into appropriate categories for plotting
+    # Categorizing data into appropriate categories for plotting
     categorized_data <- filtered_data() %>%
       mutate(transition = paste(REF, " to ", ALT, sep = "")) %>%
-      mutate(transition = if_else(nchar(transition) > 6,"Indel",transition)) %>%
+      mutate(transition = if_else(nchar(transition) > 6, "Indel", transition)) %>%
       mutate(mutation_type = case_when(
         transition %in% c("A to G", "G to A", "C to T", "T to C") ~ "Transition",
         transition %in% c("A to T", "T to A", "C to G", "G to C", "A to C", "C to A", "T to G", "G to T") ~ "Transversion",
+        TRUE ~ "Indel")) %>%
+      mutate(combined_group = case_when(
+        transition %in% c("A to G", "T to C") ~ "A to G",
+        transition %in% c("C to T", "G to A") ~ "C to T",
+        transition %in% c("A to T", "T to A") ~ "A to T",
+        transition %in% c("C to G", "G to C") ~ "C to G",
+        transition %in% c("A to C", "T to G") ~ "A to C",
+        transition %in% c("G to T", "C to A") ~ "C to A",
         TRUE ~ "Indel"
       ))
     
-    num_categories <- length(unique(categorized_data$mutation_type)) # in case we ever change categories
-    # Getting counts to display in hover (if not displaying custom tooltip then can use categorized data directly)
+    # Summarize the data by the new group variable
     summarized_data <- categorized_data %>%
-      group_by(transition, mutation_type) %>%
+      group_by(combined_group, mutation_type) %>%
       summarise(count = n(), .groups = 'drop')
     
-    # plotting the data with coloring by categories
-    p <- ggplot(summarized_data, aes(x = as.factor(transition), fill = mutation_type,)) +
-      geom_bar(aes(y = count, text = paste(transition, '\nCount:', count,'\nMutation Type:', mutation_type)), stat = "identity") +
+    # Custom colors for mutation types
+    custom_colors <- c(
+      "Transition" = "#0072B2", # Blue
+      "Transversion" = "#CC79A7", # Pink
+      "Indel" = "#009E73" # Green        
+    )
+    desired_order <- c('Indel', 'A to G', 'C to T', 'A to T', 'C to G', 'A to C', 'C to A')
+    
+    summarized_data$combined_group <- factor(summarized_data$combined_group, levels = desired_order)
+    
+    # Plotting the data with coloring by categories
+    p <- ggplot(summarized_data, aes(x = (combined_group), y = count, fill = mutation_type)) +
+      geom_bar(position = "dodge", stat = "identity", 
+               aes(text = paste(combined_group, '\nCount:', count, '\nMutation Type:', mutation_type))) +
       theme_bw() +
-      scale_fill_manual(values = viridis::viridis(num_categories, begin = 0.4, end = 1)) +
+      scale_fill_manual(values = custom_colors) +
       labs(fill = "Mutation Type") +
       theme(
         legend.position = "right",
-        strip.text.y.left = element_text(angle = 0),
         plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=.5)
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1) # Adjust angle for better visibility
       ) +
       ggtitle("Single Nucleotide Changes") +
-      xlab("SNP call")
+      xlab("Mutation Type and SNP Call")
+    
     p <- ggplotly(p, tooltip = "text")
   })
+  
   
   ranges <- reactiveValues(x = NULL, y = NULL)
   
