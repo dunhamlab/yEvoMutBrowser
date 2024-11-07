@@ -592,7 +592,8 @@ server <- function(input, output,session) {
     # Pattern for extracting the second part of protein
     pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
     
-    all_annotations <- c("missense", "nonsense", "5'-upstream", "coding-synonymous")
+    all_annotations <- c("missense", "nonsense", "5'-upstream", "coding-synonymous","indel-inframe","indel-frameshift")
+    # IF ADDING NEW ANNOTATIONS - DON'T FORGET TO ADD BOTH HERE AND IN annotation_colors BELOW
     
     # Group and summarize protein counts
     count_proteins <- cur_gene %>%
@@ -646,7 +647,7 @@ server <- function(input, output,session) {
         ANNOTATION = factor(ANNOTATION, levels = all_annotations) 
       )
     
-    # Fixed colors for the different annotations
+    # Fixed colors for the different annotations - IF ADDING NEW ANNOTATIONS, DON'T FORGET TO ADD TO all_annotations ABOVE
     annotation_colors <- c(
       "5'-upstream" = "#0072B2",
       "missense" = "#CC79A7",
