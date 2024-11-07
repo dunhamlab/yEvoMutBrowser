@@ -578,9 +578,6 @@ server <- function(input, output,session) {
     validate(
       need(input$GENE, select_gene_message)
     )
-    # Determining x range for the plot
-    xlength <- genes_info %>%
-      filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
     
     mutation_data_value <- filtered_data()
     
@@ -594,6 +591,9 @@ server <- function(input, output,session) {
     
     # Pattern for extracting the second part of protein
     pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
+    
+    all_annotations <- c("missense", "nonsense", "5'-upstream", "coding-synonymous","indel-inframe","indel-frameshift")
+    # IF ADDING NEW ANNOTATIONS - DON'T FORGET TO ADD BOTH HERE AND IN annotation_colors BELOW
     
     # Group and summarize protein counts
     count_proteins <- cur_gene %>%
@@ -636,32 +636,41 @@ server <- function(input, output,session) {
           })
           
           paste(combined_strings, collapse = "")
-        })
-      )
-    
-    # Fixed colors for the different annotations
-    annotation_colors <- c(
-      "5'-upstream" = "#0072B2",
-      "missense" = "#CC79A7",
-      "nonsense" = "#009E73",
-      "coding-synonymous" = "#E69F00"
-    )
-    
-    all_annotations <- c("missense", "nonsense", "5'-upstream", "coding-synonymous")
-    
-    p <- count_proteins_same %>%
+        }) 
+        
+      )%>%
       mutate(
         PROTEIN = as.character(PROTEIN),
         AA_WT = substr(PROTEIN, 1, 1),  # Extract the first character Amino Acid Wild Type
         AA_POS = if_else(ANNOTATION == "5'-upstream", -15, as.numeric(str_extract(PROTEIN, "[0-9]+"))),  # Extract Amino Acid Position
-        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),  # Amino Acid Mutation
+        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),  #Amino Acid Mutation
         ANNOTATION = factor(ANNOTATION, levels = all_annotations) 
-      ) %>%
-      ggplot(aes(
-        x = AA_POS, y = max(count_proteins$COUNTS) + 4,
-        text = ifelse(is.na(PROTEIN), paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation), paste0(combined, '\nPosition: ', AA_POS)),
-        color = ANNOTATION
-      )) +
+      )
+    
+    # Fixed colors for the different annotations - IF ADDING NEW ANNOTATIONS, DON'T FORGET TO ADD TO all_annotations ABOVE
+    annotation_colors <- c(
+      "5'-upstream" = "#0072B2",
+      "missense" = "#CC79A7",
+      "nonsense" = "#009E73",
+      "coding-synonymous" = "#E69F00",
+      "indel-inframe" = "#D55E00",
+      "indel-frameshift" = "#56B4E9"
+    )
+    
+    # Generating ranges for the plot size
+    xmax <- genes_info %>%
+      filter(GENE==input$GENE) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+    ranges$x <- c(-50, xmax + 50)
+    
+    ranges$y <- c(0, max(count_proteins_same$Counts_tot) + ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
+
+    p <- count_proteins_same %>%
+      ggplot(
+        aes(
+        x = AA_POS,
+        y = Counts_tot,
+      )
+      ) +
       # dummy geom_point to get legend showing all_annotations regardless of what data is displayed
       geom_point(data = data.frame(
           PROTEIN = rep(NA_character_, length(all_annotations)),
@@ -672,14 +681,16 @@ server <- function(input, output,session) {
           Counts_diff_mutation = I(rep(list(numeric(0)), length(all_annotations))),
           Counts_tot = rep(NA_integer_, length(all_annotations)),
           combined = rep(NA_character_, length(all_annotations))
-      ), aes(y = 0, color = ANNOTATION), size = 2) +  
+      ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2) +
       
-      geom_hline(yintercept = 0, linetype = 2, alpha = .2) +
-      geom_segment(aes(x = 0, xend = xlength, y = 0, yend = 0), size = 15, color = "cornflowerblue") +
-      geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot), color = "pink") +
-      geom_point(aes(x = AA_POS, y = Counts_tot, color = ANNOTATION), size = 2) +
-      xlim(-50, xlength) +
-      geom_text_repel(aes(label = PROTEIN), box.padding = 2, point.padding = 1, segment.color = 'grey50', min.segment.length = 0) +
+      geom_hline(yintercept = 0, linetype = 2, alpha = .2,aes(text = NULL)) +
+      geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL), size = 15, color = "cornflowerblue") +
+      geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot, text = NULL), color = "pink") +
+      geom_point(aes(x = AA_POS, 
+                     y = Counts_tot, 
+                     color = ANNOTATION,
+                     text = ifelse(is.na(PROTEIN), paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation, '\nPosition: ',  -abs(unique(cur_gene$POS) - unique(cur_gene$START))), paste0(combined, '\nPosition: ', AA_POS)),
+                     ), size = 2) +
       ggtitle(as.character(input$GENE)) +
       theme_classic() +
       theme(
@@ -694,8 +705,7 @@ server <- function(input, output,session) {
       ylab("Mutation Count") +
       scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +
       scale_color_manual(values = annotation_colors) +  # Manual color scale
-      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
-      annotate("text", x = 1, y = Inf, label = "Drag over mutations to see more", hjust = 0, vjust = 2, color = "black", size = 5) +
+      coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +      annotate("text", x = 1, y = Inf, label = "Drag over mutations to see more", hjust = 0, vjust = 2, color = "black", size = 5) +
       guides(color = guide_legend(title = "Annotation"))
     
     ggplotly(p, tooltip = "text")
