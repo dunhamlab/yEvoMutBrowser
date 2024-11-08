@@ -592,7 +592,7 @@ server <- function(input, output,session) {
     # Pattern for extracting the second part of protein
     pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
     
-    all_annotations <- c("missense", "nonsense", "5'-upstream", "indel-frameshift","indel-inframe","coding-synonymous")
+    all_annotations <- c("missense", "nonsense", "5'-upstream", "indel-frameshift","indel-inframe","synonymous")
     # IF ADDING NEW ANNOTATIONS - DON'T FORGET TO ADD BOTH HERE AND IN annotation_colors BELOW
     
     # Group and summarize protein counts
@@ -651,12 +651,12 @@ server <- function(input, output,session) {
     
     # Fixed colors for the different annotations - IF ADDING NEW ANNOTATIONS, DON'T FORGET TO ADD TO all_annotations ABOVE
     annotation_colors <- c(
-      "missense" = "#CD0BBC",
+      "missense" = "#800080",
       "nonsense" = "#61D04F",
       "5'-upstream" = "#F5C710",
-      "indel-frameshift" = "#28E2E5",
-      "indel-inframe" = "#2297E6",
-      "coding-synonymous" = "#DF536B"
+      "indel-frameshift" = "#DF536B",
+      "indel-inframe" = "#FFB6C1",
+      "synonymous" = "cornflowerblue"
     )
     
     # Generating ranges for the plot size
@@ -687,7 +687,7 @@ server <- function(input, output,session) {
       
       geom_hline(yintercept = 0, linetype = 2, alpha = .2,aes(text = NULL)) +
       geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL), size = 15, color = "cornflowerblue") +
-      geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot, text = NULL), color = "pink") +
+      geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot, text = NULL), color = "gray") +
       geom_point(aes(x = AA_POS, 
                      y = Counts_tot, 
                      color = ANNOTATION,
