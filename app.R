@@ -592,11 +592,12 @@ server <- function(input, output,session) {
     # Pattern for extracting the second part of protein
     pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
     
-    all_annotations <- c("missense", "nonsense", "5'-upstream", "coding-synonymous","indel-inframe","indel-frameshift")
+    all_annotations <- c("missense", "nonsense", "5'-upstream", "indel-frameshift","indel-inframe","coding-synonymous")
     # IF ADDING NEW ANNOTATIONS - DON'T FORGET TO ADD BOTH HERE AND IN annotation_colors BELOW
     
     # Group and summarize protein counts
     count_proteins <- cur_gene %>%
+      mutate(indel = nchar(ALT) - nchar(REF)) %>%  # Calculate indel difference
       group_by(POS) %>%
       summarize(
         GENE = first(GENE),
@@ -605,7 +606,8 @@ server <- function(input, output,session) {
         COUNTS = n(),
         Letter1 = substr(PROTEIN, 1, 1),  # Extract the first character
         Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),  # Extract the numbers
-        Letter2 = str_extract(PROTEIN, pattern)
+        Letter2 = str_extract(PROTEIN, pattern),
+        indel = first(indel)
       ) %>%
       ungroup()
     
@@ -617,7 +619,8 @@ server <- function(input, output,session) {
         PROTEIN = list(PROTEIN),
         ANNOTATION = first(ANNOTATION),
         Counts_diff_mutation = list(COUNTS),
-        Counts_tot = sum(COUNTS)
+        Counts_tot = sum(COUNTS),
+        indel = first(indel)
       ) %>%
       ungroup()
     
@@ -634,7 +637,6 @@ server <- function(input, output,session) {
             Letter2 <- str_extract(p, pattern)
             paste("Count", Letter1, '->', Letter2, ":", c, "\n", sep = " ")
           })
-          
           paste(combined_strings, collapse = "")
         }) 
         
@@ -649,12 +651,12 @@ server <- function(input, output,session) {
     
     # Fixed colors for the different annotations - IF ADDING NEW ANNOTATIONS, DON'T FORGET TO ADD TO all_annotations ABOVE
     annotation_colors <- c(
-      "5'-upstream" = "#0072B2",
-      "missense" = "#CC79A7",
-      "nonsense" = "#009E73",
-      "coding-synonymous" = "#E69F00",
-      "indel-inframe" = "#D55E00",
-      "indel-frameshift" = "#56B4E9"
+      "missense" = "#CD0BBC",
+      "nonsense" = "#61D04F",
+      "5'-upstream" = "#F5C710",
+      "indel-frameshift" = "#28E2E5",
+      "indel-inframe" = "#2297E6",
+      "coding-synonymous" = "#DF536B"
     )
     
     # Generating ranges for the plot size
@@ -689,8 +691,16 @@ server <- function(input, output,session) {
       geom_point(aes(x = AA_POS, 
                      y = Counts_tot, 
                      color = ANNOTATION,
-                     text = ifelse(is.na(PROTEIN), paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation, '\nPosition: ',  -abs(unique(cur_gene$POS) - unique(cur_gene$START))), paste0(combined, '\nPosition: ', AA_POS)),
-                     ), size = 2) +
+                     text = ifelse(
+                       grepl("indel", ANNOTATION),  # Check if ANNOTATION contains "indel"
+                       paste0("Indel\n", abs(indel), " base ",ifelse(indel > 0, "insertion", "deletion"), "\nCount: ", Counts_diff_mutation, "\nPosition: ", AA_POS),  # Text for indel annotations
+                       ifelse(
+                         is.na(PROTEIN), 
+                         paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation, '\nPosition: ', -abs(unique(cur_gene$POS) - unique(cur_gene$START))),
+                         paste0(combined, '\nPosition: ', AA_POS)
+                       )
+                     )
+                ), size = 2) +
       ggtitle(as.character(input$GENE)) +
       theme_classic() +
       theme(
