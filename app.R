@@ -192,7 +192,7 @@ server <- function(input, output,session) {
   output$downloadBtn <- downloadHandler(
     filename = function() {
       # Set the filename for the downloaded file
-      if(is.null(input$View)){
+      if(is.null(input$View) || (input$instructor == "All Selected" && input$condition == "All Selected")){
         "master_table.csv"
       }else if (input$View == "View By Class") {
         selected_instructor <- input$instructor
