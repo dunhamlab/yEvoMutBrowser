@@ -34,7 +34,7 @@ library(stringr)
 # THIS SHOULD NOT BE CHANGED IN THE CODE. If the overall master shifts you can modify it here, 
 # but mut_backend should not be written to anywere in the code it is designed to just fill in in the beginning, 
 # right before the reactive frame gets created.
-mut_backend <- read.csv("all_yEvo_vcf_spring2024.csv") 
+mut_backend <- read.csv("all_yEvo_vcf_winter2025.csv") 
 
 #loading in the genes data file
 genes_info <- read.csv("gene_info.csv")
@@ -129,7 +129,7 @@ server <- function(input, output,session) {
   
   #initially setting default file of all mutation data
   #CHANGE MASTERFILE HERE IF NEEDED
-  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf_spring2024.csv")) 
+  mutation_data <- reactiveVal(read.csv("all_yEvo_vcf_winter2025.csv")) 
   
   shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
   
