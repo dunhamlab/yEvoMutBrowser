@@ -108,7 +108,7 @@ ui <-  navbarPage(
                  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotlyOutput("snpCountPlot")),
                  tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
-                         selectInput("GENE", "Gene", choices = c('')),
+                         selectInput("GENE", "Gene", choices = NULL),
                          uiOutput("url")),
                  tabPanel("Table", tableOutput("data_table")),
                )
@@ -322,7 +322,7 @@ server <- function(input, output,session) {
     
     choices <- sort(choices)
     
-    updateSelectInput(session, "GENE", choices = as.character(choices))
+    updateSelectizeInput(session, "GENE", choices = as.character(choices), server=TRUE)
   })
   
   
