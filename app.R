@@ -29,6 +29,7 @@ library(purrr)
 library(shinyjs)
 library(plotly)
 library(stringr)
+library(scales)
 
 # loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
 # THIS SHOULD NOT BE CHANGED IN THE CODE. If the overall master shifts you can modify it here, 
@@ -422,6 +423,8 @@ server <- function(input, output,session) {
                                                   xmax = START + 8000,
                                                   text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
                 fill = "white", alpha = 1, color = "black", size = 0.1) +
+      scale_x_continuous(breaks = seq(0,1500000,100000), labels = label_comma()) +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
       scale_y_custom +
       scale_fill_gradient(low = "pink", high = "red4",) +
       labs(title = 'Location of mutations along chromosomes',
