@@ -389,63 +389,240 @@ server <- function(input, output,session) {
     return(final_gene_static)
   })
   
+  # output$chromPlot <- renderPlotly({
+  #   validate(
+  #     need(final_gene()$START, formatted_loading_message)
+  #   )
+  # 
+  #   # Preparing data
+  #   final_gene_data <- final_gene()
+  #   final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
+  # 
+  #   scale_y_custom <- ggplot2::scale_y_continuous(
+  #     breaks = rev(as.numeric(chrom_info$CHROM)),
+  #     labels = rev(as.character(chrom_info$CHROM))
+  #   )
+  # 
+  #   final_gene_singletons <- final_gene_data %>% filter(Counts == 1)
+  #   final_gene_multi_muts <- final_gene_data %>% filter(Counts >= 2)
+    
+    # # p <- ggplot() +
+    # #   geom_rect(data = chrom_info,
+    # #             aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - .02, ymax = as.numeric(factor(CHROM)) + .02, text = CHROM
+    # #                 ),
+    # #             fill = 'lightblue', alpha = 1) +
+    # #   geom_rect(data = chrom_info,
+    # #             aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2,
+    # #                 text = CHROM),
+    # #             fill = 'lightblue', alpha = 1) +
+    # #   geom_rect(data = final_gene_singletons, aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
+    # #                                               ymax = chrom_as_num + 0.4,
+    # #                                               xmin = START,
+    # #                                               xmax = START + 8000,
+    # #                                               text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
+    # #             fill = "white", alpha = 1, color = "black", size = 0.1) +
+    # #   scale_y_custom +
+    # #   scale_fill_gradient(low = "pink", high = "red4",) +
+    # #   labs(title = 'Location of mutations along chromosomes',
+    # #        y = 'Chromosome', # changed x-axis label to Chromosome
+    # #        x = 'Position along chromosome') # changed y-axis label to Length
+    # # if (exists("final_gene_multi_muts")) {
+    # #   p <- p + geom_rect(data = final_gene_multi_muts,
+    # #                      aes(ymin = chrom_as_num - 0.4, ymax = chrom_as_num + 0.4,
+    # #                          xmin = START, xmax = START + 8000,
+    # #                          text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts), fill = Counts),
+    # #                      alpha = 1, color = "black", size = 0.1)
+    # # }
+    # #
+    # # # Convert ggplot2 plot to plotly
+    # # p <- ggplotly(p,tooltip = "text")
+    # # # Add formatting
+    # # p <- layout(
+    # #   p,
+    # #   plot_bgcolor = 'rgba(0,0,0,0)',   # Set plot background color to transparent
+    # #   paper_bgcolor = 'rgba(0,0,0,0)',  # Set paper background color to transparent
+    # #   xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
+    # #   yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
+    # # )
+    # mutation_shapes_list <- final_gene_singletons %>%
+    #   mutate(
+    #     ymin = chrom_as_num - 1.4,
+    #     ymax = chrom_as_num -0.6,
+    #     xmin = START,
+    #     xmax = START + 7000
+    #   ) %>%
+    #   select(ymin, ymax, xmin, xmax, GENE, Counts) %>% 
+    #   pmap(function(ymin, ymax, xmin, xmax, GENE, Counts) {
+    #     list(
+    #       type = "rect",
+    #       x0 = xmin, x1 = xmax, xref = "x",
+    #       y0 = ymin, y1 = ymax, yref = "y",
+    #       fillcolor = "white",
+    #       opacity = 1,
+    #       line = list(color = "black", width = 0.1),
+    #       hovertext = paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
+    #       hoverinfo = "text"
+    #     )
+    #   })
+    # fig <- plot_ly(
+    #   x = chrom_info$length,
+    #   y = chrom_info$CHROM,
+    #   type = "bar",
+    #   orientation = "h",
+    #   hoverinfo = "y",
+    #   marker = list(color = "lightblue")
+    # ) %>%
+    #   layout(
+    #     title = "Location of mutations along chromosomes",
+    #     shapes = mutation_shapes_list
+    #   )
+    # 
+    # fig
+    # 
+    # })
   output$chromPlot <- renderPlotly({
     validate(
       need(final_gene()$START, formatted_loading_message)
     )
     
-    # Plotting
+    # Preparing data
     final_gene_data <- final_gene()
     final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
     
-    scale_y_custom <- ggplot2::scale_y_continuous(
-      breaks = rev(as.numeric(chrom_info$CHROM)),
-      labels = rev(as.character(chrom_info$CHROM))
+    # Split data
+    final_gene_singletons <- final_gene_data %>% filter(Counts == 1)
+    final_gene_multi_muts <- final_gene_data %>% filter(Counts >= 2)
+    
+    # Add numerical position for chromosomes - this is critical
+    final_gene_singletons$chrom_num <- as.numeric(final_gene_singletons$CHROM) - 1
+    final_gene_multi_muts$chrom_num <- as.numeric(final_gene_multi_muts$CHROM) - 1
+    
+    # Start with the chromosome bars
+    fig <- plot_ly(
+      data = chrom_info,
+      x = ~length, 
+      y = ~CHROM,
+      type = "bar",
+      orientation = 'h',
+      marker = list(color = 'lightblue'),
+      name = 'Chromosomes',
+      text = ~CHROM,
+      hoverinfo = 'text',
+      showlegend = FALSE
     )
     
-    final_gene_singletons <- final_gene_data[final_gene_data$Counts == 1, ]
-    if (any(final_gene_data$Counts >= 2)) {
-      final_gene_multi_muts <- final_gene_data[final_gene_data$Counts >= 2, ]
-    } 
-    p <- ggplot() +
-      geom_rect(data = chrom_info,
-                aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - .02, ymax = as.numeric(factor(CHROM)) + .02, text = CHROM
-                    ),
-                fill = 'lightblue', alpha = 1) +
-      geom_rect(data = chrom_info,
-                aes(xmin = 0, xmax = length, ymin = as.numeric(factor(CHROM)) - 0.2, ymax = as.numeric(factor(CHROM)) + 0.2,
-                    text = CHROM),
-                fill = 'lightblue', alpha = 1) +
-      geom_rect(data = final_gene_singletons, aes(ymin = chrom_as_num - 0.4, # swapped ymin and ymax
-                                                  ymax = chrom_as_num + 0.4,
-                                                  xmin = START,
-                                                  xmax = START + 8000,
-                                                  text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts)),
-                fill = "white", alpha = 1, color = "black", size = 0.1) +
-      scale_y_custom +
-      scale_fill_gradient(low = "pink", high = "red4",) +
-      labs(title = 'Location of mutations along chromosomes',
-           y = 'Chromosome', # changed x-axis label to Chromosome
-           x = 'Position along chromosome') # changed y-axis label to Length
-    if (exists("final_gene_multi_muts")) {
-      p <- p + geom_rect(data = final_gene_multi_muts, 
-                         aes(ymin = chrom_as_num - 0.4, ymax = chrom_as_num + 0.4,
-                             xmin = START, xmax = START + 8000,
-                             text = paste0("Gene Name: ",GENE,"\n", "Independent Mutations: ",Counts), fill = Counts),
-                         alpha = 1, color = "black", size = 0.1)
-    }
+    # Initialize empty shapes list
+    shapes_list <- list()
+    
+    # Add singleton mutation rectangles
+    if (nrow(final_gene_singletons) > 0) {
+      for (i in 1:nrow(final_gene_singletons)) {
+        shapes_list[[length(shapes_list) + 1]] <- list(
+          type = "rect",
+          x0 = final_gene_singletons$START[i], 
+          x1 = final_gene_singletons$START[i] + 8000,
+          y0 = final_gene_singletons$chrom_num[i] - 0.4,
+          y1 = final_gene_singletons$chrom_num[i] + 0.4,
+          fillcolor = "white",
+          line = list(color = "black", width = 0.1),
+          layer = "above"
+        )
+      }
       
-    # Convert ggplot2 plot to plotly
-    p <- ggplotly(p,tooltip = "text")
-    # Add formatting
-    p <- layout(
-      p,
-      plot_bgcolor = 'rgba(0,0,0,0)',   # Set plot background color to transparent
-      paper_bgcolor = 'rgba(0,0,0,0)',  # Set paper background color to transparent
-      xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
-      yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
+      # Add invisible hover points for singletons
+      fig <- fig %>% 
+        add_trace(
+          data = final_gene_singletons,
+          x = ~START + 4000,
+          y = ~CHROM,
+          type = "scatter",
+          mode = "markers",
+          marker = list(size = 10, opacity = 0,color = "white"),
+          name = 'Single Mutations',
+          text = ~paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
+          hoverinfo = 'text'
+        )
+    }
+    
+    # Add multi-mutation rectangles
+    if (nrow(final_gene_multi_muts) > 0) {
+      # Create color scale
+      max_count <- max(final_gene_multi_muts$Counts)
+      # Create a vector to store colors for each multi mutation
+      multi_mut_colors <- character(nrow(final_gene_multi_muts))
+      
+      for (i in 1:nrow(final_gene_multi_muts)) {
+        # Calculate color based on count
+        count_ratio <- (final_gene_multi_muts$Counts[i] - 2) / (max_count - 2)
+        if (is.na(count_ratio) || count_ratio < 0) count_ratio <- 0
+        
+        # Linear interpolation between pink and dark red
+        r <- 255 - count_ratio * (255 - 139)  # pink(255) to red4(139)
+        g <- 192 - count_ratio * 192          # pink(192) to red4(0)
+        b <- 203 - count_ratio * 203          # pink(203) to red4(0)
+        
+        hex_color <- rgb(r/255, g/255, b/255)
+        multi_mut_colors[i] <- hex_color
+        
+        shapes_list[[length(shapes_list) + 1]] <- list(
+          type = "rect",
+          x0 = final_gene_multi_muts$START[i], 
+          x1 = final_gene_multi_muts$START[i] + 8000,
+          y0 = final_gene_multi_muts$chrom_num[i] - 0.4,
+          y1 = final_gene_multi_muts$chrom_num[i] + 0.4,
+          fillcolor = hex_color,
+          line = list(color = "black", width = 0.1),
+          layer = "above"
+        )
+      }
+      final_gene_multi_muts$color <- multi_mut_colors
+      
+      # Add invisible hover points for multi mutations
+      fig <- fig %>% 
+        add_trace(
+          data = final_gene_multi_muts,
+          x = ~START + 4000,
+          y = ~CHROM,
+          type = "scatter",
+          mode = "markers",
+          marker = list(
+            color = ~color, 
+            size = 10,
+            opacity = 0
+            ),
+          name = 'Multiple Mutations',
+          text = ~paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
+          hoverinfo = 'text'
+        )
+    }
+  
+    
+    # Add layout with shapes
+    fig <- fig %>% layout(
+      title = 'Location of mutations along chromosomes',
+      xaxis = list(
+        title = 'Position along chromosome',
+        showgrid = FALSE
+      ),
+      yaxis = list(
+        title = 'Chromosome',
+        showgrid = FALSE,
+        autorange = "reversed"
+      ),
+      shapes = shapes_list,
+      plot_bgcolor = 'rgba(0,0,0,0)',
+      paper_bgcolor = 'rgba(0,0,0,0)'
     )
+    
+    # Print number of shapes for debugging
+    print(paste("Number of shapes:", length(shapes_list)))
+    
+    fig
   })
+  
+    
+    
+    
   
   # Render Pie Chart
   output$varPieChart <- renderPlotly({
