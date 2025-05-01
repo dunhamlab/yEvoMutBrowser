@@ -29,6 +29,7 @@ library(purrr)
 library(shinyjs)
 library(plotly)
 library(stringr)
+library(scales)
 
 # loading in the VCF file to display initial choices, later turns into reactive val called mutation_data that includes manually updated data
 # THIS SHOULD NOT BE CHANGED IN THE CODE. If the overall master shifts you can modify it here, 
