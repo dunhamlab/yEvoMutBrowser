@@ -388,23 +388,6 @@ server <- function(input, output,session) {
 
     return(final_gene_static)
   })
-  
-  # output$chromPlot <- renderPlotly({
-  #   validate(
-  #     need(final_gene()$START, formatted_loading_message)
-  #   )
-  # 
-  #   # Preparing data
-  #   final_gene_data <- final_gene()
-  #   final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
-  # 
-  #   scale_y_custom <- ggplot2::scale_y_continuous(
-  #     breaks = rev(as.numeric(chrom_info$CHROM)),
-  #     labels = rev(as.character(chrom_info$CHROM))
-  #   )
-  # 
-  #   final_gene_singletons <- final_gene_data %>% filter(Counts == 1)
-  #   final_gene_multi_muts <- final_gene_data %>% filter(Counts >= 2)
     
     # # p <- ggplot() +
     # #   geom_rect(data = chrom_info,
@@ -444,42 +427,7 @@ server <- function(input, output,session) {
     # #   xaxis = list(showgrid = FALSE),  # Remove x-axis gridlines
     # #   yaxis = list(showgrid = FALSE)   # Remove y-axis gridlines
     # # )
-    # mutation_shapes_list <- final_gene_singletons %>%
-    #   mutate(
-    #     ymin = chrom_as_num - 1.4,
-    #     ymax = chrom_as_num -0.6,
-    #     xmin = START,
-    #     xmax = START + 7000
-    #   ) %>%
-    #   select(ymin, ymax, xmin, xmax, GENE, Counts) %>% 
-    #   pmap(function(ymin, ymax, xmin, xmax, GENE, Counts) {
-    #     list(
-    #       type = "rect",
-    #       x0 = xmin, x1 = xmax, xref = "x",
-    #       y0 = ymin, y1 = ymax, yref = "y",
-    #       fillcolor = "white",
-    #       opacity = 1,
-    #       line = list(color = "black", width = 0.1),
-    #       hovertext = paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
-    #       hoverinfo = "text"
-    #     )
-    #   })
-    # fig <- plot_ly(
-    #   x = chrom_info$length,
-    #   y = chrom_info$CHROM,
-    #   type = "bar",
-    #   orientation = "h",
-    #   hoverinfo = "y",
-    #   marker = list(color = "lightblue")
-    # ) %>%
-    #   layout(
-    #     title = "Location of mutations along chromosomes",
-    #     shapes = mutation_shapes_list
-    #   )
-    # 
-    # fig
-    # 
-    # })
+    
   output$chromPlot <- renderPlotly({
     validate(
       need(final_gene()$START, formatted_loading_message)
@@ -493,11 +441,11 @@ server <- function(input, output,session) {
     final_gene_singletons <- final_gene_data %>% filter(Counts == 1)
     final_gene_multi_muts <- final_gene_data %>% filter(Counts >= 2)
     
-    # Add numerical position for chromosomes - this is critical
+    # Add numerical position for chromosomes
     final_gene_singletons$chrom_num <- as.numeric(final_gene_singletons$CHROM) - 1
     final_gene_multi_muts$chrom_num <- as.numeric(final_gene_multi_muts$CHROM) - 1
     
-    # Start with the chromosome bars
+    # Creating chromosome bars
     fig <- plot_ly(
       data = chrom_info,
       x = ~length, 
@@ -507,6 +455,7 @@ server <- function(input, output,session) {
       marker = list(color = 'lightblue'),
       name = 'Chromosomes',
       text = ~CHROM,
+      textposition = 'none',
       hoverinfo = 'text',
       showlegend = FALSE
     )
@@ -586,9 +535,14 @@ server <- function(input, output,session) {
           type = "scatter",
           mode = "markers",
           marker = list(
-            color = ~color, 
+            color = ~Counts,  # assuming you want to map 'Counts' to color
+            colorscale = list(
+              list(0, "#FFC0CB"),   
+              list(1, "#8B0000")    
+            ),
             size = 10,
-            opacity = 0
+            opacity = 0,
+            colorbar = list(title = "Mutation Count")
             ),
           name = 'Multiple Mutations',
           text = ~paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
@@ -599,7 +553,14 @@ server <- function(input, output,session) {
     
     # Add layout with shapes
     fig <- fig %>% layout(
-      title = 'Location of mutations along chromosomes',
+      title = list(
+        text = 'Location of mutations along chromosomes',
+        x = 0.5,  # Centers title
+        xanchor = 'center',  # Centers title horizontally
+        y = 0.95,  # Moves title further down
+        yanchor = 'top',  # Aligns title to the top of the padding area
+        font = list(size = 20)  # Optional: Set title font size
+      ),
       xaxis = list(
         title = 'Position along chromosome',
         showgrid = FALSE
@@ -613,9 +574,6 @@ server <- function(input, output,session) {
       plot_bgcolor = 'rgba(0,0,0,0)',
       paper_bgcolor = 'rgba(0,0,0,0)'
     )
-    
-    # Print number of shapes for debugging
-    print(paste("Number of shapes:", length(shapes_list)))
     
     fig
   })
