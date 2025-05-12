@@ -1943,7 +1943,7 @@ chrIII,191223,.,A,G,NA,NA,NA,missense,YCR034W,ELO2,H211R,Y2,S288C,caspofungin,Sk
 chrM,14559,.,A,C,NA,NA,NA,missense,Q0050,AI1,I248L,Y2,S288C,caspofungin,Skophammer,2025,Y2
 chrM,37968,.,A,G,NA,NA,NA,snRNA,NA,NA,NA,Y2,S288C,caspofungin,Skophammer,2025,Y2
 chrM,79692,.,C,T,NA,NA,NA,synonymous,Q0275,COX3,I160I,Y2,S288C,caspofungin,Skophammer,2025,Y2
-chrM,26386,.,T,C,NA,NA,NA,coding,Q0045,COX1,unknown,Y2,S288C,caspofungin,Skophammer,2025,Y2
+chrM,26386,.,T,C,NA,NA,NA,intergenic,NA,NA,NA,Y2,S288C,caspofungin,Skophammer,2025,Y2
 chrM,79752,.,T,C,NA,NA,NA,synonymous,Q0275,COX3,I180I,Y2,S288C,caspofungin,Skophammer,2025,Y2
 chrM,13976,.,A,G,NA,NA,NA,synonymous,Q0045,COX1,Q53Q,Y2,S288C,caspofungin,Skophammer,2025,Y2
 chrM,24671,.,T,C,NA,NA,NA,synonymous,Q0075,COX1,D172D,Y2,S288C,caspofungin,Skophammer,2025,Y2
