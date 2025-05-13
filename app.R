@@ -297,9 +297,9 @@ server <- function(input, output,session) {
   
   observe({
     if (input$instructor == "All Selected") {
-      updateSelectInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)))
+      updateSelectizeInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)), server=TRUE)
     } else {
-      updateSelectInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])))
+      updateSelectizeInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])), server=TRUE)
     }
   })
   
