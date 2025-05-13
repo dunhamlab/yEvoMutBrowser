@@ -350,7 +350,7 @@ server <- function(input, output,session) {
   message_length <- nchar(loading_message)
   spaces_on_each_side <- floor((total_spaces - message_length) / 2)
   # Construct the string with spaces on each side of the loading message
-  formatted_loading_message <- sprintf("%s%s%s",
+  formatted_loading_message <- sprintf("%s%s%s%s",
                                         "\n\n\n\n\n\n\n\n",
                                         paste(rep(" ", spaces_on_each_side), collapse = ""),
                                         loading_message,
@@ -668,7 +668,7 @@ server <- function(input, output,session) {
   # Calculate the number of empty spaces needed on each side
   gene_message_length <- nchar(geneview_message)
   gene_spaces_on_each_side <- floor((total_spaces - gene_message_length) / 2)
-  select_gene_message <- sprintf("%s%s%s",
+  select_gene_message <- sprintf("%s%s%s%s",
                                        "\n\n\n\n\n\n\n\n",
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""),
                                        geneview_message,
