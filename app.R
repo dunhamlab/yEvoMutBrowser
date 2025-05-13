@@ -330,7 +330,7 @@ server <- function(input, output,session) {
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
-    sgdid_values <- as.character(genes_info[genes_info$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
+    sgdid_values <- genes_info[genes_info$GENE == input$GENE,"SGDID"]
     sgdid$value <- sgdid_values
     url <- a("Learn about Gene",href=paste0(link, sgdid$value),class="btn btn-default", target='_blank')
     url
