@@ -643,8 +643,8 @@ server <- function(input, output,session) {
     
     # Plotting the data with coloring by categories
     p <- ggplot(summarized_data, aes(x = (combined_group), y = count, fill = mutation_type)) +
-      geom_bar(position = "dodge", stat = "identity", 
-               aes(text = paste(combined_group, '\nCount:', count, '\nMutation Type:', mutation_type))) +
+      aes(text = paste(combined_group, '\nCount:', count, '\nMutation Type:', mutation_type)) +
+      geom_bar(position = "dodge", stat = "identity") +
       theme_bw() +
       scale_fill_manual(values = custom_colors) +
       labs(fill = "Mutation Type") +
