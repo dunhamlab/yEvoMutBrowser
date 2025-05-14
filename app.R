@@ -789,19 +789,20 @@ server <- function(input, output,session) {
       geom_hline(yintercept = 0, linetype = 2, alpha = .2,aes(text = NULL)) +
       geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL), linewidth = 15, color = "cornflowerblue") +
       geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot, text = NULL), color = "gray") +
-      geom_point(aes(x = AA_POS, 
-                     y = Counts_tot, 
-                     color = ANNOTATION,
-                     text = ifelse(
-                       grepl("indel", ANNOTATION),  # Check if ANNOTATION contains "indel"
-                       paste0("Indel\n", abs(indel), " base ",ifelse(indel > 0, "insertion", "deletion"), "\nCount: ", Counts_diff_mutation, "\nPosition: ", AA_POS),  # Text for indel annotations
-                       ifelse(
-                         is.na(PROTEIN), 
-                         paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation, '\nPosition: ', -abs(unique(cur_gene$POS) - unique(cur_gene$START))),
-                         paste0(combined, '\nPosition: ', AA_POS)
-                       )
-                     )
-                ), size = 2) +
+      geom_point( size = 2) +
+      aes(x = AA_POS, 
+           y = Counts_tot, 
+           color = ANNOTATION,
+           text = ifelse(
+             grepl("indel", ANNOTATION),  # Check if ANNOTATION contains "indel"
+             paste0("Indel\n", abs(indel), " base ",ifelse(indel > 0, "insertion", "deletion"), "\nCount: ", Counts_diff_mutation, "\nPosition: ", AA_POS),  # Text for indel annotations
+             ifelse(
+               is.na(PROTEIN), 
+               paste0(ANNOTATION, '\nCount: ', Counts_diff_mutation, '\nPosition: ', -abs(unique(cur_gene$POS) - unique(cur_gene$START))),
+               paste0(combined, '\nPosition: ', AA_POS)
+             )
+           )
+      )+
       ggtitle(as.character(input$GENE)) +
       theme_classic() +
       theme(
