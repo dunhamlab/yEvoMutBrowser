@@ -787,7 +787,7 @@ server <- function(input, output,session) {
       ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2) +
       
       geom_hline(yintercept = 0, linetype = 2, alpha = .2,aes(text = NULL)) +
-      geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL), size = 15, color = "cornflowerblue") +
+      geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL), linewidth = 15, color = "cornflowerblue") +
       geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot, text = NULL), color = "gray") +
       geom_point(aes(x = AA_POS, 
                      y = Counts_tot, 
