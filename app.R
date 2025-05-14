@@ -98,7 +98,7 @@ ui <-  navbarPage(
                conditionalPanel(
                  condition = "input.cumulView || output.selectedCumulView",
                  selectInput("condition", "Condition", choices = c('All Selected', mut_backend %>% count(condition) %>% pull(condition))),
-                 selectInput("background", "Background", choices = c('')),
+                 selectInput("background", "Ancestor Strain", choices = c('')),
                ),
              ),
              # Right side, Data Visualization
@@ -121,7 +121,7 @@ ui <-  navbarPage(
                    height="65%", width="65%"),
                style="text-align: center;")
   ),
-  tabPanel("Background",
+  tabPanel("Ancestor Strain",
            uiOutput("pdf_viewer"))
 ) #END OF UI
 
@@ -340,7 +340,7 @@ server <- function(input, output,session) {
     style="height:1000px;width:100%;scrolling=yes",
     src = "Black_box.pdf") }) 
   
-  tabPanel("Background",
+  tabPanel("Ancestor Strain",
            uiOutput("pdf_viewer") )
   
   # to create loading message below: 
