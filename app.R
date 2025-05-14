@@ -677,7 +677,7 @@ server <- function(input, output,session) {
   # Render gene view plot
   output$geneViewPlot <- renderPlotly({
     validate(
-      need(input$GENE, select_gene_message)
+      need(input$GENE, formatted_loading_message)
     )
     
     mutation_data_value <- filtered_data()
