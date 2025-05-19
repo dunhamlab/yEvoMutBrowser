@@ -106,7 +106,7 @@ ui <-  navbarPage(
                tabsetPanel(
                  type = "tabs",
                  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
-                 tabPanel("Variant Pie Chart", plotlyOutput("varPieChart"), verbatimTextOutput("text")),
+                 tabPanel("Variant Pie Chart", plotlyOutput("varPieChart", height = "675px", width = "100%"), verbatimTextOutput("text")),
                  tabPanel("SNP Counts", plotlyOutput("snpCountPlot")),
                  tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
                          selectInput("GENE", "Gene", choices = NULL),
@@ -548,64 +548,53 @@ server <- function(input, output,session) {
   
     
   
-  # Render Pie Chart
   output$varPieChart <- renderPlotly({
-    # Color vector for annotations 
-    # just add the same number of colors as number of annotations
-    # ex. if there are 10 unique annotations, put 10 unique colors
-    # in this color vector
+    # Fixed color mapping
     color_vector <- c("#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
                       "#7f7f7f", "#f7b6d2", "#e377c2", "#c49c94", "#8c564b",
                       "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
                       "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
     
-    # Filter and get a vector of unique annotations (no duplicates)
+    # Get all unique annotations in a fixed order
     all_unique_anno <- mutation_data() %>%
-      distinct(ANNOTATION) %>% pull(ANNOTATION)
+      distinct(ANNOTATION) %>%
+      arrange(ANNOTATION) %>%
+      pull(ANNOTATION)
     
-    # sort the annotations
-    all_unique_anno <- sort(all_unique_anno)
+    # Create named color map for Plotly marker
+    color_map <- setNames(color_vector[seq_along(all_unique_anno)], all_unique_anno)
     
-    # initialize a data frame which has 3 columns: Annotations, count of annotations, and percentage
-    pie_df <- data.frame(
-      ANNOTATION = all_unique_anno,
-      count = numeric(length(all_unique_anno)),
-      percent = numeric(length(all_unique_anno))
-    )
-
-    # filter the filtered data further:
-    # sort the data alphabetically
-    # count the number of annotations
-    # get a percentage for each annotation
+    # Prepare filtered data
     pie_data <- filtered_data() %>%
-      arrange(ANNOTATION) %>% 
-      count(ANNOTATION) %>% 
-      mutate(percent = n/sum(n) * 100)
+      count(ANNOTATION, name = "count") %>%
+      mutate(percent = count / sum(count) * 100) %>%
+      arrange(ANNOTATION)
     
-    # Update pie_df with counts from filtered_data
-    pie_df$count[match(pie_data$ANNOTATION, pie_df$ANNOTATION)] <- pie_data$n
+    # Get color for each annotation in filtered data
+    pie_colors <- unname(color_map[pie_data$ANNOTATION])
     
-    # Calculate percent
-    pie_df$percent <- pie_df$count / sum(pie_df$count) * 100
-    
-    # Arrange the data alphabetically
-    sorted_pie_df <- arrange(pie_df, ANNOTATION)
-    
-    p <- plot_ly(sorted_pie_df, labels = ~ANNOTATION, values = ~percent, type = 'pie', text = ~paste(ANNOTATION, ": ", round(percent, digits = 2), "%"),
-                 hoverinfo = "text", outsidetextfont = list(size = 8), textinfo = "text", marker = list(colors = color_vector)) %>%
-      layout(title = list(text = "Percentage of Variants by Type", x = 1, y = 0.95, xanchor = "right", yanchor = "top"),
-             legend = list(x = 0.95, y = 0.1),
-             plot_bgcolor = 'rgba(0,0,0,0)',
-             paper_bgcolor = 'rgba(0,0,0,0)',
-             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-    
-    p %>% layout(showlegend = TRUE, 
-                 legend = list(font = list(size = 7)),
-                 legend = list(font = list(size = 7)),
-                 legend = list(font = list(size = 7)),
-                 margin = list(l = 75, r = 75, b = 75, t = 75))
+    # Create pie chart
+    plot_ly(
+      data = pie_data,
+      labels = ~ANNOTATION,
+      values = ~percent,
+      type = 'pie',
+      text = ~paste(ANNOTATION, ": ", round(percent, 2), "%"),
+      hoverinfo = "text",
+      textinfo = "text",
+      marker = list(colors = pie_colors)
+    ) %>%
+      layout(
+        title = list(text = "Percentage of Variants by Type", x = 1, y = 0.95, xanchor = "right", yanchor = "top"),
+        showlegend = TRUE,
+        margin = list(l = 75, r = 200, b = 150, t = 50),
+        plot_bgcolor = 'rgba(0,0,0,0)',
+        paper_bgcolor = 'rgba(0,0,0,0)',
+        xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+        yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+      )
   })
+  
   
   output$snpCountPlot <- renderPlotly({
     # Categorizing data into appropriate categories for plotting
