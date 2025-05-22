@@ -297,9 +297,9 @@ server <- function(input, output,session) {
   
   observe({
     if (input$instructor == "All Selected") {
-      updateSelectInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)))
+      updateSelectizeInput(session, "year", choices = c("All Selected", unique(mutation_data()$year)), server=TRUE)
     } else {
-      updateSelectInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])))
+      updateSelectizeInput(session, "year", choices = c("All Selected", as.character(mutation_data()[mutation_data()$instructor == input$instructor, "year"])), server=TRUE)
     }
   })
   
@@ -330,7 +330,7 @@ server <- function(input, output,session) {
   # Learn about Gene button within gene viewer
   sgdid <- reactiveValues(value = NULL)
   output$url <- renderUI({
-    sgdid_values <- as.character(genes_info[genes_info$GENE == input$GENE, "SGDID"] %>% discard(is.na) %>% unique())
+    sgdid_values <- genes_info[genes_info$GENE == input$GENE,"SGDID"]
     sgdid$value <- sgdid_values
     url <- a("Learn about Gene",href=paste0(link, sgdid$value),class="btn btn-default", target='_blank')
     url
@@ -350,7 +350,7 @@ server <- function(input, output,session) {
   message_length <- nchar(loading_message)
   spaces_on_each_side <- floor((total_spaces - message_length) / 2)
   # Construct the string with spaces on each side of the loading message
-  formatted_loading_message <- sprintf("%s%s%s",
+  formatted_loading_message <- sprintf("%s%s%s%s",
                                         "\n\n\n\n\n\n\n\n",
                                         paste(rep(" ", spaces_on_each_side), collapse = ""),
                                         loading_message,
@@ -632,8 +632,8 @@ server <- function(input, output,session) {
     
     # Plotting the data with coloring by categories
     p <- ggplot(summarized_data, aes(x = (combined_group), y = count, fill = mutation_type)) +
-      geom_bar(position = "dodge", stat = "identity", 
-               aes(text = paste(combined_group, '\nCount:', count, '\nMutation Type:', mutation_type))) +
+      aes(text = paste(combined_group, '\nCount:', count, '\nMutation Type:', mutation_type)) +
+      geom_bar(position = "dodge", stat = "identity") +
       theme_bw() +
       scale_fill_manual(values = custom_colors) +
       labs(fill = "Mutation Type") +
@@ -657,7 +657,7 @@ server <- function(input, output,session) {
   # Calculate the number of empty spaces needed on each side
   gene_message_length <- nchar(geneview_message)
   gene_spaces_on_each_side <- floor((total_spaces - gene_message_length) / 2)
-  select_gene_message <- sprintf("%s%s%s",
+  select_gene_message <- sprintf("%s%s%s%s",
                                        "\n\n\n\n\n\n\n\n",
                                        paste(rep(" ", gene_spaces_on_each_side), collapse = ""),
                                        geneview_message,
