@@ -1,2 +1,0 @@
-CHROM,POS,ID,REF,ALT,QUAL,FILTER,INFO,ANNOTATION,REGION,GENE,PROTEIN,seq_file,background,condition,instructor,year,sample
-chrII,724851,.,C,G,225,PASS,"DP=28;VDB=0.00169721;SGB=-0.691153;MQSB=1;MQ0F=0;AC=2;AN=2;DP4=0,0,17,1;MQ=60",coding-nonsynonymous,YBR255W,MTC4,Y132*,1_G4_S12_samtools_filtered.vcf,S288c,clotrimazole,Moscow,2019,MHS19-1-11A-1
