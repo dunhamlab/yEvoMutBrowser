@@ -7,8 +7,7 @@ Description: Web tool enabling users to visualize evolved strain mutations in
 Version: 0.0.0.9000
 Authors@R: c(
     person("Maitreya", "Dunham", email = "maitreya@uw.edu",
-        role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9944-2666")
-    ),
+        role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9944-2666")),
     person("Leah", "Anderson", email = "leaha3@uw.edu", role = "aut",
         comment = c(ORCID = "0000-0002-1037-9654")),
     person("Jasmine", "Schoch",
