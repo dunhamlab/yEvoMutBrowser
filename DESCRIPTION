@@ -1,0 +1,29 @@
+Package: yEvoMutBrowser
+Title: yEvo Mutation Browser
+Description: Web tool enabling users to visualize evolved strain mutations in
+    yEvo data at both the gene and chromosome levels, compare findings under
+    various conditions, and upload users' own data, benefiting both educators
+    and the yeast genetics community.
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Maitreya", "Dunham", email = "maitreya@uw.edu",
+        role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9944-2666")
+    ),
+    person("Leah", "Anderson", email = "leaha3@uw.edu", role = "aut",
+        comment = c(ORCID = "0000-0002-1037-9654")),
+    person("Jasmine", "Schoch",
+        email = "jschoch@uw.edu", role = "aut"),
+    person(c("Eleftheria", "Anastasia"), "Beres",
+    email = "eberes@cs.washington.edu", role = "aut",
+        comment = c(ORCID = "0009-0004-5593-0448")),
+    person("Virginia", "Wang", role = "aut"),
+    person("Zilong", "Zeng", role = "aut"),
+    person("Sayeh", "Gorjifard", role = "aut"),
+    person("Dennis", "Godin", role = "aut"),
+    person("Molly", "Perchlik", role = "aut"),
+    person("Sophie", "Gibson", role = "aut"))
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
