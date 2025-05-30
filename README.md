@@ -1,4 +1,6 @@
-# GSHackathon
+# yEvo Mutation Browser
+
+Web tool enabling users to visualize evolved strain mutations in yEvo data at both the gene and chromosome levels, compare findings under various conditions, and upload users' own data, benefiting both educators and the yeast genetics community.
 
 ## Installation
 The easiest method to use the mutation browser is to access it via the web [here](https://yevo.org/mutation-browser/)
