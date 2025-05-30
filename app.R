@@ -121,7 +121,7 @@ ui <-  navbarPage(
                    height="65%", width="65%"),
                style="text-align: center;")
   ),
-  tabPanel("Ancestor Strain",
+  tabPanel("How Does Sequencing Work?",
            uiOutput("pdf_viewer"))
 ) #END OF UI
 
