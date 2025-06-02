@@ -42,3 +42,6 @@ Imports:
     stringr,
     tidyr,
     viridis
+URL: https://yevo.org/mutation-browser/, 
+  https://github.com/dunhamlab/yEvo_MutBrowser
+BugReports: https://github.com/dunhamlab/yEvo_MutBrowser/issues
