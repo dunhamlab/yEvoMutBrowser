@@ -26,7 +26,7 @@ yEvoMutBrowser <- function(...) {
   # THIS SHOULD NOT BE CHANGED IN THE CODE. If the overall master shifts you can modify it here, 
   # but mut_backend should not be written to anywere in the code it is designed to just fill in in the beginning, 
   # right before the reactive frame gets created.
-  mut_backend <- read.csv("all_yEvo_vcf_spring2025.csv") 
+  mut_backend <- read.csv("all_yEvo_vcf.csv") 
 
   #loading in the genes data file
   genes_info <- read.csv("gene_info.csv")
@@ -112,7 +112,7 @@ yEvoMutBrowser <- function(...) {
                     height="65%", width="65%"),
                 style="text-align: center;")
     ),
-    tabPanel("Ancestor Strain",
+    tabPanel("How Does Sequencing Work?",
             uiOutput("pdf_viewer"))
   ) #END OF UI
 
@@ -541,11 +541,14 @@ yEvoMutBrowser <- function(...) {
     
     output$varPieChart <- renderPlotly({
       # Fixed color mapping
-      color_vector <- c("#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
-                        "#7f7f7f", "#f7b6d2", "#e377c2", "#c49c94", "#8c564b",
-                        "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
-                        "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
-      
+      output$varPieChart <- renderPlotly({
+
+    # Fixed color mapping
+
+    color_vector <- c("#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
+      "#e377c2", "#7f7f7f", "#f7b6d2",  "#c49c94", "#8c564b",
+      "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
+      "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
       # Get all unique annotations in a fixed order
       all_unique_anno <- mutation_data() %>%
         distinct(ANNOTATION) %>%
