@@ -99,7 +99,7 @@ yEvoMutBrowser <- function(...) {
                   tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                   tabPanel("Variant Pie Chart", plotlyOutput("varPieChart", height = "675px", width = "100%"), verbatimTextOutput("text")),
                   tabPanel("SNP Counts", plotlyOutput("snpCountPlot")),
-                  tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
+                  tabPanel("Gene View", div("", style = "height: 10px;"), geneViewUI("test"), verbatimTextOutput("gene"),
                           selectInput("GENE", "Gene", choices = NULL),
                           uiOutput("url")),
                   tabPanel("Table", tableOutput("data_table")),
@@ -337,7 +337,7 @@ yEvoMutBrowser <- function(...) {
     # to create loading message below: 
     loading_message <- "Loading..."
     # Calculate the number of empty spaces needed on each side
-    total_spaces <<- 160  # Total number of characters to occupy the line
+    total_spaces <- 160  # Total number of characters to occupy the line
     message_length <- nchar(loading_message)
     spaces_on_each_side <- floor((total_spaces - message_length) / 2)
     # Construct the string with spaces on each side of the loading message
@@ -382,209 +382,9 @@ yEvoMutBrowser <- function(...) {
     })
       
       
-    output$chromPlot <- renderPlotly({
-      validate(
-        need(final_gene()$START, formatted_loading_message)
-      )
-      
-      # Preparing data
-      final_gene_data <- final_gene()
-      final_gene_data$CHROM <- factor(final_gene_data$CHROM, levels = levels(chrom_info$CHROM))
-      
-      # Splitting data so that the colors don't get messed up with the single counts
-      final_gene_singletons <- final_gene_data %>% filter(Counts == 1)
-      final_gene_multi_muts <- final_gene_data %>% filter(Counts >= 2)
-      
-      # Add numerical position for graphing chromosomes
-      final_gene_singletons$chrom_num <- as.numeric(final_gene_singletons$CHROM) - 1
-      final_gene_multi_muts$chrom_num <- as.numeric(final_gene_multi_muts$CHROM) - 1
-      
-      # Creating chromosome bars
-      fig <- plot_ly(
-        data = chrom_info,
-        x = ~length, 
-        y = ~CHROM,
-        type = "bar",
-        orientation = 'h',
-        marker = list(color = 'lightblue'),
-        name = 'Chromosomes',
-        text = ~CHROM,
-        textposition = 'none',
-        hoverinfo = 'text',
-        showlegend = FALSE
-      )
-      fig <- fig %>%
-        layout(
-          bargap = 0.3  # giving a little more space between chrom bars
-        )
-      
-      
-      # Shapes list for mutation markers
-      shapes_list <- list()
-      
-      # Adding singleton mutation rectangles
-      if (nrow(final_gene_singletons) > 0) {
-        for (i in 1:nrow(final_gene_singletons)) {
-          shapes_list[[length(shapes_list) + 1]] <- list(
-            type = "rect",
-            x0 = final_gene_singletons$START[i], 
-            x1 = final_gene_singletons$START[i] + 8000,
-            y0 = final_gene_singletons$chrom_num[i] - 0.4,
-            y1 = final_gene_singletons$chrom_num[i] + 0.4,
-            fillcolor = "white",
-            line = list(color = "black", width = 0.1),
-            layer = "above"
-          )
-        }
-        
-        # Adding invisible points for singleton hover functionality
-        fig <- fig %>% 
-          add_trace(
-            data = final_gene_singletons,
-            x = ~START + 4000,
-            y = ~CHROM,
-            type = "scatter",
-            mode = "markers",
-            marker = list(size = 10, opacity = 0,color = "white"),
-            name = 'Single Mutations',
-            text = ~paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
-            hoverinfo = 'text'
-          )
-      }
-      
-      # Add multi-mutation rectangles
-      if (nrow(final_gene_multi_muts) > 0) {
-        # Create color scale
-        max_count <- max(final_gene_multi_muts$Counts)
-        # Create a vector to store colors for each multi mutation
-        multi_mut_colors <- character(nrow(final_gene_multi_muts))
-        
-        for (i in 1:nrow(final_gene_multi_muts)) {
-          # Calculate color based on count
-          count_ratio <- (final_gene_multi_muts$Counts[i] - 2) / (max_count - 2)
-          if (is.na(count_ratio) || count_ratio < 0) count_ratio <- 0
-          
-          # Linear interpolation between pink and dark red to match default color interpolation on points
-          r <- 255 - count_ratio * (255 - 139)  # pink(255) to red4(139)
-          g <- 192 - count_ratio * 192          # pink(192) to red4(0)
-          b <- 203 - count_ratio * 203          # pink(203) to red4(0)
-          
-          hex_color <- rgb(r/255, g/255, b/255)
-          multi_mut_colors[i] <- hex_color
-          
-          shapes_list[[length(shapes_list) + 1]] <- list(
-            type = "rect",
-            x0 = final_gene_multi_muts$START[i], 
-            x1 = final_gene_multi_muts$START[i] + 8000,
-            y0 = final_gene_multi_muts$chrom_num[i] - 0.4,
-            y1 = final_gene_multi_muts$chrom_num[i] + 0.4,
-            fillcolor = hex_color,
-            line = list(color = "black", width = 0.1),
-            layer = "above"
-          )
-        }
-        final_gene_multi_muts$color <- multi_mut_colors
-        
-        # Adding invisible points for multi mutation hover functionality
-        fig <- fig %>% 
-          add_trace(
-            data = final_gene_multi_muts,
-            x = ~START + 4000,
-            y = ~CHROM,
-            type = "scatter",
-            mode = "markers",
-            marker = list(
-              color = ~Counts,  # assuming you want to map 'Counts' to color
-              colorscale = list(
-                list(0, "#FFC0CB"),   
-                list(1, "#8B0000")    
-              ),
-              size = 10,
-              opacity = 0,
-              colorbar = list(title = "Mutation Count")
-              ),
-            name = 'Multiple Mutations',
-            text = ~paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
-            hoverinfo = 'text'
-          )
-      }
+    output$chromPlot <- chromPlotServer("chromPlot", final_gene, formatted_loading_message, chrom_info)
     
-      
-      # Addding shapes to graph
-      fig <- fig %>% layout(
-        title = list(
-          text = 'Location of mutations along chromosomes',
-          x = 0.5,
-          xanchor = 'center',
-          y = 0.95,
-          yanchor = 'top',
-          font = list(size = 20)
-        ),
-        xaxis = list(
-          title = 'Position along chromosome',
-          showgrid = FALSE
-        ),
-        yaxis = list(
-          title = 'Chromosome',
-          showgrid = FALSE,
-          autorange = "reversed"
-        ),
-        shapes = shapes_list,
-        plot_bgcolor = 'rgba(0,0,0,0)',
-        paper_bgcolor = 'rgba(0,0,0,0)'
-      )
-      
-      fig
-    })
-    
-      
-    
-    output$varPieChart <- renderPlotly({
-
-    color_vector <- c("#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
-      "#e377c2", "#7f7f7f", "#f7b6d2",  "#c49c94", "#8c564b",
-      "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
-      "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4")
-    
-      # Get all unique annotations in a fixed order
-      all_unique_anno <- mutation_data() %>%
-        distinct(ANNOTATION) %>%
-        arrange(ANNOTATION) %>%
-        pull(ANNOTATION)
-      
-      # Create named color map for Plotly marker
-      color_map <- setNames(color_vector[seq_along(all_unique_anno)], all_unique_anno)
-      
-      # Prepare filtered data
-      pie_data <- filtered_data() %>%
-        count(ANNOTATION, name = "count") %>%
-        mutate(percent = count / sum(count) * 100) %>%
-        arrange(ANNOTATION)
-      
-      # Get color for each annotation in filtered data
-      pie_colors <- unname(color_map[pie_data$ANNOTATION])
-      
-      # Create pie chart
-      plot_ly(
-        data = pie_data,
-        labels = ~ANNOTATION,
-        values = ~percent,
-        type = 'pie',
-        text = ~paste(ANNOTATION, ": ", round(percent, 2), "%"),
-        hoverinfo = "text",
-        textinfo = "text",
-        marker = list(colors = pie_colors)
-      ) %>%
-        layout(
-          title = list(text = "Percentage of Variants by Type", x = 1, y = 0.95, xanchor = "right", yanchor = "top"),
-          showlegend = TRUE,
-          margin = list(l = 75, r = 200, b = 150, t = 50),
-          plot_bgcolor = 'rgba(0,0,0,0)',
-          paper_bgcolor = 'rgba(0,0,0,0)',
-          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
-        )
-    })
+    output$varPieChart <- varPieChartServer("varPieChart", mutation_data, filtered_data)
     
     
     output$snpCountPlot <- renderPlotly({
@@ -640,7 +440,7 @@ yEvoMutBrowser <- function(...) {
     })
     
     
-    geneViewServer("test")
+    geneViewServer("test", total_spaces, reactive(input$GENE))
     
     
     observeEvent(input$append_btn, {
