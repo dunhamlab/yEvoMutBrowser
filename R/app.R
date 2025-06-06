@@ -294,7 +294,7 @@ yEvoMutBrowser <- function(...) {
       style="height:1000px;width:100%;scrolling=yes",
       src = "Black_box.pdf") }) 
     
-    tabPanel("Ancestor Strain",
+    tabPanel("How Does Sequencing Work?",
             uiOutput("pdf_viewer") )
     
     # to create loading message below: 
