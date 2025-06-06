@@ -1,4 +1,8 @@
-snpCountPlotServer <- function(id, filtered_data) {
+snpCountUI <- function(id) {
+tabPanel("SNP Counts", plotlyOutput("snpCountPlot"))
+}
+
+snpCountServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
 renderPlotly({
       # Categorizing data into appropriate categories for plotting

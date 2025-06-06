@@ -1,5 +1,7 @@
 geneViewUI <- function(id) {
-  plotlyOutput("geneViewPlot", width = "600px")
+  tabPanel("Gene View", div("", style = "height: 10px;"), plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
+                          selectInput("GENE", "Gene", choices = NULL),
+                          uiOutput("url"))
 }
 
 geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {

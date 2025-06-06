@@ -1,4 +1,8 @@
-varPieChartServer <- function(id, mutation_data, filtered_data) {
+variantsUI <- function(id) {
+  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart", height = "675px", width = "100%"), verbatimTextOutput("text"))
+}
+
+variantsServer <- function(id, mutation_data, filtered_data) {
   moduleServer(id, function(input, output, session) {
   renderPlotly({
   

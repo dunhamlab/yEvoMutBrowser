@@ -1,4 +1,8 @@
-chromPlotServer <- function(id, final_gene, formatted_loading_message, chrom_info) {
+chromMapUI <- function(id) {
+  tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info"))
+}
+
+chromMapServer <- function(id, final_gene, formatted_loading_message, chrom_info) {
   moduleServer(id, function(input, output, session) {
 renderPlotly({
   validate(
