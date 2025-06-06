@@ -2,8 +2,9 @@ geneViewUI <- function(id) {
   plotlyOutput("geneViewPlot", width = "600px")
 }
 
-geneViewServer <- function(id, total_spaces, gene) {
+geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
     moduleServer(id, function(input, output, session) {
+      renderPlotly({
         ranges <- reactiveValues(x = NULL, y = NULL)
     
     # Showing please select gene message
@@ -19,9 +20,9 @@ geneViewServer <- function(id, total_spaces, gene) {
                                         paste(rep(" ", gene_spaces_on_each_side), collapse = ""))
     
     # Render gene view plot
-    output$geneViewPlot <- renderPlotly({
+    
       validate(
-        need(reactive(gene), select_gene_message)
+        need(gene(), select_gene_message)
       )
       
       mutation_data_value <- filtered_data()
@@ -32,7 +33,7 @@ geneViewServer <- function(id, total_spaces, gene) {
       mutation_data_value <- mutation_data_value[order(mutation_data_value$GENE),]
       
       # Filter data for the specific gene
-      cur_gene <- filter(mutation_data_value, reactive(GENE == gene))
+      cur_gene <- filter(mutation_data_value, GENE == gene())
       
       # Pattern for extracting the second part of protein
       pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
@@ -106,7 +107,7 @@ geneViewServer <- function(id, total_spaces, gene) {
       
       # Generating ranges for the plot size
       xmax <- genes_info %>%
-        filter(reactive(GENE==gene)) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
+        filter(GENE==gene()) %>% pull(PROTEIN_LENGTH) %>% unique() %>% as.numeric()
       ranges$x <- c(-50, xmax + 50)
       
       ranges$y <- c(0, max(count_proteins_same$Counts_tot) + ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
@@ -146,7 +147,7 @@ geneViewServer <- function(id, total_spaces, gene) {
                         )
                       )
                   ), size = 2) +
-        ggtitle(reactive(as.character(gene))) +
+        ggtitle(as.character(gene())) +
         theme_classic() +
         theme(
           axis.text.x = element_text(),

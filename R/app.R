@@ -99,7 +99,7 @@ yEvoMutBrowser <- function(...) {
                   tabPanel("Chromosome Map", plotlyOutput("chromPlot",height = "600px"),verbatimTextOutput("info")),
                   tabPanel("Variant Pie Chart", plotlyOutput("varPieChart", height = "675px", width = "100%"), verbatimTextOutput("text")),
                   tabPanel("SNP Counts", plotlyOutput("snpCountPlot")),
-                  tabPanel("Gene View", div("", style = "height: 10px;"), geneViewUI("test"), verbatimTextOutput("gene"),
+                  tabPanel("Gene View", div("", style = "height: 10px;"), geneViewUI("geneView"), verbatimTextOutput("gene"),
                           selectInput("GENE", "Gene", choices = NULL),
                           uiOutput("url")),
                   tabPanel("Table", tableOutput("data_table")),
@@ -440,7 +440,7 @@ yEvoMutBrowser <- function(...) {
     })
     
     
-    geneViewServer("test", total_spaces, reactive(input$GENE))
+    output$geneViewPlot <- geneViewServer("geneView", total_spaces, reactive(input$GENE), filtered_data, genes_info)
     
     
     observeEvent(input$append_btn, {
