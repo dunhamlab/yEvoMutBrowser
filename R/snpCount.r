@@ -1,18 +1,27 @@
 snpCountUI <- function(id) {
-tabPanel("SNP Counts", plotlyOutput("snpCountPlot"))
+  tabPanel("SNP Counts", plotlyOutput("snpCountPlot"))
 }
 
 snpCountServer <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
-renderPlotly({
+    renderPlotly({
       # Categorizing data into appropriate categories for plotting
       categorized_data <- filtered_data() %>%
         mutate(transition = paste(REF, " to ", ALT, sep = "")) %>%
-        mutate(transition = if_else(nchar(transition) > 6, "Indel", transition)) %>%
+        mutate(transition = if_else(nchar(transition) > 6,
+          "Indel", transition
+        )) %>%
         mutate(mutation_type = case_when(
-          transition %in% c("A to G", "G to A", "C to T", "T to C") ~ "Transition",
-          transition %in% c("A to T", "T to A", "C to G", "G to C", "A to C", "C to A", "T to G", "G to T") ~ "Transversion",
-          TRUE ~ "Indel")) %>%
+          transition %in% c(
+            "A to G", "G to A", "C to T",
+            "T to C"
+          ) ~ "Transition",
+          transition %in% c(
+            "A to T", "T to A", "C to G", "G to C", "A to C",
+            "C to A", "T to G", "G to T"
+          ) ~ "Transversion",
+          TRUE ~ "Indel"
+        )) %>%
         mutate(combined_group = case_when(
           transition %in% c("A to G", "T to C") ~ "A to G",
           transition %in% c("C to T", "G to A") ~ "C to T",
@@ -22,25 +31,36 @@ renderPlotly({
           transition %in% c("G to T", "C to A") ~ "C to A",
           TRUE ~ "Indel"
         ))
-      
+
       # Summarize the data by the new group variable
       summarized_data <- categorized_data %>%
         group_by(combined_group, mutation_type) %>%
-        summarise(count = n(), .groups = 'drop')
-      
+        summarise(count = n(), .groups = "drop")
+
       # Custom colors for mutation types
       custom_colors <- c(
         "Transition" = "#0072B2", # Blue
         "Transversion" = "#CC79A7", # Pink
-        "Indel" = "#009E73" # Green        
+        "Indel" = "#009E73" # Green
       )
-      desired_order <- c('Indel', 'A to G', 'C to T', 'A to T', 'C to G', 'A to C', 'C to A')
-      
-      summarized_data$combined_group <- factor(summarized_data$combined_group, levels = desired_order)
-      
+      desired_order <- c(
+        "Indel", "A to G", "C to T", "A to T", "C to G",
+        "A to C", "C to A"
+      )
+
+      summarized_data$combined_group <- factor(summarized_data$combined_group,
+        levels = desired_order
+      )
+
       # Plotting the data with coloring by categories
-      p <- ggplot(summarized_data, aes(x = (combined_group), y = count, fill = mutation_type)) +
-        aes(text = paste(combined_group, '\nCount:', count, '\nMutation Type:', mutation_type)) +
+      p <- ggplot(summarized_data, aes(
+        x = (combined_group), y = count,
+        fill = mutation_type
+      )) +
+        aes(text = paste(
+          combined_group, "\nCount:", count, "\nMutation Type:",
+          mutation_type
+        )) +
         geom_bar(position = "dodge", stat = "identity") +
         theme_bw() +
         scale_fill_manual(values = custom_colors) +
@@ -48,11 +68,13 @@ renderPlotly({
         theme(
           legend.position = "right",
           plot.title = element_text(hjust = 0.5),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1) # Adjust angle for better visibility
+          # Adjust angle for better visibility
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
         ) +
         ggtitle("Single Nucleotide Changes") +
         xlab("Mutation Type and SNP Call")
-      
+
       p <- ggplotly(p, tooltip = "text")
     })
-    })}
+  })
+}
