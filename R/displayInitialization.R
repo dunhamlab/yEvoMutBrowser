@@ -80,23 +80,30 @@ set_visualization_settings <- function(input, session, genes_info, mutation_data
   })
   
   observe({
+    # Make sure the data exists before we do anything
+    req(mutation_data())
+    
+    # Figure out which years to show
     if (input$instructor == "All Selected") {
-      updateSelectizeInput(session, "year", choices = c(
-        "All Selected",
-        unique(mutation_data()$year)
-      ), server = TRUE)
+      years <- sort(unique(as.character(mutation_data()$year)))
     } else {
-      updateSelectizeInput(session, "year", choices = c(
-        "All Selected",
-        as.character(
-          mutation_data()[
-            mutation_data()$instructor == input$instructor,
-            "year"
-          ]
-        )
-      ), server = TRUE)
+      years <- sort(unique(as.character(
+        mutation_data()$year[
+          mutation_data()$instructor == input$instructor
+        ]
+      )))
     }
+    
+    # Update the dropdown menu with clean year choices
+    updateSelectizeInput(
+      session,
+      "year",
+      choices = c("All Selected", years),
+      selected = "All Selected",
+      server = TRUE
+    )
   })
+  
   
   observe({
     updateSelectInput(session, "instructor", choices = c(
