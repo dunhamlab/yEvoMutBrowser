@@ -2008,3 +2008,50 @@ chrM,24671,.,T,C,NA,NA,NA,synonymous,Q0075,COX1,D172D,MD5337,S288C,caspofungin,S
 chrM,13967,.,T,G,NA,NA,NA,synonymous,Q0045,COX1,G50G,MD5337,S288C,caspofungin,Skophammer,2025,Y2
 chrM,25344,.,T,A,NA,NA,NA,intergenic,NA,COX1,NA,MD5337,S288C,caspofungin,Skophammer,2025,Y2
 chrM,80174,.,A,T,NA,NA,NA,intergenic,NA,NA,NA,MD5337,S288C,caspofungin,Skophammer,2025,Y2
+chrVII,549839,.,C,T,NA,NA,NA,nonsense,YGR032W,GSC2,Q526*,MD5310,S288C,caspofungin,Delmont,2025,Caden
+chrM,81471,.,TAATTAAATTAAATTAAATTAAATTAAATTAAATTAAATTAAATTAAAAAG,TAATTAAATTAAATTAAATTAAATTAAATTAAATTAAATTAAAAAG,NA,NA,NA,intergenic,NA,NA,NA,MD5310,S288C,caspofungin,Delmont,2025,Caden
+chrXIII,260933,.,G,T,NA,NA,NA,missense,YML005W,TRM12,C238F,MD5311,S288C,caspofungin,Delmont,2025,Izzy R
+chrVII,678573,.,A,G,NA,NA,NA,5'-upstream,YGR097W,ASK10,NA,MD5311,S288C,caspofungin,Delmont,2025,Izzy R
+chrXI,233798,.,C,T,NA,NA,NA,synonymous,YKL109W,HAP4,N524N,MD5311,S288C,caspofungin,Delmont,2025,Izzy R
+chrXVI,452531,.,T,A,NA,NA,NA,missense,YPL057C,SUR1,H176L,MD5312,S288C,caspofungin,Delmont,2025,BAM
+chrIX,152888,.,G,T,NA,NA,NA,missense,YIL112W,HOS4,G432W,MD5312,S288C,caspofungin,Delmont,2025,BAM
+chrM,50128,.,A,C,NA,NA,NA,intergenic,NA,NA,NA,MD5312,S288C,caspofungin,Delmont,2025,BAM
+chrXIII,766544,.,C,G,NA,NA,NA,missense,YMR247C,RKR1,R499P,MD5313,S288C,caspofungin,Delmont,2025,MATT
+chrXIII,65927,.,CTGTTGTTGTTGTTGTTGTTGTTGTTGTT,CTGTTGTTGTTGTTGTTGTTGTTGTTGTTGTT,NA,NA,NA,indel-inframe,YML103C,NUP188,Q541indel,MD5313,S288C,caspofungin,Delmont,2025,MATT
+chrVII,480833,.,G,T,NA,NA,NA,missense,YGL008C,PMA1,P612T,MD5314,S288C,caspofungin,Delmont,2025,M3
+chrXII,42713,.,A,C,NA,NA,NA,missense,YLL048C,YBT1,Y1185D,MD5314,S288C,caspofungin,Delmont,2025,M3
+chrXII,868094,.,ATTTTT,ATTTTTT,NA,NA,NA,indel-frameshift,YLR372W,ELO3,Q247indel,MD5314,S288C,caspofungin,Delmont,2025,M3
+chrM,53156,.,TAATTAAATTAAATTAAATTAAATTAAATTA,TAATTAAATTAAATTAAATTAAATTA,NA,NA,NA,intergenic,NA,NA,NA,MD5314,S288C,caspofungin,Delmont,2025,M3
+chrXII,811932,.,G,A,NA,NA,NA,missense,YLR342W,FKS1,D646N,MD5315,S288C,caspofungin,Delmont,2025,Monkey Business
+chrVII,779579,.,A,C,NA,NA,NA,intergenic,NA,NA,NA,MD5315,S288C,caspofungin,Delmont,2025,Monkey Business
+chrVII,549860,.,G,T,NA,NA,NA,nonsense,YGR032W,GSC2,E533*,MD5315,S288C,caspofungin,Delmont,2025,Monkey Business
+chrXII,813766,.,A,T,NA,NA,NA,missense,YLR342W,FKS1,N1257I,MD5315,S288C,caspofungin,Delmont,2025,Monkey Business
+chrXII,812078,.,A,T,NA,NA,NA,missense,YLR342W,FKS1,L694F,MD5315,S288C,caspofungin,Delmont,2025,Monkey Business
+chrX,715094,.,G,GAAGTGGTAGAGGTTGTAG,NA,NA,NA,indel-inframe,YJR151C,DAN4,P216indel,MD5315,S288C,caspofungin,Delmont,2025,Monkey Business
+chrIII,272124,.,G,A,NA,NA,NA,missense,YCR089W,FIG2,G1564E,MD5316,S288C,caspofungin,Delmont,2025,Benjigas
+chrXI,72247,.,T,A,NA,NA,NA,missense,YKL197C,PEX1,D540V,MD5316,S288C,caspofungin,Delmont,2025,Benjigas
+chrVII,476373,.,G,GA,NA,NA,NA,indel-frameshift,YGL009C,LEU1,D760indel,MD5316,S288C,caspofungin,Delmont,2025,Benjigas
+chrIV,273629,.,GTTTTTTTTTTTTTTTTTTTTTTTT,GTTTTTTTTTTTTTTTTTTTTTT,NA,NA,NA,intergenic,NA,NA,NA,MD5316,S288C,caspofungin,Delmont,2025,Benjigas
+chrVII,476375,.,CAAA,CAAAA,NA,NA,NA,indel-frameshift,YGL009C,NA,D760indel,MD5316,S288C,caspofungin,Delmont,2025,Benjigas
+chrIV,256709,.,G,T,NA,NA,NA,missense,YDL113C,ATG20,S616Y,MD5317,S288C,caspofungin,Delmont,2025,Matt S
+chrXII,785712,.,A,G,NA,NA,NA,missense,YLR328W,NMA1,K267R,MD5318,S288C,caspofungin,Delmont,2025,Maria
+chrVII,113320,.,C,T,NA,NA,NA,missense,YGL203C,KEX1,E449K,MD5318,S288C,caspofungin,Delmont,2025,Maria
+chrX,114393,.,T,A,NA,NA,NA,missense,YJL162C,JJJ2,I413L,MD5318,S288C,caspofungin,Delmont,2025,Maria
+chrII,641285,.,G,A,NA,NA,NA,missense,YBR208C,"DUR1,2",A309V,MD5318,S288C,caspofungin,Delmont,2025,Maria
+chrIII,190599,.,C,G,NA,NA,NA,nonsense,YCR034W,ELO2,S3*,MD5318,S288C,caspofungin,Delmont,2025,Maria
+chrXII,811935,.,C,G,NA,NA,NA,missense,YLR342W,FKS1,P647A,MD5319,S288C,caspofungin,Delmont,2025,Addi
+chrXIV,294745,.,T,C,NA,NA,NA,synonymous,YNL183C,NPR1,S255S,MD5319,S288C,caspofungin,Delmont,2025,Addi
+chrII,197715,.,G,T,NA,NA,NA,intergenic,NA,NA,NA,MD5319,S288C,caspofungin,Delmont,2025,Addi
+chrVII,552606,.,G,C,NA,NA,NA,missense,YGR032W,GSC2,R1448P,MD5320,S288C,caspofungin,Delmont,2025,Bazingi
+chrXIV,32651,.,C,A,NA,NA,NA,missense,YNL323W,LEM3,N236K,MD5320,S288C,caspofungin,Delmont,2025,Bazingi
+chrM,54329,.,AAATATTAATATTAATATTAATATTA,AAATATTAATATTAATATTA,NA,NA,NA,indel-inframe,Q0144,Q0144,K74indel,MD5320,S288C,caspofungin,Delmont,2025,Bazingi
+chrV,81727,.,G,A,NA,NA,NA,missense,YEL037C,RAD23,H293Y,MD5321,S288C,caspofungin,Delmont,2025,3.14
+chrX,687120,.,A,T,NA,NA,NA,nonsense,YJR138W,IML1,K852*,MD5322,S288C,caspofungin,Delmont,2025,Yeast in my sootcase
+chrVII,550925,.,A,G,NA,NA,NA,missense,YGR032W,GSC2,R888G,MD5322,S288C,caspofungin,Delmont,2025,Yeast in my sootcase
+chrXVI,452573,.,G,T,NA,NA,NA,missense,YPL057C,SUR1,P162H,MD5322,S288C,caspofungin,Delmont,2025,Yeast in my sootcase
+chrVII,442173,.,G,T,NA,NA,NA,missense,YGL028C,SCW11,S246Y,MD5322,S288C,caspofungin,Delmont,2025,Yeast in my sootcase
+chrVII,549712,.,G,A,NA,NA,NA,nonsense,YGR032W,GSC2,W483*,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
+chrXIV,189233,.,C,T,NA,NA,NA,nonsense,YNL243W,SLA1,Q395*,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
+chrVIII,491895,.,G,A,NA,NA,NA,5'-upstream,YHR196W,UTP9,NA,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
+chrXII,42713,.,A,C,NA,NA,NA,missense,YLL048C,YBT1,Y1185D,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
+chrXII,811911,.,T,G,NA,NA,NA,missense,YLR342W,FKS1,F639V,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
