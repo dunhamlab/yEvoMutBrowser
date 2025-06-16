@@ -1808,7 +1808,7 @@ chrV,477534,.,G,C,NA,NA,NA,nonsense,YER155C,BEM2,S1772*,MHS55,S288c,caspofungin,
 chrXV,471432,.,C,T,NA,NA,NA,synonymous,YOR076C,SKI7,K63K,MHS55,S288c,caspofungin,Moscow,2025,MHS55
 chrXV,441791,.,GAAAAAAA,GAAAAAAAA,NA,NA,NA,indel-frameshift,YOR061W,CKA2,M86indel,MHS56,S288c,caspofungin,Moscow,2025,MHS56
 chrIV,722715,.,C,T,NA,NA,NA,intergenic,NA,NA,NA,MHS56,S288c,caspofungin,Moscow,2025,MHS56
-chrX,366214,.,G,C,NA,NA,NA,missense,NA,NSP1,G114R,MHS56,S288c,caspofungin,Moscow,2025,MHS56
+chrX,366214,.,G,C,NA,NA,NA,missense,YJL041W,NSP1,G114R,MHS56,S288c,caspofungin,Moscow,2025,MHS56
 chrXII,635538,.,T,A,NA,NA,NA,synonymous,YLR248W,RCK2,T429T,MHS56,S288c,caspofungin,Moscow,2025,MHS56
 chrVII,552884,.,T,C,NA,NA,NA,missense,YGR032W,GSC2,W1541R,MHS57,S288c,caspofungin,Moscow,2025,MHS57
 chrXII,811936,.,C,A,NA,NA,NA,missense,YLR342W,FKS1,P647Q,MHS57,S288c,caspofungin,Moscow,2025,MHS57
@@ -2051,7 +2051,48 @@ chrVII,550925,.,A,G,NA,NA,NA,missense,YGR032W,GSC2,R888G,MD5322,S288C,caspofungi
 chrXVI,452573,.,G,T,NA,NA,NA,missense,YPL057C,SUR1,P162H,MD5322,S288C,caspofungin,Delmont,2025,Yeast in my sootcase
 chrVII,442173,.,G,T,NA,NA,NA,missense,YGL028C,SCW11,S246Y,MD5322,S288C,caspofungin,Delmont,2025,Yeast in my sootcase
 chrVII,549712,.,G,A,NA,NA,NA,nonsense,YGR032W,GSC2,W483*,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
-chrXIV,189233,.,C,T,NA,NA,NA,nonsense,YNL243W,SLA1,Q395*,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
+chrXIV,189233,.,C,T,NA,NA,NA,nonsense,YNL243W,SLA2,Q395*,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
 chrVIII,491895,.,G,A,NA,NA,NA,5'-upstream,YHR196W,UTP9,NA,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
 chrXII,42713,.,A,C,NA,NA,NA,missense,YLL048C,YBT1,Y1185D,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
 chrXII,811911,.,T,G,NA,NA,NA,missense,YLR342W,FKS1,F639V,MD5323,S288C,caspofungin,Delmont,2025,Kyalyn wylie
+chrXII,169674,.,A,T,NA,NA,NA,missense,YLR011W,LOT6,K191I,5362,S288C,caspofungin,Kovarik,2025,1
+chrXVI,811166,.,T,A,NA,NA,NA,nonsense,YPR138C,MEP3,R430*,5362,S288C,caspofungin,Kovarik,2025,1
+chrXVI,127418,.,G,A,NA,NA,NA,missense,YPL224C,MMT2,A224V,5362,S288C,caspofungin,Kovarik,2025,1
+chrXII,811936,.,C,T,NA,NA,NA,missense,YLR342W,FKS1,P647L,5362,S288C,caspofungin,Kovarik,2025,1
+chrVII,551291,.,GA,G,NA,NA,NA,indel-frameshift,YGR032W,GSC2,E1010indel,5362,S288C,caspofungin,Kovarik,2025,1
+chrXII,814113,.,ATTG,A,NA,NA,NA,indel-inframe,YLR342W,FKS1,I1373indel,5362,S288C,caspofungin,Kovarik,2025,1
+chrXIV,419969,.,C,T,NA,NA,NA,5'-upstream,YNL107W,YAF9,NA,5363,S288C,caspofungin,Kovarik,2025,2
+chrVII,550248,.,C,T,NA,NA,NA,missense,YGR032W,GSC2,S662L,5363,S288C,caspofungin,Kovarik,2025,2
+chrXII,254062,.,C,T,NA,NA,NA,nonsense,YLR056W,ERG3,Q68*,5363,S288C,caspofungin,Kovarik,2025,2
+chrXVI,452182,.,A,T,NA,NA,NA,nonsense,YPL057C,SUR1,C292*,5363,S288C,caspofungin,Kovarik,2025,2
+chrXII,811932,.,G,A,NA,NA,NA,missense,YLR342W,FKS1,D646N,5363,S288C,caspofungin,Kovarik,2025,2
+chrXII,811924,.,C,A,NA,NA,NA,missense,YLR342W,FKS1,S643Y,5363,S288C,caspofungin,Kovarik,2025,2
+chrXII,814066,.,G,T,NA,NA,NA,missense,YLR342W,FKS1,R1357L,5364,S288C,caspofungin,Kovarik,2025,3
+chrXII,811912,.,T,A,NA,NA,NA,missense,YLR342W,FKS1,F639Y,5364,S288C,caspofungin,Kovarik,2025,3
+chrIII,191078,.,G,T,NA,NA,NA,missense,YCR034W,ELO2,D163Y,5364,S288C,caspofungin,Kovarik,2025,3
+chrVII,552177,.,GTTTTTTAAC,GTTTTTAAC,NA,NA,NA,indel-frameshift,YGR032W,GSC2,R1305indel,5364,S288C,caspofungin,Kovarik,2025,3
+chrXII,812087,.,T,G,NA,NA,NA,missense,YLR342W,FKS1,I697M,5365,S288C,caspofungin,Kovarik,2025,4
+chrXVI,452874,.,T,C,NA,NA,NA,missense,YPL057C,SUR1,T62A,5365,S288C,caspofungin,Kovarik,2025,4
+chrVII,548465,.,C,T,NA,NA,NA,nonsense,YGR032W,GSC2,Q68*,5365,S288C,caspofungin,Kovarik,2025,4
+chrXIII,427312,.,G,C,NA,NA,NA,nonsense,YMR080C,NAM7,Y772*,5366,S288C,caspofungin,Kovarik,2025,5
+chrIII,190923,.,T,C,NA,NA,NA,missense,YCR034W,ELO2,L111P,5366,S288C,caspofungin,Kovarik,2025,5
+chrXII,749878,.,A,T,NA,NA,NA,missense,YLR309C,IMH1,I631N,5366,S288C,caspofungin,Kovarik,2025,5
+chrIV,1396159,.,CAAATC,CAATC,NA,NA,NA,indel-frameshift,YDR466W,PKH3,Q347indel,5366,S288C,caspofungin,Kovarik,2025,5
+chrXII,42713,.,A,C,NA,NA,NA,missense,YLL048C,YBT1,Y1185D,5367,S288C,caspofungin,Kovarik,2025,6
+chrXII,814384,.,G,A,NA,NA,NA,missense,YLR342W,FKS1,G1463D,5367,S288C,caspofungin,Kovarik,2025,6
+chrXVI,452436,.,A,T,NA,NA,NA,missense,YPL057C,SUR1,F208I,5367,S288C,caspofungin,Kovarik,2025,6
+chrXIII,700504,.,ACCAT,ACAT,NA,NA,NA,indel-frameshift,YMR216C,SKY1,V179indel,5367,S288C,caspofungin,Kovarik,2025,6
+chrXII,811912,.,T,G,NA,NA,NA,missense,YLR342W,FKS1,F639C,5368,S288C,caspofungin,Kovarik,2025,7
+chrXV,913328,.,C,T,NA,NA,NA,synonymous,YOR319W,HSH49,N169N,5368,S288C,caspofungin,Kovarik,2025,7
+chrXII,814056,.,T,A,NA,NA,NA,missense,YLR342W,FKS1,W1354R,5368,S288C,caspofungin,Kovarik,2025,7
+chrVII,549375,.,ATTTTTTGA,ATTTTTTTGA,NA,NA,NA,indel-frameshift,YGR032W,GSC2,D371indel,5368,S288C,caspofungin,Kovarik,2025,7
+chrXVI,650502,.,CTATTATTATTATTATTATTATTATTATTATTATTATTATTATTG,CTATTATTATTATTATTATTATTATTATTATTATTATTATTATTATTG,NA,NA,NA,indel-inframe,YPR042C,PUF2,S1054indel,5368,S288C,caspofungin,Kovarik,2025,7
+chrXII,811922,.,A,T,NA,NA,NA,missense,YLR342W,FKS1,L642F,5369,S288C,caspofungin,Kovarik,2025,8
+chrIV,1364593,.,G,A,NA,NA,NA,missense,YDR452W,PPN1,M572I,5369,S288C,caspofungin,Kovarik,2025,8
+chrIV,286920,.,G,A,NA,NA,NA,5'-upstream,YDL095W,PMT1,NA,5369,S288C,caspofungin,Kovarik,2025,8
+chrIV,1123191,.,T,A,NA,NA,NA,nonsense,YDR326C,YSP2,K579*,5370,S288C,caspofungin,Kovarik,2025,9
+chrXV,1040384,.,T,C,NA,NA,NA,missense,YOR374W,ALD4,L182S,5370,S288C,caspofungin,Kovarik,2025,9
+chrV,122819,.,T,C,NA,NA,NA,synonymous,YEL017C-A,PMP2,Q37Q,5370,S288C,caspofungin,Kovarik,2025,9
+chrVII,552165,.,T,G,NA,NA,NA,nonsense,YGR032W,GSC2,L1301*,5370,S288C,caspofungin,Kovarik,2025,9
+chrX,340477,.,C,T,NA,NA,NA,nonsense,YJL051W,IRC8,R231*,5370,S288C,caspofungin,Kovarik,2025,9
+chrIV,764633,.,G,A,NA,NA,NA,missense,YDR151C,CTH1,P175S,5370,S288C,caspofungin,Kovarik,2025,9
