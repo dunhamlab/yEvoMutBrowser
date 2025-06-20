@@ -122,6 +122,7 @@ set_visualization_settings <- function(input, session, genes_info, mutation_data
     ))
   })
   
+  #gene view draopdown menu
   observe({
     if (input$sample != "All Selected") {
       choices <- mutation_data()[
@@ -139,7 +140,8 @@ set_visualization_settings <- function(input, session, genes_info, mutation_data
     
     updateSelectizeInput(session, "GENE",
                          choices = as.character(choices),
-                         server = TRUE
+                         server = TRUE,
+                         options = list(maxOptions = length(choices))
     )
   })
 }
