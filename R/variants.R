@@ -1,13 +1,14 @@
-variantsUI <- function(id) {
-  tabPanel("Variant Pie Chart", plotlyOutput("varPieChart",
-    height = "675px",
-    width = "100%"
-  ), verbatimTextOutput("text"))
+variants_ui <- function(id) {
+  tabPanel("Variant Pie Chart",
+           plotlyOutput(NS(id, "varPieChart"),
+                        height = "675px",
+                        width = "100%"
+           ), verbatimTextOutput(NS(id, "text")))
 }
 
-variantsServer <- function(id, mutation_data, filtered_data) {
+variants_server <- function(id, mutation_data, filtered_data) {
   moduleServer(id, function(input, output, session) {
-    renderPlotly({
+    output$varPieChart <- renderPlotly({
       color_vector <- c(
         "#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
         "#e377c2", "#7f7f7f", "#f7b6d2", "#c49c94", "#8c564b",
@@ -42,7 +43,7 @@ variantsServer <- function(id, mutation_data, filtered_data) {
         labels = ~ANNOTATION,
         values = ~percent,
         type = "pie",
-        text = ~ paste(ANNOTATION, ": ", round(percent, 2), "%"),
+        text = ~paste(ANNOTATION, ": ", round(percent, 2), "%"),
         hoverinfo = "text",
         textinfo = "text",
         marker = list(colors = pie_colors)

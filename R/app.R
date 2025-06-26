@@ -22,6 +22,7 @@ library(shinythemes)
 library(stringr)
 library(tidyr) ## handling data, df must be tidy to use a lot of packages
 library(viridis)
+library(zeallot)
 
 PATH_TO_VCF_CSV <- "all_yEvo_vcf.csv"
 
@@ -63,173 +64,56 @@ yEvoMutBrowser <- function(...) {
       "Data Visualizations",
       sidebarLayout(
         # Left side, Class vs Cumulative View and options
-        selectionPanel(mut_backend),
+        selection_panel_ui("selectionPanel", mut_backend),
         # Right side, Data Visualization
         mainPanel(
           tabsetPanel(
             type = "tabs",
-            chromMapUI("chromMap"),
-            variantsUI("variants"),
-            snpCountUI("snpCount"),
-            geneViewUI("geneView"),
-            tabPanel("Table", tableOutput("data_table")),
+            chrom_map_ui("chromMap"),
+            variants_ui("variants"),
+            snp_count_ui("snpCount"),
+            gene_view_ui("geneView"),
+            data_table_ui("dataTable"),
           )
         )
       )
     ),
-    tabPanel(
-      "Tutorial",
-      div(
-        img(
-          src = "img/how-to-WIDE.png",
-          height = "65%", width = "65%"
-        ),
-        style = "text-align: center;"
-      )
-    ),
-    tabPanel(
-      "How Does Sequencing Work?",
-      uiOutput("pdf_viewer")
-    )
+    tutorial_ui("tutorial"),
+    sequencing_pdf_ui("sequencingPDF")
   ) # END OF UI
 
   # Now entering server, which handles everything dynamically
   server <- function(input, output, session) {
     # initially setting default file of all mutation data
-    # CHANGE MASTERFILE HERE IF NEEDED
     mutation_data <- reactiveVal(read.csv(PATH_TO_VCF_CSV))
 
     shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
 
-    # Displays Chromosome Map info; filtering by sample
-    output$info <- renderText({
-      return("Drag over variant tick mark to see details\n")
-    })
-
-    initialize_dataframe(input, mut_backend)
+    c(selected_instructor, selected_year, selected_sample, selected_condition, selected_background) %<-%
+      selection_panel_server("selectionPanel", filtered_data, mutation_data)
 
     # filtering dataframe based on menu selection, most things from here on out
     # should be based on filtered_data()
     filtered_data <- reactive({
       data <- mutation_data()
       # filtering based on selections if NOT all selected
-      if (input$instructor != "All Selected") {
-        data <- data %>% filter(instructor == input$instructor)
+      if (selected_instructor() != "All Selected") {
+        data <- data %>% filter(instructor == selected_instructor())
       }
-      if (input$year != "All Selected") {
-        data <- data %>% filter(year == input$year)
+      if (selected_year() != "All Selected") {
+        data <- data %>% filter(year == selected_year())
       }
-      if (input$sample != "All Selected") {
-        data <- data %>% filter(sample == input$sample)
+      if (selected_sample() != "All Selected") {
+        data <- data %>% filter(sample == selected_sample())
       }
-      selected_condition <- input$condition
-      selected_background <- input$background
-
-      if (input$condition != "All Selected") {
-        data <- data %>% filter(condition == input$condition)
+      if (selected_condition() != "All Selected") {
+        data <- data %>% filter(condition == selected_condition())
       }
-      if (input$background != "All Selected") {
-        data <- data %>% filter(background == input$background)
+      if (selected_background() != "All Selected") {
+        data <- data %>% filter(background == selected_background())
       }
       data
     })
-
-    # download button functionality
-    output$downloadBtn <- downloadHandler(
-      filename = function() {
-        # Set the filename for the downloaded file
-        if (is.null(input$View) ||
-          (input$instructor == "All Selected" &&
-            input$condition == "All Selected")) {
-          "master_table.csv"
-        } else if (input$View == "View By Class") {
-          selected_instructor <- input$instructor
-          selected_year <- input$year
-          selected_sample <- input$sample
-          if (selected_sample != "All Selected") {
-            paste0(
-              selected_instructor, "_", selected_year, "_",
-              selected_sample, ".csv"
-            )
-          } else if (selected_year != "All Selected") {
-            paste0(selected_instructor, "_", selected_year, ".csv")
-          } else if (selected_instructor != "All Selected") {
-            paste0(selected_instructor, ".csv")
-          }
-        } else if (input$View == "View By Selection Condition") {
-          if (input$background != "All Selected") {
-            paste0(input$condition, "_", input$background, ".csv")
-          } else {
-            paste0(input$condition, ".csv")
-          }
-        }
-      },
-      content = function(file) {
-        # Write the data to a CSV file
-        write.csv(filtered_data(), file)
-      }
-    )
-
-    # storing a bool to see if a file has been uploaded
-    # if a file has be uploaded, using the condition that if
-    # output$filesUploaded
-    # is true, we can auto-open the class view
-    output$filesUploaded <- reactive({
-      val <- !(is.null(input$datafile))
-    })
-
-    outputOptions(output, "filesUploaded", suspendWhenHidden = FALSE)
-
-    output$selectedClassView <- reactive({
-      if (!is.null(input$View)) {
-        value <- (input$View == "View By Class")
-      }
-    })
-    outputOptions(output, "selectedClassView", suspendWhenHidden = FALSE)
-
-    output$selectedCumulView <- reactive({
-      if (!is.null(input$View)) {
-        value <- (input$View == "View By Selection Condition")
-      }
-    })
-    outputOptions(output, "selectedCumulView", suspendWhenHidden = FALSE)
-
-    # Render the dataframe in the tableOutput
-    output$data_table <- renderTable({
-      filtered_data() %>%
-        select(
-          CHROM, POS, ANNOTATION, GENE, PROTEIN, condition, instructor,
-          year, sample, REF, ALT
-        )
-    })
-
-    
-    set_visualization_settings(input, session, genes_info, mutation_data, filtered_data)
-
-
-    # Learn about Gene button within gene viewer
-    sgdid <- reactiveValues(value = NULL)
-    output$url <- renderUI({
-      sgdid_values <- genes_info[genes_info$GENE == input$GENE, "SGDID"]
-      sgdid$value <- sgdid_values
-      url <- a("Learn about Gene",
-        href = paste0(link, sgdid$value),
-        class = "btn btn-default", target = "_blank"
-      )
-      url
-    })
-
-    output$pdf_viewer <- renderUI({
-      tags$iframe(
-        style = "height:1000px;width:100%;scrolling=yes",
-        src = "Black_box.pdf"
-      )
-    })
-
-    tabPanel(
-      "How Does Sequencing Work?",
-      uiOutput("pdf_viewer")
-    )
 
     # to create loading message below:
     loading_message <- "Loading..."
@@ -271,7 +155,7 @@ yEvoMutBrowser <- function(...) {
         colnames(genes_info)
       )
       mutation_data_value <- merge(mutation_data_value, genes_info,
-        by = common_cols
+                                   by = common_cols
       )
 
       # Iterate through unique genes
@@ -292,21 +176,24 @@ yEvoMutBrowser <- function(...) {
       return(final_gene_static)
     })
 
+    # Render the dataframe in the tableOutput
+    data_table_server("dataTable", filtered_data)
 
-    output$chromPlot <- chromMapServer(
-      "chromPlot", final_gene,
+    sequencing_pdf_server("sequencingPDF", "img/Black_box.pdf")
+
+    chrom_map_server(
+      "chromMap", final_gene,
       formatted_loading_message, chrom_info
     )
-    output$varPieChart <- variantsServer(
-      "varPieChart", mutation_data,
+    variants_server(
+      "variants", mutation_data,
       filtered_data
     )
-    output$snpCountPlot <- snpCountServer("snpCountPlot", filtered_data)
-    output$geneViewPlot <- geneViewServer(
-      "geneView", total_spaces,
-      reactive(input$GENE), filtered_data, genes_info
+    snp_count_server("snpCount", filtered_data)
+    gene_view_server(
+      "geneView", total_spaces, filtered_data, genes_info,
+      selected_sample, mutation_data, link
     )
-
 
     observeEvent(input$append_btn, {
       new_csv_path <- input$new_csv$datapath

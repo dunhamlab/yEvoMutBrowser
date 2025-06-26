@@ -1,15 +1,21 @@
-chromMapUI <- function(id) {
+chrom_map_ui <- function(id) {
   tabPanel(
-    "Chromosome Map", plotlyOutput("chromPlot", height = "600px"),
-    verbatimTextOutput("info")
+    "Chromosome Map",
+    plotlyOutput(NS(id, "chromPlot"), height = "600px"),
+    verbatimTextOutput(NS(id, "info"))
   )
 }
 
-chromMapServer <- function(
-    id, final_gene, formatted_loading_message,
-    chrom_info) {
+chrom_map_server <- function(
+  id, final_gene, formatted_loading_message,
+  chrom_info) {
   moduleServer(id, function(input, output, session) {
-    renderPlotly({
+    # Displays Chromosome Map info; filtering by sample
+    output$info <- renderText({
+      return("Drag over variant tick mark to see details\n")
+    })
+
+    output$chromPlot <- renderPlotly({
       validate(
         need(final_gene()$START, formatted_loading_message)
       )
@@ -17,7 +23,7 @@ chromMapServer <- function(
       # Preparing data
       final_gene_data <- final_gene()
       final_gene_data$CHROM <- factor(final_gene_data$CHROM,
-        levels = levels(chrom_info$CHROM)
+                                      levels = levels(chrom_info$CHROM)
       )
 
       # Splitting data so that the colors don't get messed up with the single
@@ -58,7 +64,7 @@ chromMapServer <- function(
 
       # Adding singleton mutation rectangles
       if (nrow(final_gene_singletons) > 0) {
-        for (i in 1:nrow(final_gene_singletons)) {
+        for (i in seq_len(nrow(final_gene_singletons))) {
           shapes_list[[length(shapes_list) + 1]] <- list(
             type = "rect",
             x0 = final_gene_singletons$START[i],
@@ -75,13 +81,13 @@ chromMapServer <- function(
         fig <- fig %>%
           add_trace(
             data = final_gene_singletons,
-            x = ~ START + 4000,
+            x = ~START + 4000,
             y = ~CHROM,
             type = "scatter",
             mode = "markers",
             marker = list(size = 10, opacity = 0, color = "white"),
             name = "Single Mutations",
-            text = ~ paste0(
+            text = ~paste0(
               "Gene Name: ", GENE, "<br>Independent Mutations: ",
               Counts
             ),
@@ -96,7 +102,7 @@ chromMapServer <- function(
         # Create a vector to store colors for each multi mutation
         multi_mut_colors <- character(nrow(final_gene_multi_muts))
 
-        for (i in 1:nrow(final_gene_multi_muts)) {
+        for (i in seq_len(nrow(final_gene_multi_muts))) {
           # Calculate color based on count
           count_ratio <- (final_gene_multi_muts$Counts[i] - 2) / (max_count - 2)
           if (is.na(count_ratio) || count_ratio < 0) count_ratio <- 0
@@ -127,7 +133,7 @@ chromMapServer <- function(
         fig <- fig %>%
           add_trace(
             data = final_gene_multi_muts,
-            x = ~ START + 4000,
+            x = ~START + 4000,
             y = ~CHROM,
             type = "scatter",
             mode = "markers",
@@ -142,7 +148,7 @@ chromMapServer <- function(
               colorbar = list(title = "Mutation Count")
             ),
             name = "Multiple Mutations",
-            text = ~ paste0(
+            text = ~paste0(
               "Gene Name: ", GENE, "<br>Independent Mutations: ",
               Counts
             ),

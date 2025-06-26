@@ -1,6 +1,9 @@
 # macOS files
 **/.DS_Store
 
+# JetBrains files
+**/.idea/
+
 # Visual Studio Code files
 **/.vscode
 

@@ -1,15 +1,15 @@
-snpCountUI <- function(id) {
-  tabPanel("SNP Counts", plotlyOutput("snpCountPlot"))
+snp_count_ui <- function(id) {
+  tabPanel("SNP Counts", plotlyOutput(NS(id, "snpCountPlot")))
 }
 
-snpCountServer <- function(id, filtered_data) {
+snp_count_server <- function(id, filtered_data) {
   moduleServer(id, function(input, output, session) {
-    renderPlotly({
+    output$snpCountPlot <- renderPlotly({
       # Categorizing data into appropriate categories for plotting
       categorized_data <- filtered_data() %>%
-        mutate(transition = paste(REF, " to ", ALT, sep = "")) %>%
+        mutate(transition = paste0(REF, " to ", ALT)) %>%
         mutate(transition = if_else(nchar(transition) > 6,
-          "Indel", transition
+                                    "Indel", transition
         )) %>%
         mutate(mutation_type = case_when(
           transition %in% c(
@@ -49,7 +49,7 @@ snpCountServer <- function(id, filtered_data) {
       )
 
       summarized_data$combined_group <- factor(summarized_data$combined_group,
-        levels = desired_order
+                                               levels = desired_order
       )
 
       # Plotting the data with coloring by categories

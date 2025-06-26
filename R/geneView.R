@@ -1,15 +1,52 @@
-geneViewUI <- function(id) {
+gene_view_ui <- function(id) {
   tabPanel(
     "Gene View", div("", style = "height: 10px;"),
-    plotlyOutput("geneViewPlot", width = "600px"), verbatimTextOutput("gene"),
-    selectInput("GENE", "Gene", choices = NULL),
-    uiOutput("url")
+    plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
+    selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
+    uiOutput(NS(id, "url"))
   )
 }
 
-geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
+gene_view_server <- function(id, total_spaces, filtered_data, genes_info, sample, mutation_data, link) {
   moduleServer(id, function(input, output, session) {
-    renderPlotly({
+    #gene view draopdown menu
+    observe({
+      if (sample() != "All Selected") {
+        choices <- mutation_data()[
+          mutation_data()$sample == sample(),
+          "GENE"
+        ]
+      } else {
+        choices <- filtered_data() %>% pull(GENE)
+      }
+
+      # Filter choices to include only those present in genes_info
+      choices <- choices[choices %in% genes_info$GENE]
+
+      choices <- sort(choices)
+
+      updateSelectizeInput(session, "geneSelectDropDown",
+                           choices = as.character(choices),
+                           server = TRUE,
+                           options = list(maxOptions = length(choices))
+      )
+    })
+
+    gene <- reactive(input$geneSelectDropDown)
+
+    # Learn about Gene button within gene viewer
+    sgdid <- reactiveValues(value = NULL)
+    output$url <- renderUI({
+      sgdid_values <- genes_info[genes_info$GENE == input$geneSelectDropDown, "SGDID"]
+      sgdid$value <- sgdid_values
+      url <- a("Learn about Gene",
+               href = paste0(link, sgdid$value),
+               class = "btn btn-default", target = "_blank"
+      )
+      url
+    })
+
+    output$geneViewPlot <- renderPlotly({
       ranges <- reactiveValues(x = NULL, y = NULL)
 
       # Showing please select gene message
@@ -42,11 +79,11 @@ geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
         colnames(genes_info)
       )
       mutation_data_value <- merge(mutation_data_value, genes_info,
-        by = common_cols
+                                   by = common_cols
       )
       mutation_data_value <- mutation_data_value[order(
         mutation_data_value$GENE
-      ), ]
+      ),]
 
       # Filter data for the specific gene
       cur_gene <- filter(mutation_data_value, GENE == gene())
@@ -103,11 +140,11 @@ geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
               combined_strings <- map2_chr(
                 prot_list, counts_list,
                 function(p, c) {
-                  Letter1 <- substr(p, 1, 1)
-                  Numbers <- str_extract(p, "[0-9]+") %>% as.numeric()
-                  Letter2 <- str_extract(p, pattern)
-                  paste("Count", Letter1, "->", Letter2, ":", c, "\n",
-                    sep = " "
+                  letter1 <- substr(p, 1, 1)
+                  # numbers <- str_extract(p, "[0-9]+") %>% as.numeric()
+                  letter2 <- str_extract(p, pattern)
+                  paste("Count", letter1, "->", letter2, ":", c, "\n",
+                        sep = " "
                   )
                 }
               )
@@ -120,8 +157,8 @@ geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
           # Extract the first character Amino Acid Wild Type
           AA_WT = substr(PROTEIN, 1, 1),
           AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
-            # Extract Amino Acid Position
-            as.numeric(str_extract(PROTEIN, "[0-9]+"))
+                           # Extract Amino Acid Position
+                           as.numeric(str_extract(PROTEIN, "[0-9]+"))
           ),
           # Amino Acid Mutation
           AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
@@ -174,7 +211,7 @@ geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
         ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2) +
         geom_hline(yintercept = 0, linetype = 2, alpha = .2, aes(text = NULL)) +
         geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL),
-          size = 15, color = "cornflowerblue"
+                     size = 15, color = "cornflowerblue"
         ) +
         geom_segment(aes(
           x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot,
@@ -188,7 +225,7 @@ geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
             grepl("indel", ANNOTATION), # Check if ANNOTATION contains "indel"
             paste0(
               "Indel\n", abs(indel), " base ", ifelse(indel > 0,
-                "insertion", "deletion"
+                                                      "insertion", "deletion"
               ), "\nCount: ", Counts_diff_mutation,
               "\nPosition: ", AA_POS
             ), # Text for indel annotations
@@ -197,7 +234,7 @@ geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
               paste0(
                 ANNOTATION, "\nCount: ", Counts_diff_mutation,
                 "\nPosition: ", -abs(unique(cur_gene$POS) -
-                  unique(cur_gene$START))
+                                       unique(cur_gene$START))
               ),
               paste0(combined, "\nPosition: ", AA_POS)
             )
@@ -217,16 +254,16 @@ geneViewServer <- function(id, total_spaces, gene, filtered_data, genes_info) {
         ylab("Mutation Count") +
         scale_y_continuous(breaks = function(x) {
           seq(floor(min(x)),
-            ceiling(max(x)),
-            by = 1
+              ceiling(max(x)),
+              by = 1
           )
         }) +
         scale_color_manual(values = annotation_colors) + # Manual color scale
         coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
         annotate("text",
-          x = 1, y = Inf,
-          label = "Drag over mutations to see more", hjust = 0, vjust = 2,
-          color = "black", size = 5
+                 x = 1, y = Inf,
+                 label = "Drag over mutations to see more", hjust = 0, vjust = 2,
+                 color = "black", size = 5
         ) +
         guides(color = guide_legend(title = "Annotation"))
 
