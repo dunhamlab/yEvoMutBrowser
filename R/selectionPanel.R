@@ -232,12 +232,36 @@ selection_panel_server <- function(id, filtered_data, mutation_data) {
     })
     outputOptions(output, "selectedCumulView", suspendWhenHidden = FALSE)
 
+    # filtering dataframe based on menu selection, most things from here on out
+    # should be based on filtered_data()
+    new_filtered_data <- reactive({
+      data <- mutation_data()
+      # filtering based on selections if NOT all selected
+      if (input$instructor != "All Selected") {
+        data <- data %>% filter(instructor == input$instructor)
+      }
+      if (input$year != "All Selected") {
+        data <- data %>% filter(year == input$year)
+      }
+      if (input$sample != "All Selected") {
+        data <- data %>% filter(sample == input$sample)
+      }
+      if (input$condition != "All Selected") {
+        data <- data %>% filter(condition == input$condition)
+      }
+      if (input$background != "All Selected") {
+        data <- data %>% filter(background == input$background)
+      }
+      data
+    })
+
     server_outputs <- list(
       selected_instructor = reactive(input$instructor),
       selected_year = reactive(input$year),
       selected_sample = reactive(input$sample),
       selected_condition = reactive(input$condition),
-      selected_background = reactive(input$background)
+      selected_background = reactive(input$background),
+      filtered_data = new_filtered_data
     )
 
     return(server_outputs)

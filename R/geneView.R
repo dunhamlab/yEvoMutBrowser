@@ -7,18 +7,11 @@ gene_view_ui <- function(id) {
   )
 }
 
-gene_view_server <- function(id, total_spaces, filtered_data, genes_info, sample, mutation_data, link) {
+gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link) {
   moduleServer(id, function(input, output, session) {
     #gene view draopdown menu
     observe({
-      if (sample() != "All Selected") {
-        choices <- mutation_data()[
-          mutation_data()$sample == sample(),
-          "GENE"
-        ]
-      } else {
-        choices <- filtered_data() %>% pull(GENE)
-      }
+      choices <- filtered_data() %>% pull(GENE)
 
       # Filter choices to include only those present in genes_info
       choices <- choices[choices %in% genes_info$GENE]
@@ -68,7 +61,8 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, sample
       # Render gene view plot
 
       validate(
-        need(gene(), select_gene_message)
+        need(gene(), select_gene_message),
+        need(filtered_data(), "Loading data...")
       )
 
       mutation_data_value <- filtered_data()
@@ -114,6 +108,11 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, sample
           indel = first(indel)
         ) %>%
         ungroup()
+
+      # If count_proteins$COUNT is empty, the data is not fully loaded in yet
+      if (length(count_proteins$COUNTS) <= 0) {
+        validate("Loading data...")
+      }
 
       # Group by position numbers and summarize
       count_proteins_same <- count_proteins %>%

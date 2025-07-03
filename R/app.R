@@ -89,31 +89,8 @@ yEvoMutBrowser <- function(...) {
 
     shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
 
-    c(selected_instructor, selected_year, selected_sample, selected_condition, selected_background) %<-%
+    c(selected_instructor, selected_year, selected_sample, selected_condition, selected_background, filtered_data) %<-%
       selection_panel_server("selectionPanel", filtered_data, mutation_data)
-
-    # filtering dataframe based on menu selection, most things from here on out
-    # should be based on filtered_data()
-    filtered_data <- reactive({
-      data <- mutation_data()
-      # filtering based on selections if NOT all selected
-      if (selected_instructor() != "All Selected") {
-        data <- data %>% filter(instructor == selected_instructor())
-      }
-      if (selected_year() != "All Selected") {
-        data <- data %>% filter(year == selected_year())
-      }
-      if (selected_sample() != "All Selected") {
-        data <- data %>% filter(sample == selected_sample())
-      }
-      if (selected_condition() != "All Selected") {
-        data <- data %>% filter(condition == selected_condition())
-      }
-      if (selected_background() != "All Selected") {
-        data <- data %>% filter(background == selected_background())
-      }
-      data
-    })
 
     # to create loading message below:
     loading_message <- "Loading..."
@@ -191,8 +168,7 @@ yEvoMutBrowser <- function(...) {
     )
     snp_count_server("snpCount", filtered_data)
     gene_view_server(
-      "geneView", total_spaces, filtered_data, genes_info,
-      selected_sample, mutation_data, link
+      "geneView", total_spaces, filtered_data, genes_info, link
     )
 
     observeEvent(input$append_btn, {
