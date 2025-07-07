@@ -16,7 +16,10 @@ jobs:
           args: >-
             --pdf-engine=lualatex
             --output=README.pdf
+            -f markdown-implicit_figures
             -V geometry:margin=1in
+            -V mainfont:Ubuntu
+            -V monofont:UbuntuMono
             README.md
       - run: |
           git config --local user.email "action@github.com"
