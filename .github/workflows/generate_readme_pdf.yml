@@ -2,6 +2,9 @@ name: Generate README PDF
 
 on: push
 
+permissions:
+  contents: write
+
 jobs:
   convert_via_pandoc:
     runs-on: ubuntu-22.04
@@ -11,5 +14,14 @@ jobs:
       - uses: docker://pandoc/latex:latest
         with:
           args: >-
+            --pdf-engine=lualatex
             --output=README.pdf
+            -V geometry:margin=1in
             README.md
+      - run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "github-actions"
+          git add README.pdf
+          git commit -m "Add README PDF"
+          git fetch origin main
+          git push origin main
