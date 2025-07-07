@@ -1,0 +1,13 @@
+name: Generate README PDF
+
+on: push
+
+jobs:
+  convert_via_pandoc:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: docker://pandoc/latex:latest
+        with:
+          args: >-
+            --output=README.pdf
+            README.md
