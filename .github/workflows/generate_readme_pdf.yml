@@ -6,6 +6,7 @@ jobs:
   convert_via_pandoc:
     runs-on: ubuntu-22.04
     steps:
+      - run: "ls -a"
       - uses: docker://pandoc/latex:latest
         with:
           args: >-
