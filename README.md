@@ -4,11 +4,7 @@
 
 ## Overview
 
-The yEvo Mutation Browser is a web tool that enables users to visualize evolved strain mutations in yEvo data at both
-the gene and chromosome levels, compare findings under various conditions, and upload their own data, benefiting both
-educators and the yeast genetics community.
-
-The yEvo Mutation Browser enables users to visualize mutations in the _Saccharomyces cerevisiae_ (_S. cerevisiae_) genome via several interactive graphs, including a chromosome map, mutation spectra, pie chart of mutation types, and gene view.
+The yEvo Mutation Browser is an R Shiny app that enables users to visualize mutations in the _Saccharomyces cerevisiae_ (_S. cerevisiae_) genome via several interactive graphs, including a chromosome map, mutation spectra, pie chart of mutation types, and gene view.
 This was built for high school students in the yEvo program, who have experimentally evolved yeast to adapt to various conditions.
 Therefore, all cumulative yEvo data is bundled within the app and is always available there.
 However, users outside of yEvo can also use this tool to upload their own mutation data and use the interactive visualizations, making it a tool for both educational and research use.
@@ -31,7 +27,7 @@ However, users outside of yEvo can also use this tool to upload their own mutati
 
 ## Usage
 
-The easiest method to use the mutation browser is to access it via the web at [https://yevo.org/mutation-browser/](https://yevo.org/mutation-browser/).
+The easiest method to use the mutation browser is to access it via the web at [https://yevo.org/mutation-browser/](https://yevo.org/mutation-browser/) or via [Shiny apps](https://leahmarieanderson.shinyapps.io/yEvo_MutBrowser/).
 To run the mutation browser locally, see the section [Running Locally](#running-locally) below.
 
 The yEvo Mutation browser contains two sections: the filtering column on the left and the visualizations on the right.
