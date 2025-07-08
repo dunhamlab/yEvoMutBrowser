@@ -24,8 +24,6 @@ library(tidyr) ## handling data, df must be tidy to use a lot of packages
 library(viridis)
 library(zeallot)
 
-PATH_TO_VCF_CSV <- "all_yEvo_vcf.csv"
-
 yEvoMutBrowser <- function(...) {
   # loading in the VCF file to display initial choices, later turns into
   # reactive val called mutation_data that includes manually updated data
@@ -36,16 +34,20 @@ yEvoMutBrowser <- function(...) {
   mut_backend <- read.csv(PATH_TO_VCF_CSV)
 
   # loading in the genes data file
-  genes_info <- read.csv("gene_info.csv")
+  genes_info <- read.csv(ORGANISM_GENE_INFO_PATH)
 
   # loading in the chromosomes data file
-  chrom_info <- read.csv("chromosome_info.csv")
+  chrom_info <- read.csv(ORGANISM_CHROMOSOME_INFO_PATH)
+  # Define the desired order of categories
+  desired_order <- chrom_info[order(chrom_info$visualization_order),]$CHROM
+  # Convert category to a factor with the desired order
+  chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
 
   # need to add this to upload the yEvo icon the theme
   addResourcePath(prefix = "img", directoryPath = "img")
 
   # create a variable called link that stores the base SGD database for locus
-  link <- "https://www.yeastgenome.org/locus/"
+  link <- ORGANISM_GENE_INFO_LINK
 
   # how will our layout look like for the app
   ui <- navbarPage(
@@ -107,21 +109,8 @@ yEvoMutBrowser <- function(...) {
       paste(rep(" ", spaces_on_each_side), collapse = "")
     )
 
-    # Define the desired order of categories
-    desired_order <- c(
-      "chrM", "chrXVI", "chrXV", "chrXIV", "chrXIII",
-      "chrXII", "chrXI", "chrX", "chrIX", "chrVIII", "chrVII", "chrVI", "chrV",
-      "chrIV", "chrIII", "chrII", "chrI"
-    )
-    # Convert category to a factor with the desired order
-    chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
-
     # Define a mapping from chromosome names to numbers
-    chromosome_mapping <- c(
-      chrM = 1, chrXVI = 2, chrXV = 3, chrXIV = 4, chrXIII = 5, chrXII = 6,
-      chrXI = 7, chrX = 8, chrIX = 9, chrVIII = 10, chrVII = 11, chrVI = 12,
-      chrV = 13, chrIV = 14, chrIII = 15, chrII = 16, chrI = 17
-    )
+    chromosome_mapping <- setNames(chrom_info$visualization_order, chrom_info$CHROM)
 
     # Create an empty dataframe to store the final results
     final_gene <- reactive({
@@ -168,7 +157,7 @@ yEvoMutBrowser <- function(...) {
     )
     snp_count_server("snpCount", filtered_data)
     gene_view_server(
-      "geneView", total_spaces, filtered_data, genes_info, link
+      "geneView", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION
     )
 
     observeEvent(input$append_btn, {

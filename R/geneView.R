@@ -7,7 +7,7 @@ gene_view_ui <- function(id) {
   )
 }
 
-gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link) {
+gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function) {
   moduleServer(id, function(input, output, session) {
     #gene view draopdown menu
     observe({
@@ -28,16 +28,15 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link) 
     gene <- reactive(input$geneSelectDropDown)
 
     # Learn about Gene button within gene viewer
-    sgdid <- reactiveValues(value = NULL)
+    if(link != "NONE") {
     output$url <- renderUI({
-      sgdid_values <- genes_info[genes_info$GENE == input$geneSelectDropDown, "SGDID"]
-      sgdid$value <- sgdid_values
       url <- a("Learn about Gene",
-               href = paste0(link, sgdid$value),
+               href = gene_info_link_function(genes_info, input$geneSelectDropDown),
                class = "btn btn-default", target = "_blank"
       )
       url
     })
+    }
 
     output$geneViewPlot <- renderPlotly({
       ranges <- reactiveValues(x = NULL, y = NULL)
