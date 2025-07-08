@@ -11,15 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: "ls -a"
-      - uses: docker://pandoc/latex:latest
+      - uses: docker://pandoc/extra:latest
         with:
           args: >-
             --pdf-engine=lualatex
             --output=README.pdf
             -f markdown-implicit_figures
             -V geometry:margin=1in
-            -V mainfont:Ubuntu
-            -V monofont:UbuntuMono
+            -V mainfont:SourceSansPro
+            -V monofont:SourceCodePro
             README.md
       - run: |
           git config --local user.email "action@github.com"
