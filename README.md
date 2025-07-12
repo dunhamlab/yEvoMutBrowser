@@ -170,8 +170,9 @@ Copy and paste this link into a web browser of your choice to access the mutatio
 
 The yEvo Mutation Browser can be modified for studying and visualizing mutations in other organisms.
 
-The yEvo Mutation Browser is specific to _S. cerevisiae_ because of the constants set in the `R/organism.R` file:
+The yEvo Mutation Browser is specific to _S. cerevisiae_ because of the constants set in the `R/config.R` file:
 
+- **`PATH_TO_VCF_CSV`**: the path to the CSV file containing the default VCF CSV dataset to load into the web app on startup.
 - **`ORGANISM_GENE_INFO_PATH`**: the path to the CSV file with the information on all the genes in the organism being studied and visualized.
 - **`ORGANISM_CHROMOSOME_INFO_PATH`**: the path to the CSV file with the information on the chromosomes in the organism being studied and visualized.
 - **`ORGANISM_GENE_INFO_LINK`**: the link to a database with gene information. If this is set to `"NONE"`, then the "Learn about gene" button in the [Gene View](#gene-view) visualization will not appear.
@@ -181,3 +182,5 @@ The yEvo Mutation Browser is specific to _S. cerevisiae_ because of the constant
 
 The `ORGANISM_GENE_INFO_LINK_FUNCTION` is a function that is passed two arguments by the [Gene View](#gene-view) visualization.
 The first is the genes info data table set by `ORGANISM_GENE_INFO_PATH` and the second is the gene selected by the user on the [Gene View](#gene-view) visualization gene selection dropdown.
+The function must return the link to the online gene database for the desired organism and the selected gene as a string.
+For an example, please see the default yEvo Mutation Browser link function for the _S. cerevisiae_ gene database defined in `R/config.R`.
