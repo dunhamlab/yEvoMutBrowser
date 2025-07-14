@@ -1,0 +1,38 @@
+on:
+  release:
+    types: [published]
+
+name: shiny-deploy
+
+permissions: read-all
+
+jobs:
+  shiny-deploy:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+          r-version: renv
+
+      - uses: r-lib/actions/setup-renv@v2
+
+      - name: Install rsconnect
+        run: install.packages("rsconnect")
+        shell: Rscript {0}
+
+      - name: Authorize and deploy app
+        env:
+          APPNAME: yEvoMutBrowser
+          ACCOUNT: leahmarieanderson
+          SERVER: shinyapps.io
+        run: |
+          rsconnect::setAccountInfo("${{ secrets.RSCONNECT_USER }}", "${{ secrets.RSCONNECT_TOKEN }}", "${{ secrets.RSCONNECT_SECRET }}")
+          rsconnect::deployApp(appName = "${{ env.APPNAME }}", account = "${{ env.ACCOUNT }}", server = "${{ env.SERVER }}", forceUpdate = TRUE)
+        shell: Rscript {0}
