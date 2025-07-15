@@ -10,24 +10,20 @@ Therefore, all cumulative yEvo data is bundled within the app and is always avai
 However, users outside of yEvo can also use this tool to upload their own mutation data and use the interactive visualizations, making it a tool for both educational and research use.
 
 ### Jump to
-
-- [yEvo Mutation Browser](#yevo-mutation-browser)
-  - [Overview](#overview)
-    - [Jump to](#jump-to)
-  - [Usage](#usage)
-    - [Filtering](#filtering)
-    - [Uploading Data](#uploading-data)
-    - [Chromosome Map](#chromosome-map)
-    - [Variant Pie Chart](#variant-pie-chart)
-    - [SNP Counts](#snp-counts)
-    - [Gene View](#gene-view)
-  - [Running Locally](#running-locally)
-  - [Modifying to Other Organisms](#modifying-to-other-organisms)
-    - [`ORGANISM_GENE_INFO_LINK_FUNCTION`](#organism_gene_info_link_function)
+- [Usage](#usage)
+  - [Filtering](#filtering)
+  - [Uploading Data](#uploading-data)
+  - [Chromosome Map](#chromosome-map)
+  - [Variant Pie Chart](#variant-pie-chart)
+  - [SNP Counts](#snp-counts)
+  - [Gene View](#gene-view)
+- [Running Locally](#running-locally)
+- [Modifying to Other Organisms](#modifying-to-other-organisms)
+  - [`ORGANISM_GENE_INFO_LINK_FUNCTION`](#organism_gene_info_link_function)
 
 ## Usage
 
-The easiest method to use the mutation browser is to access it via the web at [https://yevo.org/mutation-browser/](https://yevo.org/mutation-browser/) or via [Shiny apps](https://leahmarieanderson.shinyapps.io/yEvo_MutBrowser/).
+The easiest method to use the mutation browser is to access it via the web at [https://yevo.org/mutation-browser/](https://yevo.org/mutation-browser/) or via [Shiny apps](https://leahmarieanderson.shinyapps.io/yEvoMutBrowser/).
 To run the mutation browser locally, see the section [Running Locally](#running-locally) below.
 
 The yEvo Mutation browser contains two sections: the filtering column on the left and the visualizations on the right.
