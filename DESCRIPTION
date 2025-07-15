@@ -4,7 +4,8 @@ Description: Web tool enabling users to visualize evolved strain mutations in
     yEvo data at both the gene and chromosome levels, compare findings under
     various conditions, and upload users' own data, benefiting both educators
     and the yeast genetics community.
-Version: 0.0.0.9000
+Version: 0.25.7.1-alpha
+Depends: R (>=4.3.0)
 Authors@R: c(
     person("Maitreya", "Dunham", email = "maitreya@uw.edu",
         role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9944-2666")),
