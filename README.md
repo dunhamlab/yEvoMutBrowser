@@ -101,9 +101,12 @@ After uploading, the browser will ask for additional information (instructor and
 The Chromosome Map is a linear representation of the 16 nuclear chromosomes along with the mitochondrial genome of _Saccharomyces cerevisiae_.
 This plot displays the locations of all mutated genes in the selected dataset, marked at their chromosomal positions.
 Tick marks along the linear chromosomes indicate these sites, and hovering the mouse over each tick mark reveals the name of the mutated gene, as well as how many times it was mutated in repeat experiments.
-Users can also zoom in on specific regions by clicking and dragging, offering a closer look at mutations in a given area.
 
 ![Unfiltered chromosome map](img/chromosome_map_unfiltered.png)
+
+Users can also zoom in on specific regions by clicking and dragging, offering a closer look at mutations in a given area.
+
+<img src="img/figS2_zoom.png" width="1000">
 
 ### Variant Pie Chart
 
