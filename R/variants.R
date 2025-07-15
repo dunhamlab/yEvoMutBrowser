@@ -6,15 +6,9 @@ variants_ui <- function(id) {
            ), verbatimTextOutput(NS(id, "text")))
 }
 
-variants_server <- function(id, mutation_data, filtered_data) {
+variants_server <- function(id, mutation_data, filtered_data, color_vector) {
   moduleServer(id, function(input, output, session) {
     output$varPieChart <- renderPlotly({
-      color_vector <- c(
-        "#9edae5", "#17becf", "#dbdb8d", "#bcbd22", "#c7c7c7",
-        "#e377c2", "#7f7f7f", "#f7b6d2", "#c49c94", "#8c564b",
-        "#c5b0d5", "#9467bd", "#ff9896", "#d62728", "#98df8a",
-        "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4"
-      )
 
       # Get all unique annotations in a fixed order
       all_unique_anno <- mutation_data() %>%

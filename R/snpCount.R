@@ -2,7 +2,7 @@ snp_count_ui <- function(id) {
   tabPanel("SNP Counts", plotlyOutput(NS(id, "snpCountPlot")))
 }
 
-snp_count_server <- function(id, filtered_data) {
+snp_count_server <- function(id, filtered_data, color_vector) {
   moduleServer(id, function(input, output, session) {
     output$snpCountPlot <- renderPlotly({
       # Categorizing data into appropriate categories for plotting
@@ -37,12 +37,8 @@ snp_count_server <- function(id, filtered_data) {
         group_by(combined_group, mutation_type) %>%
         summarise(count = n(), .groups = "drop")
 
-      # Custom colors for mutation types
-      custom_colors <- c(
-        "Transition" = "#0072B2", # Blue
-        "Transversion" = "#CC79A7", # Pink
-        "Indel" = "#009E73" # Green
-      )
+      color_map <- set_names(color_vector, c( "Transition", "Transversion", "Indel"))
+
       desired_order <- c(
         "Indel", "A to G", "C to T", "A to T", "C to G",
         "A to C", "C to A"
@@ -63,7 +59,7 @@ snp_count_server <- function(id, filtered_data) {
         )) +
         geom_bar(position = "dodge", stat = "identity") +
         theme_bw() +
-        scale_fill_manual(values = custom_colors) +
+        scale_fill_manual(values = color_map) +
         labs(fill = "Mutation Type") +
         theme(
           legend.position = "right",

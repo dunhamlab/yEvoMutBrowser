@@ -7,7 +7,7 @@ gene_view_ui <- function(id) {
   )
 }
 
-gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function) {
+gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
   moduleServer(id, function(input, output, session) {
     #gene view draopdown menu
     observe({
@@ -163,16 +163,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           ANNOTATION = factor(ANNOTATION, levels = all_annotations)
         )
 
-      # Fixed colors for the different annotations - IF ADDING NEW ANNOTATIONS,
-      # DON'T FORGET TO ADD TO all_annotations ABOVE
-      annotation_colors <- c(
-        "missense" = "#800080",
-        "nonsense" = "#61D04F",
-        "5'-upstream" = "#F5C710",
-        "indel-frameshift" = "#DF536B",
-        "indel-inframe" = "#FFB6C1",
-        "synonymous" = "cornflowerblue"
-      )
+      annotation_colors <- set_names(color_vector, all_annotations)
 
       # Generating ranges for the plot size
       xmax <- genes_info %>%

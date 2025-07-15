@@ -153,11 +153,11 @@ yEvoMutBrowser <- function(...) {
     )
     variants_server(
       "variants", mutation_data,
-      filtered_data
+      filtered_data, VARIANTS_PIE_CHART_COLORS
     )
-    snp_count_server("snpCount", filtered_data)
+    snp_count_server("snpCount", filtered_data, SNP_CHART_COLORS)
     gene_view_server(
-      "geneView", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION
+      "geneView", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
     )
 
     observeEvent(input$append_btn, {
