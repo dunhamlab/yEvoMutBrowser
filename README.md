@@ -106,7 +106,7 @@ Tick marks along the linear chromosomes indicate these sites, and hovering the m
 
 Users can also zoom in on specific regions by clicking and dragging, offering a closer look at mutations in a given area.
 
-<img src="img/figS2_zoom.png" width="1000">
+<img src="img/figS2_zoom.png" width="500">
 
 ### Variant Pie Chart
 
