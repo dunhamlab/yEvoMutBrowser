@@ -56,14 +56,23 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
       file <- input$datafile
       data <- read.csv(file$datapath)
       required_columns <- c(
-        "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
-        "ANNOTATION", "REGION", "GENE", "PROTEIN", "seq_file", "background",
-        "condition", "sample"
+        "CHROM", "POS", "REF", "ALT", "ANNOTATION", "REGION",
+        "GENE", "PROTEIN", "background", "condition", "sample"
       )
       if (!is.null(file) && all(required_columns %in% colnames(data))) {
         # Add instructor and year columns
         data$instructor <- rep(input$inputted_instructor, nrow(data))
         data$year <- rep(input$inputted_year, nrow(data))
+        data$ID <- rep("NA", nrow(data))
+        data$QUAL <- rep("NA", nrow(data))
+        data$FILTER <- rep("NA", nrow(data))
+        data$INFO <- rep("NA", nrow(data))
+        data$seq_file <- rep("NA", nrow(data))
+        data <- subset(data, select=c(
+          "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
+          "ANNOTATION", "REGION", "GENE", "PROTEIN", "seq_file",
+          "background", "condition", "instructor", "year", "sample"
+        ))
         # Rearrange columns
         data <- data[, c(
           "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
