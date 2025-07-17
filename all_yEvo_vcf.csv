@@ -2001,7 +2001,6 @@ chrIII,191223,.,A,G,NA,NA,NA,missense,YCR034W,ELO2,H211R,MD5337,S288C,caspofungi
 chrM,14559,.,A,C,NA,NA,NA,missense,Q0050,AI1,I248L,MD5337,S288C,caspofungin,Skophammer,2025,Y2
 chrM,37968,.,A,G,NA,NA,NA,snRNA,NA,BI2,NA,MD5337,S288C,caspofungin,Skophammer,2025,Y2
 chrM,79692,.,C,T,NA,NA,NA,synonymous,Q0275,COX3,I160I,MD5337,S288C,caspofungin,Skophammer,2025,Y2
-chrM,26386,.,T,C,NA,NA,NA,coding,Q0045,COX1,unknown,MD5337,S288C,caspofungin,Skophammer,2025,Y2
 chrM,79752,.,T,C,NA,NA,NA,synonymous,Q0275,COX3,I180I,MD5337,S288C,caspofungin,Skophammer,2025,Y2
 chrM,13976,.,A,G,NA,NA,NA,synonymous,Q0045,COX1,Q53Q,MD5337,S288C,caspofungin,Skophammer,2025,Y2
 chrM,24671,.,T,C,NA,NA,NA,synonymous,Q0075,COX1,D172D,MD5337,S288C,caspofungin,Skophammer,2025,Y2
@@ -2096,3 +2095,4 @@ chrV,122819,.,T,C,NA,NA,NA,synonymous,YEL017C-A,PMP2,Q37Q,5370,S288C,caspofungin
 chrVII,552165,.,T,G,NA,NA,NA,nonsense,YGR032W,GSC2,L1301*,5370,S288C,caspofungin,Kovarik,2025,9
 chrX,340477,.,C,T,NA,NA,NA,nonsense,YJL051W,IRC8,R231*,5370,S288C,caspofungin,Kovarik,2025,9
 chrIV,764633,.,G,A,NA,NA,NA,missense,YDR151C,CTH1,P175S,5370,S288C,caspofungin,Kovarik,2025,9
+chrIX,74418,.,N,NNN,NA,NA,NA,transposon,YIL146C,ATG32,NA,layla,S288C,freeze,leah,2025,leeeeah
