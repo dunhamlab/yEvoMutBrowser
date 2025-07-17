@@ -103,8 +103,12 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
     # Handling behaviors for button selections
     observe({
       options <- as.character(mutation_data() %>%
+                                pull(background))
+      if (input$condition != "All Selected") {
+      options <- as.character(mutation_data() %>%
                                 filter(condition == input$condition) %>%
                                 pull(background))
+      }
       if (length(unique(options)) != 1) {
         updateSelectInput(session, "background",
                           choices = c("All Selected", options)
@@ -112,12 +116,6 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
         shinyjs::enable("background")
       } else {
         updateSelectInput(session, "background", choices = options)
-        shinyjs::disable("background")
-      }
-    })
-    # making the background not a button before selecting a condition
-    observe({
-      if (input$condition == "All Selected") {
         shinyjs::disable("background")
       }
     })
