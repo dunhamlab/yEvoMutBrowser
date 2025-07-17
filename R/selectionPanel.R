@@ -48,7 +48,7 @@ selection_panel_ui <- function(id, mut_backend) {
   )
 }
 
-selection_panel_server <- function(id, filtered_data, mutation_data) {
+selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend) {
   moduleServer(id, function(input, output, session) {
     # Initialize a reactive variable for the dataframe
     # Function to read and append the uploaded data to the cumulative dataframe
