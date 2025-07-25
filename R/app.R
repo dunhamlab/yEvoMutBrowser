@@ -75,6 +75,7 @@ yEvoMutBrowser <- function(...) {
             variants_ui("variants"),
             snp_count_ui("snpCount"),
             gene_view_ui("geneView"),
+            gene_pro_view_ui("geneView2"),
             data_table_ui("dataTable"),
           )
         )
@@ -156,8 +157,13 @@ yEvoMutBrowser <- function(...) {
       filtered_data, VARIANTS_PIE_CHART_COLORS
     )
     snp_count_server("snpCount", filtered_data, SNP_CHART_COLORS)
+
     gene_view_server(
       "geneView", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
+    )
+
+    gene_pro_view_server(
+      "geneView2", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
     )
 
     observeEvent(input$append_btn, {
