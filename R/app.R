@@ -45,6 +45,7 @@ yEvoMutBrowser <- function(...) {
 
   # need to add this to upload the yEvo icon the theme
   addResourcePath(prefix = "img", directoryPath = "img")
+  addResourcePath(prefix = "static", directoryPath = "static")
 
   # create a variable called link that stores the base SGD database for locus
   link <- ORGANISM_GENE_INFO_LINK

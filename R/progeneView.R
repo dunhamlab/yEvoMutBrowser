@@ -13,7 +13,7 @@ gene_pro_view_ui <- function(id) {
     )
     ,
     # ⬇️  place the script LAST so Shiny is ready
-    tags$script(src = "molstar-custom.js"),
+    tags$script(src = "static/molstar-custom.js"),
 
 
 
