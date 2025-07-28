@@ -1,8 +1,13 @@
 gene_pro_view_ui <- function(id) {
+  ns <- NS(id)
+  prefix <- ns("")
+
   tabPanel(
-    "Gene View", div("", style = "height: 10px;"),
+    "Gene View2", div("", style = "height: 10px;"),
     plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
     selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
+    selectInput(NS(id, "uniprotid"), "Gene", choices = c("Q02486", "P37898", "P38631")),
+
     tags$div(
       id = "molstar-parent",
       style = "position: relative; width: 600px; height: 600px;",
@@ -12,10 +17,14 @@ gene_pro_view_ui <- function(id) {
       ),
     )
     ,
+
+    tags$script(HTML(sprintf("
+      window.MY_MODULE_NS = '%s';
+    ", prefix))),
+
     # ⬇️  place the script LAST so Shiny is ready
     tags$script(src = "static/molstar-custom.js"),
-
-
+    verbatimTextOutput(NS(id, "resiinfo")),
 
     uiOutput(NS(id, "url"))
   )
@@ -51,6 +60,18 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       url
     })
     }
+
+    observeEvent(input$uniprotid, {
+      uniprot_id <- input$uniprotid
+      print(paste("Uniprot ", uniprot_id))
+      session$sendCustomMessage("initMolstar", uniprot_id)
+  })
+
+    output$resiinfo <- renderText({
+      req(input$resiinfo)
+      paste("Hovered residue:", input$resiinfo)
+    })
+
 
     output$geneViewPlot <- renderPlotly({
       ranges <- reactiveValues(x = NULL, y = NULL)
