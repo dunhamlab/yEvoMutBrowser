@@ -94,7 +94,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       # Group and summarize protein counts
       count_proteins <- cur_gene %>%
         mutate(indel = nchar(ALT) - nchar(REF)) %>% # Calculate indel difference
-        group_by(POS) %>%
+        group_by(POS, PROTEIN) %>%
         summarize(
           GENE = first(GENE),
           PROTEIN = first(PROTEIN),
