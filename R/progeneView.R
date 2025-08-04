@@ -25,9 +25,16 @@ gene_pro_view_ui <- function(id) {
     # ⬇️  place the script LAST so Shiny is ready
     tags$script(src = "static/molstar-custom.js"),
     verbatimTextOutput(NS(id, "resiinfo")),
+    plotlyOutput(NS(id, "mutplot"), width = "600px", height = "300px"),
+    div(style = "position: relative; top: 100px;",
+    # Your Shiny element here
+    # plotlyOutput(NS(id, "mutplot"), width = "600px"),
+),
+
+    verbatimTextOutput(NS(id, "resinumber")),
 
     uiOutput(NS(id, "url"))
-  )
+   )
 }
 
 gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
@@ -50,6 +57,88 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     gene <- reactive(input$geneSelectDropDown)
 
+    all_annotations <- c(
+      "missense", "nonsense", "5'-upstream",
+      "indel-frameshift", "indel-inframe", "synonymous")
+
+
+    genedatatable <- function(cur_gene) {
+      pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
+
+      count_proteins <- cur_gene %>%
+        mutate(indel = nchar(ALT) - nchar(REF)) %>% # Calculate indel difference
+        group_by(POS) %>%
+        summarize(
+          GENE = first(GENE),
+          PROTEIN = first(PROTEIN),
+          ANNOTATION = first(ANNOTATION),
+          COUNTS = n(),
+          Letter1 = substr(PROTEIN, 1, 1), # Extract the first character
+          # Extract the numbers
+          Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),
+          Letter2 = str_extract(PROTEIN, pattern),
+          indel = first(indel)
+        ) %>%
+        ungroup()
+
+      count_proteins_same <- count_proteins %>%
+        group_by(Numbers) %>%
+        summarize(
+          GENE = first(GENE),
+          PROTEIN = list(PROTEIN),
+          ANNOTATION = first(ANNOTATION),
+          Counts_diff_mutation = list(COUNTS),
+          Counts_tot = sum(COUNTS),
+          indel = first(indel)
+        ) %>%
+        ungroup()
+
+      all_annotations <- c(
+        "missense", "nonsense", "5'-upstream",
+        "indel-frameshift", "indel-inframe", "synonymous"
+      )
+
+      count_proteins_same <- count_proteins_same %>%
+        mutate(
+          combined = map2_chr(
+            PROTEIN, Counts_diff_mutation,
+            function(prot, counts) {
+              prot_list <- str_split(prot, ", ") %>% unlist()
+              counts_list <- str_split(counts, ", ") %>% unlist()
+
+              combined_strings <- map2_chr(
+                prot_list, counts_list,
+                function(p, c) {
+                  letter1 <- substr(p, 1, 1)
+                  # numbers <- str_extract(p, "[0-9]+") %>% as.numeric()
+                  letter2 <- str_extract(p, pattern)
+                  paste("Count", letter1, "->", letter2, ":", c, "\n",
+                    sep = " "
+                  )
+                }
+              )
+              paste(combined_strings, collapse = "")
+            }
+          )
+        ) %>%
+        mutate(
+        PROTEIN = as.character(PROTEIN),
+        # Extract the first character Amino Acid Wild Type
+        AA_WT = substr(PROTEIN, 1, 1),
+        AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
+            # Extract Amino Acid Position
+            as.numeric(str_extract(PROTEIN, "[0-9]+"))
+        ),
+        # Amino Acid Mutation
+        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
+        ANNOTATION = factor(ANNOTATION, levels = all_annotations)
+        )
+
+
+      count_proteins_same
+    }
+
+
     # Learn about Gene button within gene viewer
     if(link != "NONE") {
     output$url <- renderUI({
@@ -61,16 +150,25 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
     }
 
-    observeEvent(input$uniprotid, {
-      uniprot_id <- input$uniprotid
-      print(paste("Uniprot ", uniprot_id))
-      session$sendCustomMessage("initMolstar", uniprot_id)
-  })
+  #   observeEvent(input$uniprotid, {
+  #     uniprot_id <- input$uniprotid
+  #     print(paste("Uniprot ", uniprot_id))
+  #     session$sendCustomMessage("initMolstar", uniprot_id)
+  # })
 
     output$resiinfo <- renderText({
       req(input$resiinfo)
       paste("Hovered residue:", input$resiinfo)
     })
+
+
+    observeEvent(input$geneSelectDropDown, {
+      gene_name <- input$geneSelectDropDown
+
+      uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
+      print(paste("uniprot ", uniprotid))
+      session$sendCustomMessage("initMolstar", uniprotid)
+  })
 
 
     output$geneViewPlot <- renderPlotly({
@@ -116,87 +214,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       # Filter data for the specific gene
       cur_gene <- filter(mutation_data_value, GENE == gene())
 
+      count_proteins_same <- genedatatable(cur_gene)
       # Pattern for extracting the second part of protein
-      pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
 
-      all_annotations <- c(
-        "missense", "nonsense", "5'-upstream",
-        "indel-frameshift", "indel-inframe", "synonymous"
-      )
-      # IF ADDING NEW ANNOTATIONS - DON'T FORGET TO ADD BOTH HERE AND IN
-      # annotation_colors BELOW
-
-      # Group and summarize protein counts
-      count_proteins <- cur_gene %>%
-        mutate(indel = nchar(ALT) - nchar(REF)) %>% # Calculate indel difference
-        group_by(POS) %>%
-        summarize(
-          GENE = first(GENE),
-          PROTEIN = first(PROTEIN),
-          ANNOTATION = first(ANNOTATION),
-          COUNTS = n(),
-          Letter1 = substr(PROTEIN, 1, 1), # Extract the first character
-          # Extract the numbers
-          Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),
-          Letter2 = str_extract(PROTEIN, pattern),
-          indel = first(indel)
-        ) %>%
-        ungroup()
-
-      # If count_proteins$COUNT is empty, the data is not fully loaded in yet
-      if (length(count_proteins$COUNTS) <= 0) {
-        validate("Loading data...")
-      }
-
-      # Group by position numbers and summarize
-      count_proteins_same <- count_proteins %>%
-        group_by(Numbers) %>%
-        summarize(
-          GENE = first(GENE),
-          PROTEIN = list(PROTEIN),
-          ANNOTATION = first(ANNOTATION),
-          Counts_diff_mutation = list(COUNTS),
-          Counts_tot = sum(COUNTS),
-          indel = first(indel)
-        ) %>%
-        ungroup()
-
-      # Combine protein and count strings
-      count_proteins_same <- count_proteins_same %>%
-        mutate(
-          combined = map2_chr(
-            PROTEIN, Counts_diff_mutation,
-            function(prot, counts) {
-              prot_list <- str_split(prot, ", ") %>% unlist()
-              counts_list <- str_split(counts, ", ") %>% unlist()
-
-              combined_strings <- map2_chr(
-                prot_list, counts_list,
-                function(p, c) {
-                  letter1 <- substr(p, 1, 1)
-                  # numbers <- str_extract(p, "[0-9]+") %>% as.numeric()
-                  letter2 <- str_extract(p, pattern)
-                  paste("Count", letter1, "->", letter2, ":", c, "\n",
-                        sep = " "
-                  )
-                }
-              )
-              paste(combined_strings, collapse = "")
-            }
-          )
-        ) %>%
-        mutate(
-          PROTEIN = as.character(PROTEIN),
-          # Extract the first character Amino Acid Wild Type
-          AA_WT = substr(PROTEIN, 1, 1),
-          AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
-                           # Extract Amino Acid Position
-                           as.numeric(str_extract(PROTEIN, "[0-9]+"))
-          ),
-          # Amino Acid Mutation
-          AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
-          ANNOTATION = factor(ANNOTATION, levels = all_annotations)
-        )
 
       annotation_colors <- set_names(color_vector, all_annotations)
 
@@ -210,7 +230,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       ranges$y <- c(0, max(count_proteins_same$Counts_tot) +
         ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
-
+      
       p <- count_proteins_same %>%
         ggplot(
           aes(
@@ -293,5 +313,98 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       ggplotly(p, tooltip = "text")
     })
+
+    # print(input$geneSelectDropDown)
+
+    output$mutplot <- renderPlotly({
+      data_df <- data.frame(
+        x = c(0, 250, 0, 0, 0, 683),
+        y = c(0, 0, 0, 0, 0, 0)
+      )
+
+      mutation_data_value <- filtered_data()
+
+      # Merge the data frames based on the common columns
+      common_cols <- intersect(
+        colnames(mutation_data_value),
+        colnames(genes_info)
+      )
+      mutation_data_value <- merge(mutation_data_value, genes_info,
+                                   by = common_cols
+      )
+      mutation_data_value <- mutation_data_value[order(
+        mutation_data_value$GENE
+      ),]
+
+      # Filter data for the specific gene
+      cur_gene <- filter(mutation_data_value, GENE == gene())
+      
+      count_proteins_same <- genedatatable(cur_gene)
+      
+      print(count_proteins_same$combined)
+      amino_acid_loc <- count_proteins_same$Numbers
+      data_df <- data.frame(value = amino_acid_loc, dummy_y = 0) 
+      # print(df)
+
+      print(count_proteins_same)
+
+      # observe({
+      #   print(count_proteins_same)
+      # })
+
+
+      new_theme_empty <- theme_bw()
+      new_theme_empty$line <- element_blank()
+      new_theme_empty$rect <- element_blank()
+      new_theme_empty$strip.text <- element_blank()
+      new_theme_empty$axis.text <- element_blank()
+      new_theme_empty$plot.title <- element_blank()
+      new_theme_empty$axis.title <- element_blank()
+      new_theme_empty$plot.margin <- structure(c(0, 0, -1, -1),
+                                              unit = "lines",
+                                              valid.unit = 3L,
+                                              class = "unit")
+
+
+      # Create a scatter plot with ggplot2
+      gg <- ggplot(data_df, aes(x = value, y = 0,
+        text = ifelse(
+          grepl("indel", count_proteins_same$ANNOTATION), # Check if ANNOTATION contains "indel"
+          paste0(
+            "Indel\n", abs(count_proteins_same$indel), " base ", ifelse(count_proteins_same$indel > 0,
+                                                    "insertion", "deletion"
+            ), "\nCount: ", count_proteins_same$Counts_diff_mutation,
+            "\nPosition: ", count_proteins_same$AA_POS
+          ), # Text for indel annotations
+          ifelse(
+            is.na(count_proteins_same$PROTEIN),
+            paste0(
+              count_proteins_same$ANNOTATION, "\nCount: ", count_proteins_same$Counts_diff_mutation,
+              "\nPosition: ", -abs(unique(cur_gene$POS) -
+                                      unique(cur_gene$START))
+            ),
+            paste0(count_proteins_same$combined, "\nPosition: ", count_proteins_same$AA_POS)
+            )
+          )
+      )) +
+        geom_point(color = "#5b91e2", size = 2.2) + # Add points with specified color and size
+        labs(
+             x = "X-axis Variable",             # Add x-axis label
+             y = "Y-axis Variable") +  xlim(0, 700) +
+
+        new_theme_empty + labs(x = "My X-axis Label")
+
+
+      ggplotly(gg, tooltip = "text", source = "mutplot")
+    })
+
+
+  observe({
+    ed <- event_data("plotly_click", source="mutplot")
+    req(ed)
+    session$sendCustomMessage("highlightResidueWithSphere",
+                              list(positions = ed$x))
+  })
+
   })
 }
