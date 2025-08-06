@@ -200,7 +200,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         text = paste0(pf$Start, "-", pf$End, "\n", pf$Description)
       ) 
         
-      rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)))
+      rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)), "_", rainbow(nrow(rects)))
+      rects$fill_color <- rainbow(nrow(rects))
       rects
 
     })
@@ -340,7 +341,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       cur_gene <- cur_gene()
       count_proteins_same <- genedatatable(cur_gene)
-      
+      cg <- cur_gene()
       print(first(cur_gene$PROTEIN_LENGTH))
 
 
@@ -394,7 +395,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           xaxis = list(
             rangemode = "nonnegative",
 
-            range = c(0, first(cur_gene()$PROTEIN_LENGTH)),   # <— force initial range [0, protein_length]
+            range = c(0, first(cg$PROTEIN_LENGTH)),   # <— force initial range [0, protein_length]
             autorange = FALSE         # <— prevent Plotly from auto-expanding it
           ) 
         ) %>%
@@ -409,7 +410,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     ed <- event_data("plotly_click", source="mutplot", priority = 'event')
     req(ed)
     session$sendCustomMessage("highlightResidueWithSphere",
-                              list(positions = ed$x))
+                              list(positions = ed$x,
+                              colorHex='#477de2'))
   })
 
     output$domainplot <- renderPlotly({
@@ -427,6 +429,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
 
       rects <- pfam_rectangles()
+      print(rects$id)
       print(rects)
       cg <- cur_gene()
 
@@ -435,16 +438,21 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                  layout(title = "No Pfam domains"))
       }
 
+
       p <- ggplot(rects) +
         geom_rect(aes(xmin = xmin, xmax = xmax,
                     ymin = ymin, ymax = ymax,
                     text = text,
                     key = id,
+                    fill = fill_color,
+                    customdata = fill_color
                   ),
 
-                  fill = "steelblue", color = "black", alpha = 0.6) +
+                  color = "black", 
+                  alpha = 0.6) + scale_fill_identity() +
         labs(title = paste("Pfam Domains for", gene()), x = "Residue", y = "") +
-        theme_minimal() + scale_x_continuous(limits = c(0, first(cg$PROTEIN_LENGTH))) + new_theme_empty
+        theme_minimal() + scale_x_continuous(limits = c(0, first(cg$PROTEIN_LENGTH))) + new_theme_empty +
+        guides(fill = FALSE)
 
 
   gg <- ggplotly(p, tooltip = "text", dynamicTicks = TRUE, source = "domainplot") %>%
@@ -465,12 +473,23 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       # priortiy event will be triggered at every event/click
       ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
       req(ed$key)
+
+      print(typeof(ed$key))
+
+      str <- ((ed$key)[[1]])
+      split_vector <- unlist(strsplit(str, "_"))
+      hex <- tail(split_vector, 1)
+
+      # req(ed$fill)
+      # print(ed$fill)
+
+      message("Clicked color: ", ed$customdata)
       domain <- pfam_rectangles()[pfam_rectangles()$id == ed$key, ]
       domain_start <- domain$xmin
       domain_end <- domain$xmax
 
-      session$sendCustomMessage("highlightDomains", 
-      list(residueStart=domain_start, residueEnd=domain_end))
+      session$sendCustomMessage("highlightDomains",
+      list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
     })
 
   })
