@@ -25,13 +25,9 @@ gene_pro_view_ui <- function(id) {
     # ⬇️  place the script LAST so Shiny is ready
     tags$script(src = "static/molstar-custom.js"),
     verbatimTextOutput(NS(id, "resiinfo")),
-    plotlyOutput(NS(id, "mutplot"), width = "600px", height = "300px"),
-    div(style = "position: relative; top: 100px;",
-    # Your Shiny element here
-    # plotlyOutput(NS(id, "mutplot"), width = "600px"),
-),
-
-    verbatimTextOutput(NS(id, "resinumber")),
+    plotlyOutput(NS(id, "mutplot"), width = "600px", height = "150px"),
+    div(style = "position: relative; top: 100px;",),
+    plotlyOutput(NS(id, "domainplot"), width = "600px", height = "150px"),
 
     uiOutput(NS(id, "url"))
    )
@@ -40,6 +36,7 @@ gene_pro_view_ui <- function(id) {
 gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
   moduleServer(id, function(input, output, session) {
     #gene view draopdown menu
+    print(rainbow(3))
     observe({
       choices <- filtered_data() %>% pull(GENE)
 
@@ -57,9 +54,22 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     gene <- reactive(input$geneSelectDropDown)
 
+
+    cur_gene <- reactive({
+      # merge & filter gene info and mutation info and filter for selected gene
+      fd <- filtered_data() %>%
+        merge(genes_info, by = intersect(names(filtered_data()), names(genes_info))) %>%
+        arrange(GENE)
+
+      filter(fd, GENE == gene())
+    })
+
+
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
       "indel-frameshift", "indel-inframe", "synonymous")
+
+    domains_info <- read.csv(ORGANISM_DOMAIN_INFO_PATH)
 
 
     genedatatable <- function(cur_gene) {
@@ -67,7 +77,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       count_proteins <- cur_gene %>%
         mutate(indel = nchar(ALT) - nchar(REF)) %>% # Calculate indel difference
-        group_by(POS) %>%
+        group_by(POS, PROTEIN) %>%
         summarize(
           GENE = first(GENE),
           PROTEIN = first(PROTEIN),
@@ -81,6 +91,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         ) %>%
         ungroup()
 
+      # print(count_proteins)
       count_proteins_same <- count_proteins %>%
         group_by(Numbers) %>%
         summarize(
@@ -171,6 +182,31 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
   })
 
 
+    pfam_rectangles <- reactive({
+      cg <- cur_gene()
+      # Domains found based on UniparcID of the selected gene
+      pd <- domains_info[domains_info$UniparcID == cg$UniparcID, ]
+      pf   <- pd[pd$Database == "Pfam", ]
+      if (nrow(pf) == 0) {
+        return(tibble(xmin=double(), xmax=double(), 
+                      ymin=double(), ymax=double(), 
+                      text=character(),id=character()))
+      }
+      rects <- tibble(
+        xmin = pf$Start,
+        xmax = pf$End,
+        ymin = 0,
+        ymax = 1,
+        text = paste0(pf$Start, "-", pf$End, "\n", pf$Description)
+      ) 
+        
+      rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)))
+      rects
+
+    })
+
+
+
     output$geneViewPlot <- renderPlotly({
       ranges <- reactiveValues(x = NULL, y = NULL)
 
@@ -197,23 +233,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         need(filtered_data(), "Loading data...")
       )
 
-      mutation_data_value <- filtered_data()
-
-      # Merge the data frames based on the common columns
-      common_cols <- intersect(
-        colnames(mutation_data_value),
-        colnames(genes_info)
-      )
-      mutation_data_value <- merge(mutation_data_value, genes_info,
-                                   by = common_cols
-      )
-      mutation_data_value <- mutation_data_value[order(
-        mutation_data_value$GENE
-      ),]
-
-      # Filter data for the specific gene
-      cur_gene <- filter(mutation_data_value, GENE == gene())
-
+      cur_gene <- cur_gene()
       count_proteins_same <- genedatatable(cur_gene)
       # Pattern for extracting the second part of protein
 
@@ -230,7 +250,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       ranges$y <- c(0, max(count_proteins_same$Counts_tot) +
         ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
-      
+
       p <- count_proteins_same %>%
         ggplot(
           aes(
@@ -317,55 +337,29 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # print(input$geneSelectDropDown)
 
     output$mutplot <- renderPlotly({
-      data_df <- data.frame(
-        x = c(0, 250, 0, 0, 0, 683),
-        y = c(0, 0, 0, 0, 0, 0)
-      )
 
-      mutation_data_value <- filtered_data()
-
-      # Merge the data frames based on the common columns
-      common_cols <- intersect(
-        colnames(mutation_data_value),
-        colnames(genes_info)
-      )
-      mutation_data_value <- merge(mutation_data_value, genes_info,
-                                   by = common_cols
-      )
-      mutation_data_value <- mutation_data_value[order(
-        mutation_data_value$GENE
-      ),]
-
-      # Filter data for the specific gene
-      cur_gene <- filter(mutation_data_value, GENE == gene())
-      
+      cur_gene <- cur_gene()
       count_proteins_same <- genedatatable(cur_gene)
       
-      print(count_proteins_same$combined)
+      print(first(cur_gene$PROTEIN_LENGTH))
+
+
+      # print(count_proteins_same$combined)
       amino_acid_loc <- count_proteins_same$Numbers
       data_df <- data.frame(value = amino_acid_loc, dummy_y = 0) 
-      # print(df)
-
-      print(count_proteins_same)
-
-      # observe({
-      #   print(count_proteins_same)
-      # })
-
 
       new_theme_empty <- theme_bw()
       new_theme_empty$line <- element_blank()
       new_theme_empty$rect <- element_blank()
       new_theme_empty$strip.text <- element_blank()
-      new_theme_empty$axis.text <- element_blank()
-      new_theme_empty$plot.title <- element_blank()
+      new_theme_empty$axis.text.y <- element_blank()
       new_theme_empty$axis.title <- element_blank()
       new_theme_empty$plot.margin <- structure(c(0, 0, -1, -1),
                                               unit = "lines",
                                               valid.unit = 3L,
                                               class = "unit")
 
-
+      
       # Create a scatter plot with ggplot2
       gg <- ggplot(data_df, aes(x = value, y = 0,
         text = ifelse(
@@ -390,21 +384,94 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         geom_point(color = "#5b91e2", size = 2.2) + # Add points with specified color and size
         labs(
              x = "X-axis Variable",             # Add x-axis label
-             y = "Y-axis Variable") +  xlim(0, 700) +
+             y = "Y-axis Variable") +  xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
 
-        new_theme_empty + labs(x = "My X-axis Label")
+        new_theme_empty + labs(x = "My X-axis Label") 
 
 
-      ggplotly(gg, tooltip = "text", source = "mutplot")
+      gg <- ggplotly(gg, tooltip = "text", source = "mutplot", dynamicTicks = TRUE) %>%
+      layout(
+          xaxis = list(
+            rangemode = "nonnegative",
+
+            range = c(0, first(cur_gene()$PROTEIN_LENGTH)),   # <— force initial range [0, protein_length]
+            autorange = FALSE         # <— prevent Plotly from auto-expanding it
+          ) 
+        ) %>%
+      
+        config(scrollZoom = TRUE)
+
+      gg
     })
 
 
   observe({
-    ed <- event_data("plotly_click", source="mutplot")
+    ed <- event_data("plotly_click", source="mutplot", priority = 'event')
     req(ed)
     session$sendCustomMessage("highlightResidueWithSphere",
                               list(positions = ed$x))
   })
+
+    output$domainplot <- renderPlotly({
+
+      new_theme_empty <- theme_bw()
+      new_theme_empty$line <- element_blank()
+      new_theme_empty$rect <- element_blank()
+      new_theme_empty$strip.text <- element_blank()
+      new_theme_empty$axis.text.y <- element_blank()
+      new_theme_empty$axis.title <- element_blank()
+      new_theme_empty$plot.margin <- structure(c(0, 0, -1, -1),
+                                              unit = "lines",
+                                              valid.unit = 3L,
+                                              class = "unit")
+
+
+      rects <- pfam_rectangles()
+      print(rects)
+      cg <- cur_gene()
+
+      if (nrow(rects) == 0) {
+        return(plotly_empty(type="scatter", mode="markers") %>%
+                 layout(title = "No Pfam domains"))
+      }
+
+      p <- ggplot(rects) +
+        geom_rect(aes(xmin = xmin, xmax = xmax,
+                    ymin = ymin, ymax = ymax,
+                    text = text,
+                    key = id,
+                  ),
+
+                  fill = "steelblue", color = "black", alpha = 0.6) +
+        labs(title = paste("Pfam Domains for", gene()), x = "Residue", y = "") +
+        theme_minimal() + scale_x_continuous(limits = c(0, first(cg$PROTEIN_LENGTH))) + new_theme_empty
+
+
+  gg <- ggplotly(p, tooltip = "text", dynamicTicks = TRUE, source = "domainplot") %>%
+    layout(
+      xaxis = list(
+        rangemode = "nonnegative",
+
+        range = c(0, first(cg$PROTEIN_LENGTH)),    # <— force initial range [0, protein_length]
+        autorange = FALSE         # <— prevent Plotly from auto-expanding it
+      ) 
+    ) %>% config(scrollZoom = TRUE)
+
+  gg
+      
+    })
+
+    observe({
+      # priortiy event will be triggered at every event/click
+      ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
+      req(ed$key)
+      domain <- pfam_rectangles()[pfam_rectangles()$id == ed$key, ]
+      domain_start <- domain$xmin
+      domain_end <- domain$xmax
+
+      session$sendCustomMessage("highlightDomains", 
+      list(residueStart=domain_start, residueEnd=domain_end))
+    })
 
   })
 }
