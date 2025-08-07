@@ -71,22 +71,17 @@ The CSV file **MUST** have the following columns:
 
 - **CHROM**: the chromosome number in the form of `chr` followed by the chromosome number in uppercase Roman numerals.
 - **POS**: the position of the mutation on the chromosome.
-- **ID**:  output of some sequencing pipelines - if yours doesn't already have it you can add "."
 - **REF**: nucleotide(s) of the reference genome 
 - **ALT**: nucleotide(s) of the mutant/evolved genome
-- **QUAL**: output of some sequencing pipelines - if yours doesn't already have it you can add "NA"
-- **FILTER**: output of some sequencing pipelines - if yours doesn't already have it you can add "NA"
-- **INFO**: output of some sequencing pipelines - if yours doesn't already have it you can add "NA"
 - **ANNOTATION**: the type of variant. (Examples: missense, nonsense, synonymous, intergenic, rDNA, telomere, ncRNA)
 - **REGION**: systematic name of the gene mutated. If the variant is not in a gene region, this should be "NA"
 - **GENE**: common name of the gene mutated. If there is no common name for this gene, then add the systematic name here
 - **PROTEIN**: result of the variant if it occurs in the coding region of a gene. (Example: 'P327R' for a missense or 'P327P' for synonymous). This should be "NA" if the variant is non-coding
-- **seq_file**: name of the sequencing file this came from
 - **background**: genetic background of the mutant (Example: S288C, S288C_diploid)
 - **condition**: condition the mutant was evolved in 
-- **instructor**: teacher/researcher 
-- **year**: current year, or year the data was collected
 - **sample**: names of the mutated/evolved samples. the uploaded CSV can contain many individual sampeles
+
+All other columns that you can see in the table are not necessary to include in your upload.
 
 After uploading, the browser will ask for additional information (instructor and year):
 
