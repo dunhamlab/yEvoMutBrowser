@@ -1,0 +1,1422 @@
+,Unnamed: 0,SGDID,Pathway,PathwayID
+0,0,S000003636,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1,1,S000002210,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+2,2,S000002210,phosphatidate biosynthesis I (the dihydroxyacetone pathway),PWY3O-6407
+3,3,S000002210,phosphatidate biosynthesis II (the glycerol-3-phosphate pathway),PWY3O-6499
+4,4,S000002210,superpathway of phosphatidate biosynthesis,PWY3O-6635
+5,5,S000004296,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+6,6,S000005211,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+7,7,S000004230,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+8,8,S000001079,L-proline degradation,PROUT-PWY
+9,9,S000001079,arginine degradation (aerobic),ARGDEG-YEAST-PWY
+10,10,S000005200,6-hydroxymethyl-dihydropterin diphosphate biosynthesis I,PWY-6147
+11,11,S000005200,folate biosynthesis II,PWY3O-45
+12,12,S000005200,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+13,13,S000005200,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+14,14,S000005200,tetrahydrofolate biosynthesis,PWY-6614
+15,15,S000004578,superpathway of ubiquinone biosynthesis,PWY3O-862
+16,16,S000004578,ubiquinol-6 biosynthesis from 4-hydroxybenzoate (eukaryotic),PWY3O-19
+17,17,S000000453,chorismate biosynthesis,ARO-PWY-1
+18,18,S000000453,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+19,19,S000000453,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+20,20,S000002442,chorismate biosynthesis,ARO-PWY-1
+21,21,S000002442,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+22,22,S000002442,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+23,23,S000003786,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+24,24,S000003786,L-tryptophan degradation to 2-amino-3-carboxymuconate semialdehyde,PWY-5651
+25,25,S000003786,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+26,26,S000003786,superpathway of NAD biosynthesis,PWY3O-4158
+27,27,S000004090,ergosterol biosynthesis,PWY3O-31704
+28,28,S000004090,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+29,29,S000004090,zymosterol biosynthesis,PWY-6074-1
+30,30,S000000469,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+31,31,S000000883,L-serine biosynthesis I,SERSYN-PWY
+32,32,S000000883,superpathway of serine and glycine biosynthesis,PWY3O-261
+33,33,S000001336,L-serine biosynthesis I,SERSYN-PWY
+34,34,S000001336,superpathway of serine and glycine biosynthesis,PWY3O-261
+35,35,S000005324,superpathway of ubiquinone biosynthesis,PWY3O-862
+36,36,S000005324,ubiquinol-6 biosynthesis from 4-hydroxybenzoate (eukaryotic),PWY3O-19
+37,37,S000001788,folate interconversions,PWY3O-697
+38,38,S000001788,folate transformations I,PWY-2201
+39,39,S000001788,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+40,40,S000001788,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+41,41,S000000357,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+42,42,S000002640,superpathway of heme and siroheme biosynthesis,PWY3O-69
+43,43,S000002640,tetrapyrrole biosynthesis,PWY3O-50
+44,44,S000003488,pentose phosphate pathway,PENTOSE-P-PWY
+45,45,S000003488,pentose phosphate pathway (oxidative branch) I,OXIDATIVEPENT-PWY
+46,46,S000003480,pentose phosphate pathway,PENTOSE-P-PWY
+47,47,S000003480,pentose phosphate pathway (oxidative branch) I,OXIDATIVEPENT-PWY
+48,48,S000001206,pentose phosphate pathway,PENTOSE-P-PWY
+49,49,S000001206,pentose phosphate pathway (oxidative branch) I,OXIDATIVEPENT-PWY
+50,50,S000006322,methionine salvage pathway,PWY3O-64
+51,51,S000006322,superpathway of methionine salvage pathway,PWY3O-351
+52,52,S000006179,thiamine biosynthesis,PWY3O-17
+53,53,S000001470,glyoxylate cycle,GLYOXYLATE-BYPASS
+54,54,S000001470,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+55,55,S000007270,"aerobic respiration, electron transport chain",PWY3O-188
+56,56,S000001471,allantoin degradation to glyoxylate I,PWY-5694
+57,57,S000001471,superpathway of allantoin degradation in yeast,ALLANTOINDEG-PWY
+58,58,S000000857,L-histidine biosynthesis,HISTSYN-PWY
+59,59,S000000857,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+60,60,S000003771,assimilatory sulfate reduction I,SO4ASSIM-PWY
+61,61,S000003771,sulfate activation (for sulfonation),PWY-5340
+62,62,S000003771,sulfate assimilation pathway,PWY-781
+63,63,S000003771,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+64,64,S000001484,assimilatory sulfate reduction I,SO4ASSIM-PWY
+65,65,S000001484,sulfate activation (for sulfonation),PWY-5340
+66,66,S000001484,sulfate assimilation pathway,PWY-781
+67,67,S000001484,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+68,68,S000004714,L-isoleucine biosynthesis I (from threonine),ILEUSYN-PWY-1
+69,69,S000004714,L-valine biosynthesis,VALSYN-PWY
+70,70,S000004714,acetoin biosynthesis,PWY3O-335
+71,71,S000004714,superpathway of acetoin and butanediol biosynthesis,PWY3O-981
+72,72,S000004714,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+73,73,S000005949,glutaryl-CoA degradation,PWY-5177
+74,74,S000005949,mevalonate pathway,IPPSYN-PWY
+75,75,S000005949,mevalonate pathway I,PWY-922
+76,76,S000005949,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+77,77,S000004820,"fatty acid biosynthesis, initial steps",PWY3O-10
+78,78,S000004820,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+79,79,S000004820,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+80,80,S000004143,acetate utilization,ACETATEUTIL2-PWY
+81,81,S000004143,ethanol degradation,PWY3O-4300
+82,82,S000005299,"fatty acid biosynthesis, initial steps",PWY3O-10
+83,83,S000005299,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+84,84,S000005299,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+85,85,S000003607,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+86,86,S000004666,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+87,87,S000000871,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+88,88,S000004295,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+89,89,S000004295,glyoxylate cycle,GLYOXYLATE-BYPASS
+90,90,S000004295,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+91,91,S000003780,fatty acid elongation,FASYN-ELONG2-PWY
+92,92,S000003780,myristate biosynthesis,PWY-5971-1
+93,93,S000003780,oleate biosynthesis,PWY3O-5268
+94,94,S000003780,palmitoleate biosynthesis,PWY3O-1801
+95,95,S000003780,stearate biosynthesis III (fungi),PWY3O-355
+96,96,S000003780,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+97,97,S000003780,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+98,98,S000004484,"salvage pathways of adenine, hypoxanthine and their nucleosides",PWY3O-2220
+99,99,S000004484,salvage pathways of purines and their nucleosides,PWY3O-1
+100,100,S000004484,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+101,101,S000003866,"salvage pathways of adenine, hypoxanthine and their nucleosides",PWY3O-2220
+102,102,S000003866,salvage pathways of purines and their nucleosides,PWY3O-1
+103,103,S000003866,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+104,104,S000005412,spermidine biosynthesis I,BSUBPOLYAMSYN-PWY
+105,105,S000005412,spermine biosynthesis,ARGSPECAT-PWY
+106,106,S000005412,superpathway of methionine salvage pathway,PWY3O-351
+107,107,S000005412,superpathway of polyamine biosynthesis,POLYAMSYN-YEAST-PWY
+108,108,S000005341,biotin biosynthesis,BIOTIN-SYNTHESIS-PWY
+109,109,S000002634,adenosine ribonucleotides de novo biosynthesis,PWY-7219
+110,110,S000002634,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+111,111,S000002634,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+112,112,S000002634,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+113,113,S000002634,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+114,114,S000002634,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+115,115,S000004351,adenosine ribonucleotides de novo biosynthesis,PWY-7219
+116,116,S000004351,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+117,117,S000004351,inosine-5'-phosphate biosynthesis I,PWY-6123-1
+118,118,S000004351,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+119,119,S000004351,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+120,120,S000004351,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+121,121,S000004351,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+122,122,S000005164,adenosine ribonucleotides de novo biosynthesis,PWY-7219
+123,123,S000005164,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+124,124,S000005164,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+125,125,S000005164,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+126,126,S000005164,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+127,127,S000005164,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+128,128,S000002327,formaldehyde oxidation II (glutathione-dependent),PWY-1801-1
+129,129,S000002327,isoleucine degradation,PWY3O-4109
+130,130,S000002327,leucine degradation,PWY3O-4112
+131,131,S000002327,phenylalanine degradation,PWY3O-4115
+132,132,S000002327,tryptophan degradation,PWY3O-214
+133,133,S000002327,valine degradation,PWY3O-4105
+134,134,S000005446,L-tyrosine degradation III,PWY3O-4108
+135,135,S000005446,isoleucine degradation,PWY3O-4109
+136,136,S000005446,leucine degradation,PWY3O-4112
+137,137,S000005446,phenylalanine degradation,PWY3O-4115
+138,138,S000005446,superpathway of glucose fermentation,GLUCFERMEN-PWY
+139,139,S000005446,tryptophan degradation,PWY3O-214
+140,140,S000005446,valine degradation,PWY3O-4105
+141,141,S000005982,superpathway of glucose fermentation,GLUCFERMEN-PWY
+142,142,S000005901,superpathway of glucose fermentation,GLUCFERMEN-PWY
+143,143,S000001146,xylose metabolism,PWY3O-8
+144,144,S000001468,allantoin degradation to glyoxylate I,PWY-5694
+145,145,S000001468,allantoin degradation to ureidoglycolate I (urea producing),PWY-5697
+146,146,S000001468,superpathway of allantoin degradation in yeast,ALLANTOINDEG-PWY
+147,147,S000001466,allantoin degradation to glyoxylate I,PWY-5694
+148,148,S000001466,allantoin degradation to ureidoglycolate I (urea producing),PWY-5697
+149,149,S000001466,superpathway of allantoin degradation in yeast,ALLANTOINDEG-PWY
+150,150,S000001926,assimilatory sulfate reduction I,SO4ASSIM-PWY
+151,151,S000001926,sulfate assimilation pathway,PWY-781
+152,152,S000001926,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+153,153,S000006230,trehalose degradation,TREDEG-YEAST-PWY
+154,154,S000002408,trehalose degradation,TREDEG-YEAST-PWY
+155,155,S000000330,trehalose biosynthesis I,TRESYN-PWY
+156,156,S000004993,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+157,157,S000005528,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+158,158,S000005593,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+159,159,S000000178,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+160,160,S000005313,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+161,161,S000005048,L-leucine biosynthesis,LEUSYN-PWY-1
+162,162,S000005048,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+163,163,S000005634,L-leucine biosynthesis,LEUSYN-PWY-1
+164,164,S000005634,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+165,165,S000004915,5-aminoimidazole ribonucleotide biosynthesis II,PWY-6122-1
+166,166,S000004915,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+167,167,S000004915,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+168,168,S000004915,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+169,169,S000004915,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+170,170,S000006388,glycogen catabolism,GLYCOCAT-YEAST-PWY
+171,171,S000000274,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+172,172,S000003015,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+173,173,S000005085,"salvage pathways of adenine, hypoxanthine and their nucleosides",PWY3O-2220
+174,174,S000005085,salvage pathways of purines and their nucleosides,PWY3O-1
+175,175,S000005085,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+176,176,S000004779,&beta;-alanine biosynthesis IV,PWY-5760-1
+177,177,S000004779,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+178,178,S000004780,&beta;-alanine biosynthesis IV,PWY-5760-1
+179,179,S000004780,ethanol degradation,PWY3O-4300
+180,180,S000004780,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+181,181,S000004780,superpathway of glucose fermentation,GLUCFERMEN-PWY
+182,182,S000002762,L-tryptophan biosynthesis,TRPSYN-PWY-1
+183,183,S000002762,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+184,184,S000002762,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+185,185,S000000892,L-tryptophan biosynthesis,TRPSYN-PWY-1
+186,186,S000000892,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+187,187,S000000892,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+188,188,S000005419,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+189,189,S000003170,L-tyrosine degradation III,PWY3O-4108
+190,190,S000003170,methionine salvage pathway,PWY3O-64
+191,191,S000003170,phenylalanine biosynthesis,PWY3O-4153
+192,192,S000003170,phenylalanine degradation,PWY3O-4115
+193,193,S000003170,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+194,194,S000003170,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+195,195,S000003170,superpathway of methionine salvage pathway,PWY3O-351
+196,196,S000003170,tryptophan degradation,PWY3O-214
+197,197,S000003170,tyrosine biosynthesis,PWY3O-4120
+198,198,S000001179,L-tyrosine degradation III,PWY3O-4108
+199,199,S000001179,methionine salvage pathway,PWY3O-64
+200,200,S000001179,phenylalanine biosynthesis,PWY3O-4153
+201,201,S000001179,phenylalanine degradation,PWY3O-4115
+202,202,S000001179,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+203,203,S000001179,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+204,204,S000001179,superpathway of methionine salvage pathway,PWY3O-351
+205,205,S000001179,tryptophan degradation,PWY3O-214
+206,206,S000001179,tyrosine biosynthesis,PWY3O-4120
+207,207,S000002836,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+208,208,S000002836,L-tryptophan degradation to 2-amino-3-carboxymuconate semialdehyde,PWY-5651
+209,209,S000002836,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+210,210,S000002836,superpathway of NAD biosynthesis,PWY3O-4158
+211,211,S000004148,asparagine degradation,ASPARAGINE-DEG2-PWY
+212,212,S000004145,asparagine degradation,ASPARAGINE-DEG2-PWY
+213,213,S000004147,asparagine degradation,ASPARAGINE-DEG2-PWY
+214,214,S000004150,asparagine degradation,ASPARAGINE-DEG2-PWY
+215,215,S000006349,L-asparagine biosynthesis I,ASPARAGINE-BIOSYNTHESIS-1
+216,216,S000003356,L-asparagine biosynthesis I,ASPARAGINE-BIOSYNTHESIS-1
+217,217,S000000854,L-homoserine biosynthesis,HOMOSERSYN-PWY
+218,218,S000000854,superpathway of L-threonine biosynthesis,THRESYN-PWY
+219,219,S000000854,superpathway of methionine biosynthesis,PWY3O-954
+220,220,S000000854,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+221,221,S000000854,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+222,222,S000000854,superpathway of threonine biosynthesis,PWY3O-7
+223,223,S000002565,L-homoserine biosynthesis,HOMOSERSYN-PWY
+224,224,S000002565,superpathway of L-threonine biosynthesis,THRESYN-PWY
+225,225,S000002565,superpathway of methionine biosynthesis,PWY3O-954
+226,226,S000002565,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+227,227,S000002565,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+228,228,S000002565,superpathway of threonine biosynthesis,PWY3O-7
+229,229,S000000314,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+230,230,S000001424,sucrose degradation,SUCUTIL-PWY-2
+231,231,S000005427,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+232,232,S000000223,galactose degradation,YEAST-GALACT-METAB-PWY
+233,233,S000001507,UTP and CTP de novo biosynthesis,PWY-7176
+234,234,S000001507,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+235,235,S000001507,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+236,236,S000001507,salvage pathways of pyrimidine ribonucleotides,YEAST-RNT-SALV
+237,237,S000001507,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+238,238,S000001507,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+239,239,S000004123,phosphatidylcholine biosynthesis I,PWY3O-450
+240,240,S000004123,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+241,241,S000004123,superpathway of phospholipid biosynthesis,PWY3O-2
+242,242,S000004402,inositol phosphate biosynthesis,PWY3O-402
+243,243,S000004294,L-homocysteine biosynthesis,PWY-5344
+244,244,S000004294,superpathway of methionine biosynthesis,PWY3O-954
+245,245,S000004294,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+246,246,S000004294,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+247,247,S000000452,L-histidine biosynthesis,HISTSYN-PWY
+248,248,S000000452,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+249,249,S000001116,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+250,250,S000001116,NAD biosynthesis from 2-amino-3-carboxymuconate semialdehyde,PWY-5653
+251,251,S000001116,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+252,252,S000001116,NAD salvage pathway V (PNC V cycle),PWY3O-4107
+253,253,S000001116,superpathway of NAD biosynthesis,PWY3O-4158
+254,254,S000000540,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+255,255,S000000540,glutathione-glutaredoxin system,PWY3O-592
+256,256,S000006135,thiamine biosynthesis,PWY3O-17
+257,257,S000000387,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+258,258,S000000417,siroheme biosynthesis,PWY-5194-1
+259,259,S000000417,superpathway of heme and siroheme biosynthesis,PWY3O-69
+260,260,S000001386,phosphatidate biosynthesis I (the dihydroxyacetone pathway),PWY3O-6407
+261,261,S000001386,superpathway of phosphatidate biosynthesis,PWY3O-6635
+262,262,S000003518,biotin biosynthesis,BIOTIN-SYNTHESIS-PWY
+263,263,S000003909,L-isoleucine biosynthesis I (from threonine),ILEUSYN-PWY-1
+264,264,S000003909,L-leucine biosynthesis,LEUSYN-PWY-1
+265,265,S000003909,L-valine biosynthesis,VALSYN-PWY
+266,266,S000003909,isoleucine degradation,PWY3O-4109
+267,267,S000003909,leucine degradation,PWY3O-4112
+268,268,S000003909,methionine salvage pathway,PWY3O-64
+269,269,S000003909,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+270,270,S000003909,superpathway of methionine salvage pathway,PWY3O-351
+271,271,S000003909,valine degradation,PWY3O-4105
+272,272,S000001251,L-isoleucine biosynthesis I (from threonine),ILEUSYN-PWY-1
+273,273,S000001251,L-leucine biosynthesis,LEUSYN-PWY-1
+274,274,S000001251,L-valine biosynthesis,VALSYN-PWY
+275,275,S000001251,isoleucine degradation,PWY3O-4109
+276,276,S000001251,leucine degradation,PWY3O-4112
+277,277,S000001251,methionine salvage pathway,PWY3O-64
+278,278,S000001251,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+279,279,S000001251,superpathway of methionine salvage pathway,PWY3O-351
+280,280,S000001251,valine degradation,PWY3O-4105
+281,281,S000004617,ergosterol biosynthesis,PWY3O-31704
+282,282,S000004617,ergosterol biosynthesis I,PWY-6075-1
+283,283,S000004617,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+284,284,S000002969,ergosterol biosynthesis,PWY3O-31704
+285,285,S000002969,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+286,286,S000002969,zymosterol biosynthesis,PWY-6074-1
+287,287,S000003292,ergosterol biosynthesis,PWY3O-31704
+288,288,S000003292,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+289,289,S000003292,zymosterol biosynthesis,PWY-6074-1
+290,290,S000004046,ergosterol biosynthesis,PWY3O-31704
+291,291,S000004046,ergosterol biosynthesis I,PWY-6075-1
+292,292,S000004046,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+293,293,S000004815,ergosterol biosynthesis,PWY3O-31704
+294,294,S000004815,ergosterol biosynthesis I,PWY-6075-1
+295,295,S000004815,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+296,296,S000006317,phosphatidylinositol biosynthesis,PWY3O-3
+297,297,S000006317,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+298,298,S000006317,superpathway of phospholipid biosynthesis,PWY3O-2
+299,299,S000000828,phosphatidylethanolamine biosynthesis I,PWY-5669
+300,300,S000000828,phospholipid biosynthesis,PHOSLIPSYN2-PWY-1
+301,301,S000000828,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+302,302,S000000828,superpathway of phospholipid biosynthesis,PWY3O-2
+303,303,S000003864,UTP and CTP de novo biosynthesis,PWY-7176
+304,304,S000003864,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+305,305,S000003864,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+306,306,S000003864,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+307,307,S000000135,UTP and CTP de novo biosynthesis,PWY-7176
+308,308,S000000135,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+309,309,S000000135,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+310,310,S000000135,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+311,311,S000003666,UMP biosynthesis I,PWY-5686-1
+312,312,S000003666,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+313,313,S000003666,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+314,314,S000003666,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+315,315,S000002301,phospholipid biosynthesis,PHOSLIPSYN2-PWY-1
+316,316,S000002301,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+317,317,S000002301,superpathway of phospholipid biosynthesis,PWY3O-2
+318,318,S000004506,carnitine shuttle,PWY3O-4
+319,319,S000002664,superoxide radicals degradation,DETOX1-PWY
+320,320,S000005978,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+321,321,S000005662,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+322,322,S000005662,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+323,323,S000000425,pyruvate decarboxylation to acetyl CoA,PYRUVDEHYD-PWY
+324,324,S000004298,chitosan biosynthesis,PWY3O-70
+325,325,S000004299,chitosan biosynthesis,PWY3O-70
+326,326,S000005136,chitin biosynthesis,PWY3O-15
+327,327,S000000227,chitin biosynthesis,PWY3O-15
+328,328,S000000242,chitin biosynthesis,PWY3O-15
+329,329,S000003434,phosphatidylcholine biosynthesis I,PWY3O-450
+330,330,S000003434,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+331,331,S000003434,superpathway of phospholipid biosynthesis,PWY3O-2
+332,332,S000006264,phenylalanine biosynthesis,PWY3O-4153
+333,333,S000006264,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+334,334,S000006264,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+335,335,S000006264,tyrosine biosynthesis,PWY3O-4120
+336,336,S000000598,glyoxylate cycle,GLYOXYLATE-BYPASS
+337,337,S000000598,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+338,338,S000000141,"aerobic respiration, electron transport chain",PWY3O-188
+339,339,S000002451,heme b biosynthesis I (aerobic),HEME-BIOSYNTHESIS-II
+340,340,S000002451,superpathway of heme and siroheme biosynthesis,PWY3O-69
+341,341,S000000129,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+342,342,S000003152,homocysteine and cysteine interconversion,HOMOCYS-CYS-CONVERT
+343,343,S000003152,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+344,344,S000003387,L-cysteine biosynthesis III (from L-homocysteine),HOMOCYSDEGR-PWY-1
+345,345,S000003387,cysteine biosynthesis from homocysteine,CYSTEINE-SYN2-PWY
+346,346,S000003387,homocysteine and cysteine interconversion,HOMOCYS-CYS-CONVERT
+347,347,S000003387,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+348,348,S000000010,L-cysteine biosynthesis III (from L-homocysteine),HOMOCYSDEGR-PWY-1
+349,349,S000000010,cysteine biosynthesis from homocysteine,CYSTEINE-SYN2-PWY
+350,350,S000000010,homocysteine and cysteine interconversion,HOMOCYS-CYS-CONVERT
+351,351,S000000010,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+352,352,S000000010,threonine degradation,THREOCAT2-PWY
+353,353,S000003891,homocysteine and cysteine interconversion,HOMOCYS-CYS-CONVERT
+354,354,S000003891,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+355,355,S000000737,glycogen biosynthesis,PWY3O-4031
+356,356,S000004902,4-aminobenzoate biosynthesis,PWY-6543
+357,357,S000004902,folate biosynthesis II,PWY3O-45
+358,358,S000004902,p-aminobenzoate biosynthesis,PWY3O-1874
+359,359,S000004902,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+360,360,S000004902,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+361,361,S000005316,4-aminobenzoate biosynthesis,PWY-6543
+362,362,S000005316,folate biosynthesis II,PWY3O-45
+363,363,S000005316,p-aminobenzoate biosynthesis,PWY3O-1874
+364,364,S000005316,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+365,365,S000005316,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+366,366,S000004498,"salvage pathways of adenine, hypoxanthine and their nucleosides",PWY3O-2220
+367,367,S000004498,salvage pathways of purines and their nucleosides,PWY3O-1
+368,368,S000004498,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+369,369,S000002203,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+370,370,S000000319,L-lysine biosynthesis IV,LYSINE-AMINOAD-PWY-2
+371,371,S000004918,L-tyrosine degradation III,PWY3O-4108
+372,372,S000004918,ethanol degradation,PWY3O-4300
+373,373,S000004918,isoleucine degradation,PWY3O-4109
+374,374,S000004918,leucine degradation,PWY3O-4112
+375,375,S000004918,phenylalanine degradation,PWY3O-4115
+376,376,S000004918,superpathway of glucose fermentation,GLUCFERMEN-PWY
+377,377,S000004918,tryptophan degradation,PWY3O-214
+378,378,S000004918,valine degradation,PWY3O-4105
+379,379,S000005710,L-serine biosynthesis I,SERSYN-PWY
+380,380,S000005710,superpathway of serine and glycine biosynthesis,PWY3O-261
+381,381,S000000845,S-adenosyl-L-methionine cycle II,PWY-5041
+382,382,S000000056,"(R,R)-butanediol degradation",PWY3O-246
+383,383,S000000056,acetoin biosynthesis,PWY3O-335
+384,384,S000000056,butanediol biosynthesis,PWY3O-661
+385,385,S000000056,superpathway of acetoin and butanediol biosynthesis,PWY3O-981
+386,386,S000003320,superoxide radicals degradation,DETOX1-PWY
+387,387,S000003116,chorismate biosynthesis,ARO-PWY-1
+388,388,S000003116,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+389,389,S000003116,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+390,390,S000005706,fatty acid oxidation pathway,YEAST-FAO-PWY
+391,391,S000005185,pentose phosphate pathway,PENTOSE-P-PWY
+392,392,S000005185,pentose phosphate pathway (oxidative branch) I,OXIDATIVEPENT-PWY
+393,393,S000004048,folate interconversions,PWY3O-697
+394,394,S000004048,folate polyglutamylation,PWY3O-20
+395,395,S000004048,folate transformations I,PWY-2201
+396,396,S000004048,glycine biosynthesis I,GLYSYN-PWY
+397,397,S000004048,serine biosynthesis from glyoxylate,PWY3O-230
+398,398,S000004048,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+399,399,S000004048,superpathway of serine and glycine biosynthesis,PWY3O-261
+400,400,S000004048,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+401,401,S000000467,folate interconversions,PWY3O-697
+402,402,S000000467,folate polyglutamylation,PWY3O-20
+403,403,S000000467,folate transformations I,PWY-2201
+404,404,S000000467,glycine biosynthesis I,GLYSYN-PWY
+405,405,S000000467,serine biosynthesis from glyoxylate,PWY3O-230
+406,406,S000000467,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+407,407,S000000467,superpathway of serine and glycine biosynthesis,PWY3O-261
+408,408,S000000467,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+409,409,S000003673,glycogen biosynthesis,PWY3O-4031
+410,410,S000002397,"salvage pathways of guanine, xanthine and their nucleosides",PWY3O-743
+411,411,S000002397,salvage pathways of purines and their nucleosides,PWY3O-1
+412,412,S000002397,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+413,413,S000001921,L-histidine biosynthesis,HISTSYN-PWY
+414,414,S000001921,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+415,415,S000002424,inositol phosphate biosynthesis,PWY3O-402
+416,416,S000002977,L-leucine biosynthesis,LEUSYN-PWY-1
+417,417,S000002977,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+418,418,S000003871,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+419,419,S000001667,putrescine biosynthesis III,PWY-46
+420,420,S000001667,superpathway of polyamine biosynthesis,POLYAMSYN-YEAST-PWY
+421,421,S000004884,UMP biosynthesis I,PWY-5686-1
+422,422,S000004884,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+423,423,S000004884,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+424,424,S000004884,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+425,425,S000006371,assimilatory sulfate reduction I,SO4ASSIM-PWY
+426,426,S000006371,sulfate assimilation pathway,PWY-781
+427,427,S000006371,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+428,428,S000001610,dolichyl glucosyl phosphate biosynthesis,PWY3O-1565
+429,429,S000001610,galactose degradation,YEAST-GALACT-METAB-PWY
+430,430,S000001610,glycogen biosynthesis,PWY3O-4031
+431,431,S000001610,glycogen catabolism,GLYCOCAT-YEAST-PWY
+432,432,S000004711,dolichyl glucosyl phosphate biosynthesis,PWY3O-1565
+433,433,S000004711,galactose degradation,YEAST-GALACT-METAB-PWY
+434,434,S000004711,glycogen biosynthesis,PWY3O-4031
+435,435,S000004711,glycogen catabolism,GLYCOCAT-YEAST-PWY
+436,436,S000005654,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+437,437,S000005654,inosine-5'-phosphate biosynthesis I,PWY-6123-1
+438,438,S000005654,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+439,439,S000005654,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+440,440,S000005654,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+441,441,S000002414,L-tryptophan biosynthesis,TRPSYN-PWY-1
+442,442,S000002414,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+443,443,S000002414,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+444,444,S000005260,phenylalanine biosynthesis,PWY3O-4153
+445,445,S000005260,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+446,446,S000005260,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+447,447,S000000370,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+448,448,S000000370,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+449,449,S000000370,tyrosine biosynthesis,PWY3O-4120
+450,450,S000003319,L-tyrosine degradation III,PWY3O-4108
+451,451,S000003319,isoleucine degradation,PWY3O-4109
+452,452,S000003319,phenylalanine degradation,PWY3O-4115
+453,453,S000003319,pyruvate fermentation to acetoin III,PWY3O-440
+454,454,S000003319,superpathway of acetoin and butanediol biosynthesis,PWY3O-981
+455,455,S000003319,superpathway of glucose fermentation,GLUCFERMEN-PWY
+456,456,S000003319,tryptophan degradation,PWY3O-214
+457,457,S000003319,valine degradation,PWY3O-4105
+458,458,S000000210,4-aminobutyrate degradation,YEAST-4AMINOBUTMETAB-PWY
+459,459,S000000210,glutamate degradation I,GLUDEG-I-PWY-1
+460,460,S000003894,"salvage pathways of guanine, xanthine and their nucleosides",PWY3O-743
+461,461,S000003894,salvage pathways of purines and their nucleosides,PWY3O-1
+462,462,S000003894,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+463,463,S000003426,xylulose degradation,PWY3O-5
+464,464,S000006266,salvage pathways of pyrimidine ribonucleotides,YEAST-RNT-SALV
+465,465,S000002895,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+466,466,S000000353,"dehydro-D-arabinono-1,4-lactone biosynthesis",PWY3O-6-1
+467,467,S000005486,gluconeogenesis I,GLUCONEO-PWY-1
+468,468,S000005486,glyoxylate cycle,GLYOXYLATE-BYPASS
+469,469,S000005486,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+470,470,S000003604,formaldehyde oxidation II (glutathione-dependent),PWY-1801-1
+471,471,S000000050,acetate utilization,ACETATEUTIL2-PWY
+472,472,S000000050,ethanol degradation,PWY3O-4300
+473,473,S000000523,L-leucine biosynthesis,LEUSYN-PWY-1
+474,474,S000000523,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+475,475,S000000826,carnitine shuttle,PWY3O-4
+476,476,S000005915,formaldehyde oxidation II (glutathione-dependent),PWY-1801-1
+477,477,S000002708,L-proline biosynthesis I,PROSYN-PWY
+478,478,S000005850,L-proline biosynthesis I,PROSYN-PWY
+479,479,S000003376,thiamine biosynthesis,PWY3O-17
+480,480,S000004164,superpathway of glutamate biosynthesis,PWY3O-13
+481,481,S000000825,L-arginine degradation VI (arginase 2 pathway),ARG-PRO-PWY
+482,482,S000000825,L-proline biosynthesis I,PROSYN-PWY
+483,483,S000000825,arginine degradation (aerobic),ARGDEG-YEAST-PWY
+484,484,S000003657,pentose phosphate pathway,PENTOSE-P-PWY
+485,485,S000003657,pentose phosphate pathway (non-oxidative branch),NONOXIPENT-PWY
+486,486,S000005416,thiamine biosynthesis,PWY3O-17
+487,487,S000000772,glycine biosynthesis IV,GLYSYN-THR-PWY
+488,488,S000000772,superpathway of serine and glycine biosynthesis,PWY3O-261
+489,489,S000004551,"dehydro-D-arabinono-1,4-lactone biosynthesis",PWY3O-6-1
+490,490,S000004060,xylose metabolism,PWY3O-8
+491,491,S000004274,fatty acid oxidation pathway,YEAST-FAO-PWY
+492,492,S000005224,ergosterol biosynthesis,PWY3O-31704
+493,493,S000005224,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+494,494,S000005224,zymosterol biosynthesis,PWY-6074-1
+495,495,S000005340,biotin biosynthesis,BIOTIN-SYNTHESIS-PWY
+496,496,S000005771,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+497,497,S000001165,phospholipid biosynthesis II (Kennedy pathway),PWY3O-259
+498,498,S000001165,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+499,499,S000001165,superpathway of phospholipid biosynthesis,PWY3O-2
+500,500,S000005074,phosphatidylcholine biosynthesis I,PWY3O-450
+501,501,S000005074,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+502,502,S000005074,superpathway of phospholipid biosynthesis,PWY3O-2
+503,503,S000002692,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+504,504,S000005838,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+505,505,S000006008,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+506,506,S000005762,folate biosynthesis II,PWY3O-45
+507,507,S000005762,folate interconversions,PWY3O-697
+508,508,S000005762,folate polyglutamylation,PWY3O-20
+509,509,S000005762,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+510,510,S000005762,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+511,511,S000005762,tetrahydrofolate biosynthesis,PWY-6614
+512,512,S000004719,folate biosynthesis II,PWY3O-45
+513,513,S000004719,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+514,514,S000004719,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+515,515,S000004719,tetrahydrofolate biosynthesis,PWY-6614
+516,516,S000001876,2-oxoglutarate decarboxylation to succinyl-CoA,PWY-5084
+517,517,S000001876,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+518,518,S000001876,folate interconversions,PWY3O-697
+519,519,S000001876,folate transformations I,PWY-2201
+520,520,S000001876,glycine cleavage,GLYCLEAV-PWY
+521,521,S000001876,pyruvate decarboxylation to acetyl CoA,PYRUVDEHYD-PWY
+522,522,S000001876,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+523,523,S000001876,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+524,524,S000001876,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+525,525,S000005015,pyruvate decarboxylation to acetyl CoA,PYRUVDEHYD-PWY
+526,526,S000002555,2-oxoglutarate decarboxylation to succinyl-CoA,PWY-5084
+527,527,S000002555,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+528,528,S000002555,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+529,529,S000004412,UMP biosynthesis I,PWY-5686-1
+530,530,S000004412,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+531,531,S000004412,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+532,532,S000004412,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+533,533,S000001699,UMP biosynthesis I,PWY-5686-1
+534,534,S000001699,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+535,535,S000001699,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+536,536,S000001699,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+537,537,S000003670,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+538,538,S000003703,ergosterol biosynthesis,PWY3O-31704
+539,539,S000003703,hexaprenyl diphosphate biosynthesis,HEXPPSYN-PWY-2
+540,540,S000003703,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+541,541,S000003703,superpathway of ubiquinone biosynthesis,PWY3O-862
+542,542,S000003703,"trans, trans-farnesyl diphosphate biosynthesis",PWY-5123
+543,543,S000005326,mevalonate pathway,IPPSYN-PWY
+544,544,S000005326,mevalonate pathway I,PWY-922
+545,545,S000005326,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+546,546,S000004162,diphthamide biosynthesis,PWY-6482-1
+547,547,S000000450,diphthamide biosynthesis,PWY-6482-1
+548,548,S000004033,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+549,549,S000004033,assimilatory sulfate reduction I,SO4ASSIM-PWY
+550,550,S000004033,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+551,551,S000004033,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+552,552,S000004033,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+553,553,S000004033,sulfate assimilation pathway,PWY-781
+554,554,S000004033,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+555,555,S000004033,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+556,556,S000004033,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+557,557,S000004033,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+558,558,S000004033,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+559,559,S000004033,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+560,560,S000004033,thioredoxin pathway,THIOREDOX-PWY
+561,561,S000005163,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+562,562,S000000447,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+563,563,S000006148,dolichyl glucosyl phosphate biosynthesis,PWY3O-1565
+564,564,S000006387,dolichyl phosphate D-mannose biosynthesis,PWY3O-123
+565,565,S000003459,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+566,566,S000001761,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+567,567,S000001717,fatty acid oxidation pathway,YEAST-FAO-PWY
+568,568,S000001717,glutaryl-CoA degradation,PWY-5177
+569,569,S000003633,glutaryl-CoA degradation,PWY-5177
+570,570,S000003633,very long chain fatty acid biosynthesis I,PWY-5080-1
+571,571,S000002554,phospholipid biosynthesis II (Kennedy pathway),PWY3O-259
+572,572,S000002554,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+573,573,S000002554,superpathway of phospholipid biosynthesis,PWY3O-2
+574,574,S000003239,phospholipid biosynthesis II (Kennedy pathway),PWY3O-259
+575,575,S000003239,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+576,576,S000003239,superpathway of phospholipid biosynthesis,PWY3O-2
+577,577,S000001631,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+578,578,S000001631,"aerobic respiration, electron transport chain",PWY3O-188
+579,579,S000001631,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+580,580,S000001233,epoxysqualene biosynthesis,PWY-5670-1
+581,581,S000001233,ergosterol biosynthesis,PWY3O-31704
+582,582,S000001233,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+583,583,S000004885,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+584,584,S000004364,very long chain fatty acid biosynthesis I,PWY-5080-1
+585,585,S000000630,very long chain fatty acid biosynthesis I,PWY-5080-1
+586,586,S000005844,fatty acid oxidation pathway,YEAST-FAO-PWY
+587,587,S000005702,heme b biosynthesis I (aerobic),HEME-BIOSYNTHESIS-II
+588,588,S000005702,superpathway of heme and siroheme biosynthesis,PWY3O-69
+589,589,S000000239,pyridoxal 5'-phosphate salvage I,PLPSAL-PWY
+590,590,S000003487,superpathway of ubiquinone biosynthesis,PWY3O-862
+591,591,S000003487,ubiquinol-6 biosynthesis from 4-hydroxybenzoate (eukaryotic),PWY3O-19
+592,592,S000003436,folate interconversions,PWY3O-697
+593,593,S000003436,folate polyglutamylation,PWY3O-20
+594,594,S000003436,folate transformations I,PWY-2201
+595,595,S000003436,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+596,596,S000003436,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+597,597,S000004369,gluconeogenesis I,GLUCONEO-PWY-1
+598,598,S000004369,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+599,599,S000004369,superpathway of glucose fermentation,GLUCFERMEN-PWY
+600,600,S000001543,gluconeogenesis I,GLUCONEO-PWY-1
+601,601,S000001543,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+602,602,S000001543,superpathway of glucose fermentation,GLUCFERMEN-PWY
+603,603,S000006183,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+604,604,S000006183,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+605,605,S000003499,6-hydroxymethyl-dihydropterin diphosphate biosynthesis I,PWY-6147
+606,606,S000003499,folate biosynthesis II,PWY3O-45
+607,607,S000003499,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+608,608,S000003499,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+609,609,S000002213,dolichyl phosphate D-mannose biosynthesis,PWY3O-123
+610,610,S000000224,galactose degradation,YEAST-GALACT-METAB-PWY
+611,611,S000000222,galactose degradation,YEAST-GALACT-METAB-PWY
+612,612,S000003251,4-aminobutyrate degradation,YEAST-4AMINOBUTMETAB-PWY
+613,613,S000003251,glutamate degradation I,GLUDEG-I-PWY-1
+614,614,S000003637,glutathione biosynthesis,GLUTATHIONESYN-PWY
+615,615,S000003637,superpathway of glutathione metabolism (truncated &gamma;-glutamyl cycle),PWY3O-114
+616,616,S000000545,glucose-6-phosphate biosynthesis,PWY3O-3827
+617,617,S000000545,mannose degradation,PWY3O-1743
+618,618,S000000545,superpathway of glucose fermentation,GLUCFERMEN-PWY
+619,619,S000001877,UDP-N-acetylglucosamine biosynthesis,UDPNAGSYN-YEAST-PWY
+620,620,S000004862,glutamate degradation I,GLUDEG-I-PWY-1
+621,621,S000005902,glutamate biosynthesis from ammonia,GLUNH3-PWY
+622,622,S000005902,superpathway of glutamate biosynthesis,PWY3O-13
+623,623,S000000058,glutamate biosynthesis from ammonia,GLUNH3-PWY
+624,624,S000000058,superpathway of glutamate biosynthesis,PWY3O-13
+625,625,S000002374,glutamate degradation IX,PWY-3322
+626,626,S000006239,L-glutamine biosynthesis I,GLNSYN-PWY
+627,627,S000006239,superpathway of glutamate biosynthesis,PWY3O-13
+628,628,S000001587,UDP-N-acetylglucosamine biosynthesis,UDPNAGSYN-YEAST-PWY
+629,629,S000004830,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+630,630,S000004830,guanosine ribonucleotides de novo biosynthesis,PWY-7221
+631,631,S000004830,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+632,632,S000004830,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+633,633,S000004830,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+634,634,S000004830,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+635,635,S000005829,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+636,636,S000005829,citrulline biosynthesis,CITRUL-BIO2-PWY
+637,637,S000005829,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+638,638,S000004290,glutathione degradation,PWYQT-4432
+639,639,S000004290,superpathway of glutathione metabolism (truncated &gamma;-glutamyl cycle),PWY3O-114
+640,640,S000002921,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+641,641,S000002921,glutathione-glutaredoxin system,PWY3O-592
+642,642,S000000448,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+643,643,S000001509,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+644,644,S000001476,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+645,645,S000005409,glutathione biosynthesis,GLUTATHIONESYN-PWY
+646,646,S000005409,superpathway of glutathione metabolism (truncated &gamma;-glutamyl cycle),PWY3O-114
+647,647,S000001477,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+648,648,S000003983,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+649,649,S000006012,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+650,650,S000006012,glutathione-glutaredoxin system,PWY3O-592
+651,651,S000003424,gluconeogenesis I,GLUCONEO-PWY-1
+652,652,S000003424,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+653,653,S000003424,superpathway of glucose fermentation,GLUCFERMEN-PWY
+654,654,S000003769,gluconeogenesis I,GLUCONEO-PWY-1
+655,655,S000003769,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+656,656,S000003769,superpathway of glucose fermentation,GLUCFERMEN-PWY
+657,657,S000001024,glycerol degradation,AERO-GLYCEROL-CAT-PWY
+658,658,S000001775,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+659,659,S000001775,phosphatidate biosynthesis I (the dihydroxyacetone pathway),PWY3O-6407
+660,660,S000001775,phosphatidate biosynthesis II (the glycerol-3-phosphate pathway),PWY3O-6499
+661,661,S000001775,superpathway of phosphatidate biosynthesis,PWY3O-6635
+662,662,S000001417,glycerol degradation,AERO-GLYCEROL-CAT-PWY
+663,663,S000000107,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+664,664,S000000107,phosphatidate biosynthesis I (the dihydroxyacetone pathway),PWY3O-6407
+665,665,S000000107,phosphatidate biosynthesis II (the glycerol-3-phosphate pathway),PWY3O-6499
+666,666,S000000107,superpathway of phosphatidate biosynthesis,PWY3O-6635
+667,667,S000002426,folate interconversions,PWY3O-697
+668,668,S000002426,folate transformations I,PWY-2201
+669,669,S000002426,glycine cleavage,GLYCLEAV-PWY
+670,670,S000002426,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+671,671,S000002426,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+672,672,S000004248,glycogen biosynthesis,PWY3O-4031
+673,673,S000006364,glycogen catabolism,GLYCOCAT-YEAST-PWY
+674,674,S000001911,glycogen biosynthesis,PWY3O-4031
+675,675,S000001766,glycogen biosynthesis,PWY3O-4031
+676,676,S000003033,lipid-linked oligosaccharide biosynthesis,GLUCOSE-MANNOSYL-CHITO-DOLICHOL
+677,677,S000004463,methylglyoxal catabolism,PWY-901
+678,678,S000002862,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+679,679,S000002862,guanosine ribonucleotides de novo biosynthesis,PWY-7221
+680,680,S000002862,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+681,681,S000002862,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+682,682,S000002862,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+683,683,S000002862,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+684,684,S000003898,assimilatory sulfate reduction I,SO4ASSIM-PWY
+685,685,S000003898,sulfate assimilation pathway,PWY-781
+686,686,S000003898,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+687,687,S000004540,mevalonate pathway,IPPSYN-PWY
+688,688,S000004540,mevalonate pathway I,PWY-922
+689,689,S000004540,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+690,690,S000004442,mevalonate pathway,IPPSYN-PWY
+691,691,S000004442,mevalonate pathway I,PWY-922
+692,692,S000004442,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+693,693,S000003222,fructose degradation,PWY3O-0
+694,694,S000003222,glucose-6-phosphate biosynthesis,PWY3O-3827
+695,695,S000003222,mannose degradation,PWY3O-1743
+696,696,S000003222,superpathway of glucose fermentation,GLUCFERMEN-PWY
+697,697,S000001949,fructose degradation,PWY3O-0
+698,698,S000001949,glucose-6-phosphate biosynthesis,PWY3O-3827
+699,699,S000001949,mannose degradation,PWY3O-1743
+700,700,S000001949,superpathway of glucose fermentation,GLUCFERMEN-PWY
+701,701,S000001378,L-histidine biosynthesis,HISTSYN-PWY
+702,702,S000001378,phenylalanine degradation,PWY3O-4115
+703,703,S000001378,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+704,704,S000001378,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+705,705,S000001378,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+706,706,S000002341,L-lysine biosynthesis IV,LYSINE-AMINOAD-PWY-2
+707,707,S000003900,L-homoserine biosynthesis,HOMOSERSYN-PWY
+708,708,S000003900,superpathway of L-threonine biosynthesis,THRESYN-PWY
+709,709,S000003900,superpathway of methionine biosynthesis,PWY3O-954
+710,710,S000003900,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+711,711,S000003900,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+712,712,S000003900,superpathway of threonine biosynthesis,PWY3O-7
+713,713,S000001067,L-threonine biosynthesis,HOMOSER-THRESYN-PWY
+714,714,S000001067,superpathway of L-threonine biosynthesis,THRESYN-PWY
+715,715,S000001067,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+716,716,S000001067,superpathway of threonine biosynthesis,PWY3O-7
+717,717,S000002680,methylglyoxal catabolism,PWY-901
+718,718,S000005566,methylglyoxal catabolism,PWY-901
+719,719,S000002364,superpathway of heme and siroheme biosynthesis,PWY3O-69
+720,720,S000002364,tetrapyrrole biosynthesis,PWY3O-50
+721,721,S000004595,mevalonate pathway,IPPSYN-PWY
+722,722,S000004595,mevalonate pathway I,PWY-922
+723,723,S000004595,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+724,724,S000002807,"salvage pathways of adenine, hypoxanthine and their nucleosides",PWY3O-2220
+725,725,S000002807,"salvage pathways of guanine, xanthine and their nucleosides",PWY3O-743
+726,726,S000002807,salvage pathways of purines and their nucleosides,PWY3O-1
+727,727,S000002807,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+728,728,S000005728,L-histidine biosynthesis,HISTSYN-PWY
+729,729,S000005728,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+730,730,S000001694,L-tryptophan biosynthesis,TRPSYN-PWY-1
+731,731,S000001694,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+732,732,S000001694,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+733,733,S000005681,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+734,734,S000004727,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+735,735,S000004727,inosine-5'-phosphate biosynthesis I,PWY-6123-1
+736,736,S000004727,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+737,737,S000004727,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+738,738,S000004727,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+739,739,S000004018,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+740,740,S000004018,inosine-5'-phosphate biosynthesis I,PWY-6123-1
+741,741,S000004018,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+742,742,S000004018,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+743,743,S000004018,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+744,744,S000004520,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+745,745,S000004520,guanosine ribonucleotides de novo biosynthesis,PWY-7221
+746,746,S000004520,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+747,747,S000004520,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+748,748,S000004520,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+749,749,S000004520,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+750,750,S000004424,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+751,751,S000004424,guanosine ribonucleotides de novo biosynthesis,PWY-7221
+752,752,S000004424,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+753,753,S000004424,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+754,754,S000004424,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+755,755,S000004424,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+756,756,S000001259,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+757,757,S000001259,guanosine ribonucleotides de novo biosynthesis,PWY-7221
+758,758,S000001259,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+759,759,S000001259,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+760,760,S000001259,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+761,761,S000001259,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+762,762,S000001088,myo-inositol biosynthesis,PWY-2301
+763,763,S000002695,myo-inositol biosynthesis,PWY-2301
+764,764,S000001487,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+765,765,S000003689,myo-inositol biosynthesis,PWY-2301
+766,766,S000000821,phospholipids degradation,LIPASYN-PWY-1
+767,767,S000007587,diphthamide biosynthesis,PWY-6482-1
+768,768,S000004954,superpathway of glutamate biosynthesis,PWY3O-13
+769,769,S000000867,glyoxylate cycle,GLYOXYLATE-BYPASS
+770,770,S000000867,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+771,771,S000006038,mevalonate pathway,IPPSYN-PWY
+772,772,S000006038,mevalonate pathway I,PWY-922
+773,773,S000006038,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+774,774,S000006038,"trans, trans-farnesyl diphosphate biosynthesis",PWY-5123
+775,775,S000000363,very long chain fatty acid biosynthesis I,PWY-5080-1
+776,776,S000004221,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+777,777,S000004221,L-tryptophan degradation to 2-amino-3-carboxymuconate semialdehyde,PWY-5651
+778,778,S000004221,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+779,779,S000004221,superpathway of NAD biosynthesis,PWY3O-4158
+780,780,S000000194,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+781,781,S000000194,L-tryptophan degradation to 2-amino-3-carboxymuconate semialdehyde,PWY-5651
+782,782,S000000194,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+783,783,S000000194,superpathway of NAD biosynthesis,PWY3O-4158
+784,784,S000002729,asparagine degradation,ASPARAGINE-DEG2-PWY
+785,785,S000005221,L-homocysteine biosynthesis,PWY-5344
+786,786,S000005221,superpathway of methionine biosynthesis,PWY3O-954
+787,787,S000005221,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+788,788,S000005221,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+789,789,S000003596,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+790,790,S000003596,L-tryptophan degradation to 2-amino-3-carboxymuconate semialdehyde,PWY-5651
+791,791,S000003596,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+792,792,S000003596,superpathway of NAD biosynthesis,PWY3O-4158
+793,793,S000004430,L-arginine degradation VI (arginase 2 pathway),ARG-PRO-PWY
+794,794,S000004430,arginine degradation (aerobic),ARGDEG-YEAST-PWY
+795,795,S000001049,ergosterol biosynthesis,PWY3O-31704
+796,796,S000001049,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+797,797,S000001049,zymosterol biosynthesis,PWY-6074-1
+798,798,S000001114,ergosterol biosynthesis,PWY3O-31704
+799,799,S000001114,lanosterol biosynthesis,PWY-6132
+800,800,S000001114,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+801,801,S000000245,fatty acid oxidation pathway,YEAST-FAO-PWY
+802,802,S000000817,fatty acid oxidation pathway,YEAST-FAO-PWY
+803,803,S000001271,fatty acid oxidation pathway,YEAST-FAO-PWY
+804,804,S000004860,fatty acid oxidation pathway,YEAST-FAO-PWY
+805,805,S000005503,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+806,806,S000005061,glyoxylate cycle,GLYOXYLATE-BYPASS
+807,807,S000005061,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+808,808,S000006032,L-arginine degradation VI (arginase 2 pathway),ARG-PRO-PWY
+809,809,S000006032,arginine degradation (aerobic),ARGDEG-YEAST-PWY
+810,810,S000000805,dolichyl phosphate D-mannose biosynthesis,PWY3O-123
+811,811,S000000805,mannose degradation,PWY3O-1743
+812,812,S000003588,gluconeogenesis I,GLUCONEO-PWY-1
+813,813,S000003588,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+814,814,S000003588,superpathway of glucose fermentation,GLUCFERMEN-PWY
+815,815,S000002585,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+816,816,S000002585,"aerobic respiration, electron transport chain",PWY3O-188
+817,817,S000002585,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+818,818,S000002911,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+819,819,S000002479,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+820,820,S000004007,methionine salvage pathway,PWY3O-64
+821,821,S000004007,superpathway of methionine salvage pathway,PWY3O-351
+822,822,S000004170,S-adenosyl-L-methionine biosynthesis,SAM-PWY
+823,823,S000004170,S-adenosyl-L-methionine cycle II,PWY-5041
+824,824,S000004170,superpathway of methionine salvage pathway,PWY3O-351
+825,825,S000004170,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+826,826,S000000893,S-adenosyl-L-methionine cycle II,PWY-5041
+827,827,S000000893,methionine biosynthesis,PWY3O-238
+828,828,S000000893,superpathway of methionine biosynthesis,PWY3O-954
+829,829,S000000893,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+830,830,S000000893,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+831,831,S000003093,folate interconversions,PWY3O-697
+832,832,S000003093,folate polyglutamylation,PWY3O-20
+833,833,S000003093,folate transformations I,PWY-2201
+834,834,S000003093,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+835,835,S000003093,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+836,836,S000005944,folate interconversions,PWY3O-697
+837,837,S000005944,folate polyglutamylation,PWY3O-20
+838,838,S000005944,folate transformations I,PWY-2201
+839,839,S000005944,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+840,840,S000005944,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+841,841,S000003785,methionine salvage pathway,PWY3O-64
+842,842,S000003785,superpathway of methionine salvage pathway,PWY3O-351
+843,843,S000004821,mevalonate pathway,IPPSYN-PWY
+844,844,S000004821,mevalonate pathway I,PWY-922
+845,845,S000004821,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+846,846,S000000380,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+847,847,S000000510,phospholipid biosynthesis,PHOSLIPSYN2-PWY-1
+848,848,S000000510,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+849,849,S000000510,superpathway of phospholipid biosynthesis,PWY3O-2
+850,850,S000004688,L-tyrosine degradation III,PWY3O-4108
+851,851,S000004688,isoleucine degradation,PWY3O-4109
+852,852,S000004688,leucine degradation,PWY3O-4112
+853,853,S000004688,phenylalanine degradation,PWY3O-4115
+854,854,S000004688,superpathway of glucose fermentation,GLUCFERMEN-PWY
+855,855,S000004688,tryptophan degradation,PWY3O-214
+856,856,S000004688,valine degradation,PWY3O-4105
+857,857,S000001538,"fatty acid biosynthesis, initial steps",PWY3O-10
+858,858,S000001538,fatty acid elongation,FASYN-ELONG2-PWY
+859,859,S000001538,myristate biosynthesis,PWY-5971-1
+860,860,S000001538,palmitate biosynthesis,PWY3O-8514
+861,861,S000001538,stearate biosynthesis III (fungi),PWY3O-355
+862,862,S000001538,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+863,863,S000001538,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+864,864,S000005747,"fatty acid biosynthesis, initial steps",PWY3O-10
+865,865,S000005747,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+866,866,S000005747,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+867,867,S000004079,L-alanine biosynthesis II,ALANINE-SYN2-PWY
+868,868,S000004079,L-alanine degradation III,ALANINE-DEG3-PWY
+869,869,S000001864,glycine biosynthesis III,GLYSYN-ALA-PWY
+870,870,S000001864,superpathway of serine and glycine biosynthesis,PWY3O-261
+871,871,S000000875,superpathway of glucose fermentation,GLUCFERMEN-PWY
+872,872,S000005284,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+873,873,S000005284,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+874,874,S000003777,L-isoleucine biosynthesis I (from threonine),ILEUSYN-PWY-1
+875,875,S000003777,L-valine biosynthesis,VALSYN-PWY
+876,876,S000003777,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+877,877,S000005980,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+878,878,S000005980,glutathione-glutaredoxin system,PWY3O-592
+879,879,S000000679,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+880,880,S000000679,assimilatory sulfate reduction I,SO4ASSIM-PWY
+881,881,S000000679,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+882,882,S000000679,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+883,883,S000000679,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+884,884,S000000679,sulfate assimilation pathway,PWY-781
+885,885,S000000679,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+886,886,S000000679,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+887,887,S000000679,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+888,888,S000000679,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+889,889,S000000679,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+890,890,S000000679,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+891,891,S000000679,thioredoxin pathway,THIOREDOX-PWY
+892,892,S000005990,hexaprenyl diphosphate biosynthesis,HEXPPSYN-PWY-2
+893,893,S000005990,superpathway of ubiquinone biosynthesis,PWY3O-862
+894,894,S000002330,L-glutamate biosynthesis IV,GLUGLNSYN-PWY
+895,895,S000002330,superpathway of glutamate biosynthesis,PWY3O-13
+896,896,S000004801,folate interconversions,PWY3O-697
+897,897,S000004801,folate transformations I,PWY-2201
+898,898,S000004801,glycine cleavage,GLYCLEAV-PWY
+899,899,S000004801,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+900,900,S000004801,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+901,901,S000001356,L-lysine biosynthesis IV,LYSINE-AMINOAD-PWY-2
+902,902,S000005651,superpathway of ubiquinone biosynthesis,PWY3O-862
+903,903,S000005651,ubiquinol-6 biosynthesis from 4-hydroxybenzoate (eukaryotic),PWY3O-19
+904,904,S000005456,superpathway of ubiquinone biosynthesis,PWY3O-862
+905,905,S000005456,ubiquinol-6 biosynthesis from 4-hydroxybenzoate (eukaryotic),PWY3O-19
+906,906,S000002224,superpathway of glutamate biosynthesis,PWY3O-13
+907,907,S000004347,L-isoleucine biosynthesis I (from threonine),ILEUSYN-PWY-1
+908,908,S000004347,L-valine biosynthesis,VALSYN-PWY
+909,909,S000004347,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+910,910,S000001568,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+911,911,S000001568,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+912,912,S000001512,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+913,913,S000001512,gluconeogenesis I,GLUCONEO-PWY-1
+914,914,S000001512,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+915,915,S000001050,superoxide radicals degradation,DETOX1-PWY
+916,916,S000000985,folate transformations I,PWY-2201
+917,917,S000005668,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+918,918,S000005668,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+919,919,S000003476,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+920,920,S000003476,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+921,921,S000000207,hexaprenyl diphosphate biosynthesis,HEXPPSYN-PWY-2
+922,922,S000000207,superpathway of ubiquinone biosynthesis,PWY3O-862
+923,923,S000001589,L-asparagine biosynthesis I,ASPARAGINE-BIOSYNTHESIS-1
+924,924,S000001589,L-aspartate biosynthesis,ASPARTATESYN-PWY
+925,925,S000001589,asparagine degradation,ASPARAGINE-DEG2-PWY
+926,926,S000001589,aspartate biosynthesis,ASPBIO-PWY
+927,927,S000001589,superpathway of L-threonine biosynthesis,THRESYN-PWY
+928,928,S000001589,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+929,929,S000001589,superpathway of threonine biosynthesis,PWY3O-7
+930,930,S000001148,thioredoxin pathway,THIOREDOX-PWY
+931,931,S000000888,L-isoleucine biosynthesis I (from threonine),ILEUSYN-PWY-1
+932,932,S000000888,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+933,933,S000000535,L-histidine biosynthesis,HISTSYN-PWY
+934,934,S000000535,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+935,935,S000005500,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+936,936,S000003035,periplasmic NAD degradation,PERIPLASMA-NAD-DEGRADATION
+937,937,S000000349,L-tyrosine degradation III,PWY3O-4108
+938,938,S000000349,isoleucine degradation,PWY3O-4109
+939,939,S000000349,leucine degradation,PWY3O-4112
+940,940,S000000349,phenylalanine degradation,PWY3O-4115
+941,941,S000000349,superpathway of glucose fermentation,GLUCFERMEN-PWY
+942,942,S000000349,tryptophan degradation,PWY3O-214
+943,943,S000000349,valine degradation,PWY3O-4105
+944,944,S000003225,L-tyrosine degradation III,PWY3O-4108
+945,945,S000003225,isoleucine degradation,PWY3O-4109
+946,946,S000003225,leucine degradation,PWY3O-4112
+947,947,S000003225,phenylalanine degradation,PWY3O-4115
+948,948,S000003225,superpathway of glucose fermentation,GLUCFERMEN-PWY
+949,949,S000003225,tryptophan degradation,PWY3O-214
+950,950,S000003225,valine degradation,PWY3O-4105
+951,951,S000004644,"dehydro-D-arabinono-1,4-lactone biosynthesis",PWY3O-6-1
+952,952,S000005420,glycerol biosynthesis,PWY3O-48
+953,953,S000005420,phosphatidate biosynthesis II (the glycerol-3-phosphate pathway),PWY3O-6499
+954,954,S000005420,superpathway of phosphatidate biosynthesis,PWY3O-6635
+955,955,S000002180,glycerol biosynthesis,PWY3O-48
+956,956,S000002180,phosphatidate biosynthesis II (the glycerol-3-phosphate pathway),PWY3O-6499
+957,957,S000002180,superpathway of phosphatidate biosynthesis,PWY3O-6635
+958,958,S000002200,NAD salvage pathway V (PNC V cycle),PWY3O-4107
+959,959,S000002200,superpathway of NAD biosynthesis,PWY3O-4158
+960,960,S000004589,"aerobic respiration, electron transport chain",PWY3O-188
+961,961,S000004611,methionine salvage pathway,PWY3O-64
+962,962,S000004611,superpathway of methionine salvage pathway,PWY3O-351
+963,963,S000003005,NAD salvage pathway V (PNC V cycle),PWY3O-4107
+964,964,S000003005,superpathway of NAD biosynthesis,PWY3O-4158
+965,965,S000003242,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+966,966,S000003242,NAD biosynthesis from 2-amino-3-carboxymuconate semialdehyde,PWY-5653
+967,967,S000003242,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+968,968,S000003242,NAD salvage pathway IV (from nicotinamide riboside),PWY3O-4106
+969,969,S000003242,NAD salvage pathway V (PNC V cycle),PWY3O-4107
+970,970,S000003242,superpathway of NAD biosynthesis,PWY3O-4158
+971,971,S000004320,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+972,972,S000004320,NAD biosynthesis from 2-amino-3-carboxymuconate semialdehyde,PWY-5653
+973,973,S000004320,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+974,974,S000004320,NAD salvage pathway IV (from nicotinamide riboside),PWY3O-4106
+975,975,S000004320,NAD salvage pathway V (PNC V cycle),PWY3O-4107
+976,976,S000004320,superpathway of NAD biosynthesis,PWY3O-4158
+977,977,S000005735,NAD salvage pathway V (PNC V cycle),PWY3O-4107
+978,978,S000005735,superpathway of NAD biosynthesis,PWY3O-4158
+979,979,S000002723,inositol phosphate biosynthesis,PWY3O-402
+980,980,S000004346,pentose phosphate pathway,PENTOSE-P-PWY
+981,981,S000004346,pentose phosphate pathway (non-oxidative branch),NONOXIPENT-PWY
+982,982,S000001550,UTP and CTP de novo biosynthesis,PWY-7176
+983,983,S000001550,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+984,984,S000001550,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+985,985,S000001550,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+986,986,S000001550,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+987,987,S000001550,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+988,988,S000001550,guanosine ribonucleotides de novo biosynthesis,PWY-7221
+989,989,S000001550,salvage pathways of pyrimidine ribonucleotides,YEAST-RNT-SALV
+990,990,S000001550,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+991,991,S000001550,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+992,992,S000001550,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+993,993,S000001550,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+994,994,S000001550,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+995,995,S000000972,adenosine ribonucleotides de novo biosynthesis,PWY-7219
+996,996,S000000972,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+997,997,S000000972,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+998,998,S000000972,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+999,999,S000000972,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1000,1000,S000000972,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1001,1001,S000001940,glutathione degradation,PWYQT-4432
+1002,1002,S000001940,superpathway of glutathione metabolism (truncated &gamma;-glutamyl cycle),PWY3O-114
+1003,1003,S000001060,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+1004,1004,S000004574,UMP biosynthesis I,PWY-5686-1
+1005,1005,S000004574,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+1006,1006,S000004574,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1007,1007,S000004574,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+1008,1008,S000000747,UMP biosynthesis I,PWY-5686-1
+1009,1009,S000000747,de novo biosynthesis of pyrimidine ribonucleotides,PYRIMID-RNTSYN-PWY
+1010,1010,S000000747,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1011,1011,S000000747,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+1012,1012,S000002173,very long chain fatty acid biosynthesis I,PWY-5080-1
+1013,1013,S000000816,heme b biosynthesis I (aerobic),HEME-BIOSYNTHESIS-II
+1014,1014,S000000816,superpathway of heme and siroheme biosynthesis,PWY3O-69
+1015,1015,S000003509,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1016,1016,S000001407,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1017,1017,S000002939,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1018,1018,S000002534,chorismate biosynthesis,ARO-PWY-1
+1019,1019,S000002534,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+1020,1020,S000002534,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+1021,1021,S000002236,glyoxylate cycle,GLYOXYLATE-BYPASS
+1022,1022,S000002236,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1023,1023,S000002788,isoleucine degradation,PWY3O-4109
+1024,1024,S000002788,leucine degradation,PWY3O-4112
+1025,1025,S000002788,phenylalanine degradation,PWY3O-4115
+1026,1026,S000002788,tryptophan degradation,PWY3O-214
+1027,1027,S000000233,CDP-diacylglycerol biosynthesis,PWY3O-103
+1028,1028,S000000233,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+1029,1029,S000004775,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+1030,1030,S000003834,phospholipid biosynthesis,PHOSLIPSYN2-PWY-1
+1031,1031,S000003834,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+1032,1032,S000003834,superpathway of phospholipid biosynthesis,PWY3O-2
+1033,1033,S000003389,phospholipid biosynthesis,PHOSLIPSYN2-PWY-1
+1034,1034,S000003389,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+1035,1035,S000003389,superpathway of phospholipid biosynthesis,PWY3O-2
+1036,1036,S000005269,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1037,1037,S000002580,inositol phosphate biosynthesis,PWY3O-402
+1038,1038,S000001264,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1039,1039,S000005050,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1040,1040,S000005635,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1041,1041,S000005426,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1042,1042,S000001695,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1043,1043,S000006189,inositol phosphate biosynthesis,PWY3O-402
+1044,1044,S000006189,phospholipids degradation,LIPASYN-PWY-1
+1045,1045,S000001915,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1046,1046,S000001739,phospholipids degradation,LIPASYN-PWY-1
+1047,1047,S000002616,phosphatidylinositol phosphate biosynthesis,PWY3O-242
+1048,1048,S000005113,phosphatidylethanolamine biosynthesis I,PWY-5669
+1049,1049,S000005113,phospholipid biosynthesis,PHOSLIPSYN2-PWY-1
+1050,1050,S000005113,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+1051,1051,S000005113,superpathway of phospholipid biosynthesis,PWY3O-2
+1052,1052,S000003402,phosphatidylethanolamine biosynthesis I,PWY-5669
+1053,1053,S000003402,phospholipid biosynthesis,PHOSLIPSYN2-PWY-1
+1054,1054,S000003402,superpathway of phosphatidic acid and phospholipid biosynthesis,PHOS-PWY
+1055,1055,S000003402,superpathway of phospholipid biosynthesis,PWY3O-2
+1056,1056,S000000784,UDP-N-acetylglucosamine biosynthesis,UDPNAGSYN-YEAST-PWY
+1057,1057,S000001805,gluconeogenesis I,GLUCONEO-PWY-1
+1058,1058,S000001226,pentose phosphate pathway,PENTOSE-P-PWY
+1059,1059,S000001226,pentose phosphate pathway (oxidative branch) I,OXIDATIVEPENT-PWY
+1060,1060,S000000400,gluconeogenesis I,GLUCONEO-PWY-1
+1061,1061,S000000400,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1062,1062,S000000400,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1063,1063,S000000605,gluconeogenesis I,GLUCONEO-PWY-1
+1064,1064,S000000605,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1065,1065,S000000605,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1066,1066,S000001635,gluconeogenesis I,GLUCONEO-PWY-1
+1067,1067,S000001635,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1068,1068,S000001635,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1069,1069,S000001849,dolichyl phosphate D-mannose biosynthesis,PWY3O-123
+1070,1070,S000004833,mevalonate pathway,IPPSYN-PWY
+1071,1071,S000004833,mevalonate pathway I,PWY-922
+1072,1072,S000004833,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+1073,1073,S000001571,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1074,1074,S000001345,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1075,1075,S000003486,gluconeogenesis I,GLUCONEO-PWY-1
+1076,1076,S000003486,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1077,1077,S000003486,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1078,1078,S000001217,gluconeogenesis I,GLUCONEO-PWY-1
+1079,1079,S000001217,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1080,1080,S000001217,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1081,1081,S000000070,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1082,1082,S000000070,inosine-5'-phosphate biosynthesis I,PWY-6123-1
+1083,1083,S000000070,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1084,1084,S000000070,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1085,1085,S000000070,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1086,1086,S000001282,L-histidine biosynthesis,HISTSYN-PWY
+1087,1087,S000001282,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1088,1088,S000003293,5-aminoimidazole ribonucleotide biosynthesis II,PWY-6122-1
+1089,1089,S000003293,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1090,1090,S000003293,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1091,1091,S000003293,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1092,1092,S000003293,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1093,1093,S000002816,5-aminoimidazole ribonucleotide biosynthesis II,PWY-6122-1
+1094,1094,S000002816,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1095,1095,S000002816,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1096,1096,S000002816,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1097,1097,S000002816,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1098,1098,S000003440,L-serine biosynthesis I,SERSYN-PWY
+1099,1099,S000003440,superpathway of serine and glycine biosynthesis,PWY3O-261
+1100,1100,S000004622,&beta;-alanine biosynthesis IV,PWY-5760-1
+1101,1101,S000004622,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1102,1102,S000003008,superpathway of heme and siroheme biosynthesis,PWY3O-69
+1103,1103,S000003008,tetrapyrrole biosynthesis,PWY3O-50
+1104,1104,S000002604,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1105,1105,S000004132,L-proline degradation,PROUT-PWY
+1106,1106,S000004132,arginine degradation (aerobic),ARGDEG-YEAST-PWY
+1107,1107,S000001674,diphthamide biosynthesis,PWY-6482-1
+1108,1108,S000001365,diphthamide biosynthesis,PWY-6482-1
+1109,1109,S000002403,thiamine biosynthesis,PWY3O-17
+1110,1110,S000001004,dolichyl glucosyl phosphate biosynthesis,PWY3O-1565
+1111,1111,S000001004,glycogen biosynthesis,PWY3O-4031
+1112,1112,S000002849,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1113,1113,S000006205,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1114,1114,S000006205,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1115,1115,S000004235,salvage pathways of pyrimidine deoxyribonucleotides,YEAST-SALV-PYRMID-DNTP
+1116,1116,S000004235,salvage pathways of pyrimidine ribonucleotides,YEAST-RNT-SALV
+1117,1117,S000002910,S-adenosyl-L-methionine biosynthesis,SAM-PWY
+1118,1118,S000002910,S-adenosyl-L-methionine cycle II,PWY-5041
+1119,1119,S000002910,superpathway of methionine salvage pathway,PWY3O-351
+1120,1120,S000002910,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+1121,1121,S000005291,diacylglycerol and triacylglycerol biosynthesis,TRIGLSYN-PWY
+1122,1122,S000001105,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1123,1123,S000000863,"fatty acid biosynthesis, initial steps",PWY3O-10
+1124,1124,S000000863,fatty acid elongation,FASYN-ELONG2-PWY
+1125,1125,S000000863,stearate biosynthesis III (fungi),PWY3O-355
+1126,1126,S000000863,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+1127,1127,S000000863,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+1128,1128,S000000764,methionine salvage pathway,PWY3O-64
+1129,1129,S000000764,superpathway of methionine salvage pathway,PWY3O-351
+1130,1130,S000003736,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1131,1131,S000003736,glyoxylate cycle,GLYOXYLATE-BYPASS
+1132,1132,S000003736,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1133,1133,S000003173,fatty acid oxidation pathway,YEAST-FAO-PWY
+1134,1134,S000003441,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+1135,1135,S000003441,assimilatory sulfate reduction I,SO4ASSIM-PWY
+1136,1136,S000003441,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1137,1137,S000003441,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1138,1138,S000003441,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+1139,1139,S000003441,sulfate assimilation pathway,PWY-781
+1140,1140,S000003441,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+1141,1141,S000003441,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+1142,1142,S000003441,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1143,1143,S000003441,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1144,1144,S000003441,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1145,1145,S000003441,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+1146,1146,S000003441,thioredoxin pathway,THIOREDOX-PWY
+1147,1147,S000002642,L-lysine biosynthesis IV,LYSINE-AMINOAD-PWY-2
+1148,1148,S000002289,L-lysine biosynthesis IV,LYSINE-AMINOAD-PWY-2
+1149,1149,S000000080,carnitine shuttle,PWY3O-4
+1150,1150,S000003203,5-aminoimidazole ribonucleotide biosynthesis II,PWY-6122-1
+1151,1151,S000003203,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1152,1152,S000000755,pyridoxal 5'-phosphate salvage I,PLPSAL-PWY
+1153,1153,S000004017,L-asparagine biosynthesis I,ASPARAGINE-BIOSYNTHESIS-1
+1154,1154,S000004017,L-aspartate biosynthesis,ASPARTATESYN-PWY
+1155,1155,S000004017,asparagine degradation,ASPARAGINE-DEG2-PWY
+1156,1156,S000004017,aspartate biosynthesis,ASPBIO-PWY
+1157,1157,S000004017,superpathway of L-threonine biosynthesis,THRESYN-PWY
+1158,1158,S000004017,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+1159,1159,S000004017,superpathway of threonine biosynthesis,PWY3O-7
+1160,1160,S000005689,inositol phosphate biosynthesis,PWY3O-402
+1161,1161,S000000422,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1162,1162,S000000422,aspartate biosynthesis,ASPBIO-PWY
+1163,1163,S000000422,gluconeogenesis I,GLUCONEO-PWY-1
+1164,1164,S000000422,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1165,1165,S000000422,superpathway of threonine biosynthesis,PWY3O-7
+1166,1166,S000003030,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1167,1167,S000003030,aspartate biosynthesis,ASPBIO-PWY
+1168,1168,S000003030,gluconeogenesis I,GLUCONEO-PWY-1
+1169,1169,S000003030,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1170,1170,S000003030,superpathway of threonine biosynthesis,PWY3O-7
+1171,1171,S000004034,L-tyrosine degradation III,PWY3O-4108
+1172,1172,S000004034,isoleucine degradation,PWY3O-4109
+1173,1173,S000004034,phenylalanine degradation,PWY3O-4115
+1174,1174,S000004034,pyruvate fermentation to acetoin III,PWY3O-440
+1175,1175,S000004034,superpathway of acetoin and butanediol biosynthesis,PWY3O-981
+1176,1176,S000004034,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1177,1177,S000004034,tryptophan degradation,PWY3O-214
+1178,1178,S000004034,valine degradation,PWY3O-4105
+1179,1179,S000004124,L-tyrosine degradation III,PWY3O-4108
+1180,1180,S000004124,isoleucine degradation,PWY3O-4109
+1181,1181,S000004124,phenylalanine degradation,PWY3O-4115
+1182,1182,S000004124,pyruvate fermentation to acetoin III,PWY3O-440
+1183,1183,S000004124,superpathway of acetoin and butanediol biosynthesis,PWY3O-981
+1184,1184,S000004124,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1185,1185,S000004124,tryptophan degradation,PWY3O-214
+1186,1186,S000004124,valine degradation,PWY3O-4105
+1187,1187,S000000980,pyruvate decarboxylation to acetyl CoA,PYRUVDEHYD-PWY
+1188,1188,S000005874,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1189,1189,S000005874,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1190,1190,S000000036,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1191,1191,S000000036,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1192,1192,S000001943,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+1193,1193,S000001943,NAD biosynthesis from 2-amino-3-carboxymuconate semialdehyde,PWY-5653
+1194,1194,S000001943,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+1195,1195,S000001943,superpathway of NAD biosynthesis,PWY3O-4158
+1196,1196,S000000976,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+1197,1197,S000000976,glutathione-glutaredoxin system,PWY3O-592
+1198,1198,S000002505,glutathione-glutaredoxin redox reactions,GLUT-REDOX2-PWY
+1199,1199,S000002505,glutathione-glutaredoxin system,PWY3O-592
+1200,1200,S000000240,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1201,1201,S000000515,L-isoleucine biosynthesis I (from threonine),ILEUSYN-PWY-1
+1202,1202,S000000515,L-valine biosynthesis,VALSYN-PWY
+1203,1203,S000000515,acetoin biosynthesis,PWY3O-335
+1204,1204,S000000515,superpathway of acetoin and butanediol biosynthesis,PWY3O-981
+1205,1205,S000000515,superpathway of branched chain amino acid biosynthesis,BRANCHED-CHAIN-AA-SYN-PWY-1
+1206,1206,S000005580,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1207,1207,S000002644,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+1208,1208,S000000460,"riboflavin, FMN and FAD biosynthesis",YEAST-RIBOSYN-PWY
+1209,1209,S000003563,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+1210,1210,S000003563,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1211,1211,S000003563,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1212,1212,S000003563,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+1213,1213,S000003563,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+1214,1214,S000003563,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+1215,1215,S000003563,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1216,1216,S000003563,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1217,1217,S000003563,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1218,1218,S000005621,pentose phosphate pathway,PENTOSE-P-PWY
+1219,1219,S000005621,pentose phosphate pathway (non-oxidative branch),NONOXIPENT-PWY
+1220,1220,S000002808,nicotinamide riboside salvage pathway II,PWY3O-96
+1221,1221,S000002808,nicotinate riboside salvage pathway II,PWY3O-236
+1222,1222,S000002808,salvage pathways of pyrimidine deoxyribonucleotides,YEAST-SALV-PYRMID-DNTP
+1223,1223,S000002808,salvage pathways of pyrimidine ribonucleotides,YEAST-RNT-SALV
+1224,1224,S000002808,superpathway of NAD biosynthesis,PWY3O-4158
+1225,1225,S000005073,NAD salvage pathway IV (from nicotinamide riboside),PWY3O-4106
+1226,1226,S000005073,nicotinate riboside salvage pathway I,PWY3O-224
+1227,1227,S000005073,superpathway of NAD biosynthesis,PWY3O-4158
+1228,1228,S000005333,L-lysine biosynthesis IV,LYSINE-AMINOAD-PWY-2
+1229,1229,S000001473,L-lysine biosynthesis IV,LYSINE-AMINOAD-PWY-2
+1230,1230,S000000569,L-serine degradation,SERDEG-PWY
+1231,1231,S000000569,threonine degradation,THREOCAT2-PWY
+1232,1232,S000004911,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1233,1233,S000002469,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1234,1234,S000006273,spermidine biosynthesis I,BSUBPOLYAMSYN-PWY
+1235,1235,S000006273,superpathway of methionine salvage pathway,PWY3O-351
+1236,1236,S000006273,superpathway of polyamine biosynthesis,POLYAMSYN-YEAST-PWY
+1237,1237,S000004136,spermine biosynthesis,ARGSPECAT-PWY
+1238,1238,S000004136,superpathway of methionine salvage pathway,PWY3O-351
+1239,1239,S000004136,superpathway of polyamine biosynthesis,POLYAMSYN-YEAST-PWY
+1240,1240,S000002702,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1241,1241,S000001491,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1242,1242,S000000995,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1243,1243,S000002705,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1244,1244,S000004250,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1245,1245,S000005697,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1246,1246,S000003407,epoxysqualene biosynthesis,PWY-5670-1
+1247,1247,S000003407,ergosterol biosynthesis,PWY3O-31704
+1248,1248,S000003407,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+1249,1249,S000003023,oleate biosynthesis,PWY3O-5268
+1250,1250,S000003023,palmitoleate biosynthesis,PWY3O-1801
+1251,1251,S000003023,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+1252,1252,S000004467,ergosterol biosynthesis,PWY3O-31704
+1253,1253,S000004467,ergosterol biosynthesis I,PWY-6075-1
+1254,1254,S000004467,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+1255,1255,S000002980,ergosterol biosynthesis,PWY3O-31704
+1256,1256,S000002980,ergosterol biosynthesis I,PWY-6075-1
+1257,1257,S000002980,superpathway of ergosterol biosynthesis I,ERGOSTEROL-SYN-PWY-1
+1258,1258,S000003472,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1259,1259,S000003472,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1260,1260,S000004818,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1261,1261,S000004818,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1262,1262,S000001664,PRPP biosynthesis,PWY0-662
+1263,1263,S000001664,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1264,1264,S000005422,PRPP biosynthesis,PWY0-662
+1265,1265,S000005422,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1266,1266,S000000164,PRPP biosynthesis,PWY0-662
+1267,1267,S000000164,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1268,1268,S000000901,PRPP biosynthesis,PWY0-662
+1269,1269,S000000901,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1270,1270,S000001003,PRPP biosynthesis,PWY0-662
+1271,1271,S000001003,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1272,1272,S000003870,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+1273,1273,S000003870,citrulline biosynthesis,CITRUL-BIO2-PWY
+1274,1274,S000003870,superpathway of pyrimidine ribonucleotides de novo biosynthesis,PWY0-162
+1275,1275,S000004387,"aerobic respiration, electron transport chain",PWY3O-188
+1276,1276,S000004869,"aerobic respiration, electron transport chain",PWY3O-188
+1277,1277,S000002225,"aerobic respiration, electron transport chain",PWY3O-188
+1278,1278,S000001665,"fatty acid biosynthesis, initial steps",PWY3O-10
+1279,1279,S000001665,fatty acid elongation,FASYN-ELONG2-PWY
+1280,1280,S000001665,fatty acids biosynthesis (yeast),PWY3O-31723
+1281,1281,S000001665,myristate biosynthesis,PWY-5971-1
+1282,1282,S000001665,palmitate biosynthesis,PWY3O-8514
+1283,1283,S000001665,stearate biosynthesis III (fungi),PWY3O-355
+1284,1284,S000001665,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+1285,1285,S000001665,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+1286,1286,S000006152,"fatty acid biosynthesis, initial steps",PWY3O-10
+1287,1287,S000006152,fatty acid elongation,FASYN-ELONG2-PWY
+1288,1288,S000006152,fatty acids biosynthesis (yeast),PWY3O-31723
+1289,1289,S000006152,myristate biosynthesis,PWY-5971-1
+1290,1290,S000006152,palmitate biosynthesis,PWY3O-8514
+1291,1291,S000006152,stearate biosynthesis III (fungi),PWY3O-355
+1292,1292,S000006152,"superpathway of fatty acid biosynthesis, saturated",PWY3O-6336
+1293,1293,S000006152,"superpathway of fatty acid biosynthesis, saturated and unsaturated",PWY3O-5962
+1294,1294,S000001387,2-oxoglutarate decarboxylation to succinyl-CoA,PWY-5084
+1295,1295,S000001387,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1296,1296,S000001387,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1297,1297,S000000042,folate interconversions,PWY3O-697
+1298,1298,S000000042,folate transformations I,PWY-2201
+1299,1299,S000000042,glycine cleavage,GLYCLEAV-PWY
+1300,1300,S000000042,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+1301,1301,S000000042,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+1302,1302,S000002937,"aerobic respiration, electron transport chain",PWY3O-188
+1303,1303,S000003415,"aerobic respiration, electron transport chain",PWY3O-188
+1304,1304,S000003529,"aerobic respiration, electron transport chain",PWY3O-188
+1305,1305,S000007260,"aerobic respiration, electron transport chain",PWY3O-188
+1306,1306,S000007283,"aerobic respiration, electron transport chain",PWY3O-188
+1307,1307,S000007281,"aerobic respiration, electron transport chain",PWY3O-188
+1308,1308,S000005591,"aerobic respiration, electron transport chain",PWY3O-188
+1309,1309,S000003412,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+1310,1310,S000003412,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1311,1311,S000003412,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1312,1312,S000003412,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+1313,1313,S000003412,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+1314,1314,S000003412,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+1315,1315,S000003412,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1316,1316,S000003412,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1317,1317,S000003412,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1318,1318,S000001328,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+1319,1319,S000001328,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1320,1320,S000001328,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1321,1321,S000001328,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+1322,1322,S000001328,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+1323,1323,S000001328,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+1324,1324,S000001328,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1325,1325,S000001328,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1326,1326,S000001328,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1327,1327,S000004913,sphingolipid biosynthesis (yeast),SPHINGOLIPID-SYN-PWY-1
+1328,1328,S000004982,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1329,1329,S000004982,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1330,1330,S000004997,"aerobic respiration, electron transport chain",PWY3O-188
+1331,1331,S000001093,"aerobic respiration, electron transport chain",PWY3O-188
+1332,1332,S000004028,"aerobic respiration, electron transport chain",PWY3O-188
+1333,1333,S000003159,"aerobic respiration, electron transport chain",PWY3O-188
+1334,1334,S000001780,pantothenate and coenzyme A biosynthesis,PANTOSYN2-PWY
+1335,1335,S000000872,adenosine deoxyribonucleotides de novo biosynthesis II,PWY-7220-1
+1336,1336,S000000872,de novo biosynthesis of purine nucleotides,DENOVOPURINE3-PWY
+1337,1337,S000000872,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1338,1338,S000000872,guanosine deoxyribonucleotides de novo biosynthesis II,PWY-7222-1
+1339,1339,S000000872,superpathway of adenosine nucleotides de novo biosynthesis II,PWY-6126-1
+1340,1340,S000000872,superpathway of guanosine nucleotides de novo biosynthesis II,PWY-6125
+1341,1341,S000000872,"superpathway of histidine, purine, and pyrimidine biosynthesis",PRPP-PWY-1
+1342,1342,S000000872,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1343,1343,S000000872,superpathway of purine nucleotides de novo biosynthesis II,DENOVOPURINE2-PWY
+1344,1344,S000001624,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1345,1345,S000001624,"aerobic respiration, electron transport chain",PWY3O-188
+1346,1346,S000001624,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1347,1347,S000006395,"aerobic respiration, electron transport chain",PWY3O-188
+1348,1348,S000003581,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1349,1349,S000003581,"aerobic respiration, electron transport chain",PWY3O-188
+1350,1350,S000003581,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1351,1351,S000003964,"TCA cycle, aerobic respiration",TCA-EUK-PWY
+1352,1352,S000003964,"aerobic respiration, electron transport chain",PWY3O-188
+1353,1353,S000003964,superpathway of TCA cycle and glyoxylate cycle,PWY3O-94
+1354,1354,S000003865,superoxide radicals degradation,DETOX1-PWY
+1355,1355,S000005767,folate polyglutamylation,PWY3O-20
+1356,1356,S000005767,methionine biosynthesis,PWY3O-238
+1357,1357,S000005767,superpathway of methionine biosynthesis,PWY3O-954
+1358,1358,S000005767,superpathway of sulfur amino acid biosynthesis (Saccharomyces cerevisiae),PWY-821-1
+1359,1359,S000005767,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+1360,1360,S000005669,thiamine biosynthesis,PWY3O-17
+1361,1361,S000002761,thioredoxin pathway,THIOREDOX-PWY
+1362,1362,S000000649,L-threonine biosynthesis,HOMOSER-THRESYN-PWY
+1363,1363,S000000649,superpathway of L-threonine biosynthesis,THRESYN-PWY
+1364,1364,S000000649,superpathway of threonine and methionine biosynthesis,P4-PWY-1
+1365,1365,S000000649,superpathway of threonine biosynthesis,PWY3O-7
+1366,1366,S000003818,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1367,1367,S000005600,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1368,1368,S000005600,folate interconversions,PWY3O-697
+1369,1369,S000005600,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+1370,1370,S000005600,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+1371,1371,S000002238,isoleucine degradation,PWY3O-4109
+1372,1372,S000002238,leucine degradation,PWY3O-4112
+1373,1373,S000000321,pentose phosphate pathway,PENTOSE-P-PWY
+1374,1374,S000000321,pentose phosphate pathway (non-oxidative branch),NONOXIPENT-PWY
+1375,1375,S000006278,pentose phosphate pathway,PENTOSE-P-PWY
+1376,1376,S000006278,pentose phosphate pathway (non-oxidative branch),NONOXIPENT-PWY
+1377,1377,S000002481,trehalose biosynthesis I,TRESYN-PWY
+1378,1378,S000000288,folate interconversions,PWY3O-697
+1379,1379,S000000288,folate polyglutamylation,PWY3O-20
+1380,1380,S000000288,folate transformations I,PWY-2201
+1381,1381,S000000288,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+1382,1382,S000000288,superpathway of tetrahydrofolate biosynthesis and salvage,FOLSYN-PWY-1
+1383,1383,S000004199,nicotinamide riboside salvage pathway II,PWY3O-96
+1384,1384,S000004199,nicotinate riboside salvage pathway II,PWY3O-236
+1385,1385,S000004199,"salvage pathways of adenine, hypoxanthine and their nucleosides",PWY3O-2220
+1386,1386,S000004199,salvage pathways of purines and their nucleosides,PWY3O-1
+1387,1387,S000004199,superpathway of NAD biosynthesis,PWY3O-4158
+1388,1388,S000004199,superpathway of purine biosynthesis and salvage pathways,PWY3O-285
+1389,1389,S000002457,glycolysis I (from glucose 6-phosphate),GLYCOLYSIS
+1390,1390,S000002457,superpathway of glucose fermentation,GLUCFERMEN-PWY
+1391,1391,S000003839,L-tryptophan degradation III (eukaryotic),TRYPTOPHAN-DEGRADATION-1
+1392,1392,S000003839,L-tryptophan degradation to 2-amino-3-carboxymuconate semialdehyde,PWY-5651
+1393,1393,S000003839,NAD de novo biosynthesis II (from tryptophan),NADSYN-PWY
+1394,1394,S000003839,superpathway of NAD biosynthesis,PWY3O-4158
+1395,1395,S000002994,L-tryptophan biosynthesis,TRPSYN-PWY-1
+1396,1396,S000002994,superpathway of aromatic amino acid biosynthesis,COMPLETE-ARO-PWY-1
+1397,1397,S000002994,superpathway of chorismate metabolism,ALL-CHORISMATE-PWY-1
+1398,1398,S000002261,UDP-N-acetylglucosamine biosynthesis,UDPNAGSYN-YEAST-PWY
+1399,1399,S000003702,"aerobic respiration, electron transport chain",PWY3O-188
+1400,1400,S000000750,"aerobic respiration, electron transport chain",PWY3O-188
+1401,1401,S000001929,"aerobic respiration, electron transport chain",PWY3O-188
+1402,1402,S000001170,salvage pathways of pyrimidine ribonucleotides,YEAST-RNT-SALV
+1403,1403,S000000412,superpathway of allantoin degradation in yeast,ALLANTOINDEG-PWY
+1404,1404,S000005295,salvage pathways of pyrimidine deoxyribonucleotides,YEAST-SALV-PYRMID-DNTP
+1405,1405,S000005295,salvage pathways of pyrimidine ribonucleotides,YEAST-RNT-SALV
+1406,1406,S000001518,dolichyl glucosyl phosphate biosynthesis,PWY3O-1565
+1407,1407,S000001518,glycogen biosynthesis,PWY3O-4031
+1408,1408,S000001777,siroheme biosynthesis,PWY-5194-1
+1409,1409,S000001777,superpathway of heme and siroheme biosynthesis,PWY3O-69
+1410,1410,S000002454,heme b biosynthesis I (aerobic),HEME-BIOSYNTHESIS-II
+1411,1411,S000002454,superpathway of heme and siroheme biosynthesis,PWY3O-69
+1412,1412,S000005804,superpathway of heme and siroheme biosynthesis,PWY3O-69
+1413,1413,S000005804,tetrapyrrole biosynthesis,PWY3O-50
+1414,1414,S000001361,glycogen catabolism,GLYCOCAT-YEAST-PWY
+1415,1415,S000003155,"aerobic respiration, electron transport chain",PWY3O-188
+1416,1416,S000000456,de novo biosynthesis of pyrimidine deoxyribonucleotides,YEAST-DE-NOVO-PYRMID-DNT
+1417,1417,S000001422,fatty acid oxidation pathway,YEAST-FAO-PWY
+1418,1418,S000003624,L-arginine biosynthesis II (acetyl cycle),ARGSYNBSUB-PWY
+1419,1419,S000003624,citrulline biosynthesis,CITRUL-BIO2-PWY
+1420, 1420,S000001089,sejwer,rwer

@@ -29,7 +29,34 @@ gene_pro_view_ui <- function(id) {
     div(style = "position: relative; top: 100px;",),
     plotlyOutput(NS(id, "domainplot"), width = "600px", height = "150px"),
 
-    uiOutput(NS(id, "url"))
+    includeCSS("R/www/styling.css"),
+
+    tags$div(class = "container",
+      # Inner div with class "header"
+      tags$div(class = "protein-cont",
+        tags$div(class = "my-verbatim-text",  # <-- your custom class
+          textOutput(NS(id, "content"))
+        )
+      ),
+      # Content section
+      tags$div(class = "content_div",
+        tags$div(class = 'url_div',
+          tags$p("Protein: ", uiOutput(NS(id, "url"), inline = TRUE)),
+        ),      
+        tags$div(class = "description_div",
+          tags$p("Description: ", textOutput(NS(id, "description"), inline = TRUE))
+        ),
+
+        tags$div(class = "pathway_div",
+          tags$p("Pathways: ", uiOutput(NS(id, "pathway"), inline = TRUE))
+        ),
+
+
+        
+        )
+),
+
+    # uiOutput(NS(id, "url"))
    )
 }
 
@@ -64,13 +91,51 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       filter(fd, GENE == gene())
     })
 
+    output$content <- renderText("Protein Info Card")
+
+    output$description <- renderText(paste0(first(cur_gene()$DESCRIPTION)))
+
 
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
       "indel-frameshift", "indel-inframe", "synonymous")
 
     domains_info <- read.csv(ORGANISM_DOMAIN_INFO_PATH)
+    pathway_info <- read.csv(ORGANISM_PATHWAY_INFO_PATH)
 
+
+    output$pathway <- renderUI({
+      validate(
+        need(gene(), "LOADING"),
+        need(filtered_data(), "Loading data...")
+      )
+
+      sgd <- first(cur_gene()$SGDID)
+      row <- pathway_info[pathway_info$SGDID == sgd, ]
+      BASE_URL <- "https://pathway.yeastgenome.org/YEAST/new-image?type=PATHWAY&object="
+
+      if (nrow(row) == 0) {
+                           tags$p("N/A")} else {
+
+        links <- lapply(seq_len(nrow(row)), function(i) {
+          url <- paste0(BASE_URL, row$PathwayID[i])
+
+          tags$div(
+            tags$a(href = url, target = "_blank", row$Pathway[i])
+          )
+        })
+
+    # return a container with all links
+    do.call(tags$div, links)
+      }
+
+
+  #     ifelse(nrow(row) == 0,
+  #     paste0("N/Aa"),
+  #     paste0(row$Pathway)
+  #  )
+
+    })
 
     genedatatable <- function(cur_gene) {
       pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
@@ -153,9 +218,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Learn about Gene button within gene viewer
     if(link != "NONE") {
     output$url <- renderUI({
-      url <- a("Learn about Gene",
+      url <- a(gene(),
                href = gene_info_link_function(genes_info, input$geneSelectDropDown),
-               class = "btn btn-default", target = "_blank"
+                target = "_blank"
       )
       url
     })
@@ -175,7 +240,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     observeEvent(input$geneSelectDropDown, {
       gene_name <- input$geneSelectDropDown
-
+      print(colnames(cur_gene()))
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
       print(paste("uniprot ", uniprotid))
       session$sendCustomMessage("initMolstar", uniprotid)
@@ -205,6 +270,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       rects
 
     })
+
+      annotation_colors <- set_names(color_vector, all_annotations)
 
 
 
@@ -349,6 +416,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       amino_acid_loc <- count_proteins_same$Numbers
       data_df <- data.frame(value = amino_acid_loc, dummy_y = 0) 
 
+      annotation_colors <- set_names(color_vector, all_annotations)
+
       new_theme_empty <- theme_bw()
       new_theme_empty$line <- element_blank()
       new_theme_empty$rect <- element_blank()
@@ -362,7 +431,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       
       # Create a scatter plot with ggplot2
-      gg <- ggplot(data_df, aes(x = value, y = 0,
+      gg <- ggplot(data_df, aes(x = value, y = 0, key=count_proteins_same$ANNOTATION, color = count_proteins_same$ANNOTATION,
         text = ifelse(
           grepl("indel", count_proteins_same$ANNOTATION), # Check if ANNOTATION contains "indel"
           paste0(
@@ -382,12 +451,14 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
             )
           )
       )) +
-        geom_point(color = "#5b91e2", size = 2.2) + # Add points with specified color and size
+        scale_color_manual(values = annotation_colors) + geom_point(size = 2.2, alpha = 0.3 ) +
+        # geom_point(color = "#5b91e2", size = 2.2) + # Add points with specified color and size
         labs(
              x = "X-axis Variable",             # Add x-axis label
              y = "Y-axis Variable") +  xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
 
-        new_theme_empty + labs(x = "My X-axis Label") 
+        new_theme_empty + labs(x = "My X-axis Label") + guides(fill = FALSE) + theme(legend.position = "none")
+
 
 
       gg <- ggplotly(gg, tooltip = "text", source = "mutplot", dynamicTicks = TRUE) %>%
@@ -409,9 +480,16 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
   observe({
     ed <- event_data("plotly_click", source="mutplot", priority = 'event')
     req(ed)
+    print("DSDSD")
+    ann <- as.character(ed$key[[1]])
+    print(ann)
+    hex <- annotation_colors[ann]
+    print(hex)
+    print(typeof(hex))
+    hex_val <- unname(hex)[1]
     session$sendCustomMessage("highlightResidueWithSphere",
                               list(positions = ed$x,
-                              colorHex='#477de2'))
+                              colorHex=hex_val))
   })
 
     output$domainplot <- renderPlotly({
@@ -474,12 +552,11 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
       req(ed$key)
 
-      print(typeof(ed$key))
+      # print(typeof(ed$key))
 
       str <- ((ed$key)[[1]])
       split_vector <- unlist(strsplit(str, "_"))
       hex <- tail(split_vector, 1)
-
       # req(ed$fill)
       # print(ed$fill)
 
@@ -488,6 +565,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       domain_start <- domain$xmin
       domain_end <- domain$xmax
 
+      
       session$sendCustomMessage("highlightDomains",
       list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
     })
