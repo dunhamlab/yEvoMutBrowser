@@ -8,8 +8,11 @@ PATH_TO_VCF_CSV <- "all_yEvo_vcf.csv"
 
 ORGANISM_GENE_INFO_PATH <- "new_gene_info.csv"
 ORGANISM_CHROMOSOME_INFO_PATH <- "chromosome_info.csv"
-ORGANISM_DOMAIN_INFO_PATH <- "all_domains.csv"
+ORGANISM_PFAM_DOMAIN_INFO_PATH <- "pfam.csv"
+ORGANISM_PROSITE_DOMAIN_INFO_PATH <- "prosite.csv"
 ORGANISM_PATHWAY_INFO_PATH <- "pathways.csv"
+
+
 
 ORGANISM_GENE_INFO_LINK <- "https://www.yeastgenome.org/locus/"
 

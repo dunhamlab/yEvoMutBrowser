@@ -25,9 +25,38 @@ gene_pro_view_ui <- function(id) {
     # ⬇️  place the script LAST so Shiny is ready
     tags$script(src = "static/molstar-custom.js"),
     verbatimTextOutput(NS(id, "resiinfo")),
-    plotlyOutput(NS(id, "mutplot"), width = "600px", height = "150px"),
-    div(style = "position: relative; top: 100px;",),
-    plotlyOutput(NS(id, "domainplot"), width = "600px", height = "150px"),
+    # actionButton(NS(id, 'mutations'), 'Mutations'),
+    # plotlyOutput(NS(id, "mutplot"), width = "600px", height = "150px"),
+    
+    tags$div(class="domain_div",
+      tags$div(class="mut_button_div",
+    actionButton(NS(id, 'mutations'), 'Mutations'),
+      ),
+
+      tags$div(class="mut_plot_div",
+    plotlyOutput(NS(id, "mutplot"), height = "65px"),
+      ),
+    
+    ),
+
+    
+    tags$div(class="domain_div",
+      tags$div(class="domain_button_div",
+        actionButton(NS(id, 'domain'), 'Pfam Domains'),
+      ),
+
+      tags$div(class="domainplot_div",
+        plotlyOutput(NS(id, "domainplot"), height = "65px"),
+      ),
+    
+    ),
+    
+    # actionButton(NS(id, 'domain'), 'Pfam Domains'),
+
+    # tags$div(class="domainplot_div",
+    # plotlyOutput(NS(id, "domainplot"), width = "100%", height = "150px"),
+    # ),
+    
 
     includeCSS("R/www/styling.css"),
 
@@ -50,9 +79,6 @@ gene_pro_view_ui <- function(id) {
         tags$div(class = "pathway_div",
           tags$p("Pathways: ", uiOutput(NS(id, "pathway"), inline = TRUE))
         ),
-
-
-        
         )
 ),
 
@@ -62,8 +88,11 @@ gene_pro_view_ui <- function(id) {
 
 gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
   moduleServer(id, function(input, output, session) {
+
+
+    mut_selected <- reactiveVal(FALSE)
+    dom_selected <- reactiveVal(FALSE)
     #gene view draopdown menu
-    print(rainbow(3))
     observe({
       choices <- filtered_data() %>% pull(GENE)
 
@@ -91,16 +120,20 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       filter(fd, GENE == gene())
     })
 
+    # cg <- cur_gene()
+
     output$content <- renderText("Protein Info Card")
 
     output$description <- renderText(paste0(first(cur_gene()$DESCRIPTION)))
+
+
 
 
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
       "indel-frameshift", "indel-inframe", "synonymous")
 
-    domains_info <- read.csv(ORGANISM_DOMAIN_INFO_PATH)
+    pfam <- read.csv(ORGANISM_PFAM_DOMAIN_INFO_PATH)
     pathway_info <- read.csv(ORGANISM_PATHWAY_INFO_PATH)
 
 
@@ -234,42 +267,76 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     output$resiinfo <- renderText({
       req(input$resiinfo)
-      paste("Hovered residue:", input$resiinfo)
+      print("DFFD")
+      print(cur_gene()$PROTEIN)
+      paste("Hovered residue:", input$resiinfo, '32')
+      
     })
 
 
     observeEvent(input$geneSelectDropDown, {
       gene_name <- input$geneSelectDropDown
+      mut_selected(FALSE)
+      dom_selected(FALSE)
       print(colnames(cur_gene()))
+      print("????")
+      print("?????")
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
       print(paste("uniprot ", uniprotid))
       session$sendCustomMessage("initMolstar", uniprotid)
   })
 
 
-    pfam_rectangles <- reactive({
+    rect_data <- function(filtered_rows) {
       cg <- cur_gene()
-      # Domains found based on UniparcID of the selected gene
-      pd <- domains_info[domains_info$UniparcID == cg$UniparcID, ]
-      pf   <- pd[pd$Database == "Pfam", ]
-      if (nrow(pf) == 0) {
-        return(tibble(xmin=double(), xmax=double(), 
-                      ymin=double(), ymax=double(), 
-                      text=character(),id=character()))
+      # print("THIS IS CG")
+      # print(cg)
+      pd <- filtered_rows
+      print(pd)
+      if (nrow(pd) == 0) {
+        return(tibble(xmin=double(), xmax=double(),
+                      ymin=double(), ymax=double(),
+                      text=character(), id=character()))
       }
       rects <- tibble(
-        xmin = pf$Start,
-        xmax = pf$End,
+        xmin = pd$Start,
+        xmax = pd$End,
         ymin = 0,
         ymax = 1,
-        text = paste0(pf$Start, "-", pf$End, "\n", pf$Description)
+        text = paste0(pd$Start, "-", pd$End, "\n", pd$Description)
       ) 
         
       rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)), "_", rainbow(nrow(rects)))
       rects$fill_color <- rainbow(nrow(rects))
       rects
 
-    })
+    }
+
+
+
+
+    # pfam_rectangles <- reactive({
+    #   cg <- cur_gene()
+    #   # Domains found based on UniparcID of the selected gene
+    #   pd <- pfam[pfam$UniparcID == cg$UniparcID, ]
+    #   if (nrow(pd) == 0) {
+    #     return(tibble(xmin=double(), xmax=double(), 
+    #                   ymin=double(), ymax=double(), 
+    #                   text=character(),id=character()))
+    #   }
+    #   rects <- tibble(
+    #     xmin = pd$Start,
+    #     xmax = pd$End,
+    #     ymin = 0,
+    #     ymax = 1,
+    #     text = paste0(pd$Start, "-", pd$End, "\n", pd$Description)
+    #   ) 
+        
+    #   rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)), "_", rainbow(nrow(rects)))
+    #   rects$fill_color <- rainbow(nrow(rects))
+    #   rects
+
+    # })
 
       annotation_colors <- set_names(color_vector, all_annotations)
 
@@ -451,7 +518,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
             )
           )
       )) +
-        scale_color_manual(values = annotation_colors) + geom_point(size = 2.2, alpha = 0.3 ) +
+        scale_color_manual(values = annotation_colors) + geom_point(size = 3.2, alpha = 0.3 ) +
         # geom_point(color = "#5b91e2", size = 2.2) + # Add points with specified color and size
         labs(
              x = "X-axis Variable",             # Add x-axis label
@@ -463,6 +530,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       gg <- ggplotly(gg, tooltip = "text", source = "mutplot", dynamicTicks = TRUE) %>%
       layout(
+              title = list(text = NULL),
+      margin = list(l = 6, r = 6, t = 6, b = 20, pad = 0),
+
           xaxis = list(
             rangemode = "nonnegative",
 
@@ -487,13 +557,73 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     print(hex)
     print(typeof(hex))
     hex_val <- unname(hex)[1]
+    positions <- c(ed$x)
+
     session$sendCustomMessage("highlightResidueWithSphere",
-                              list(positions = ed$x,
+                              list(positions = positions,
                               colorHex=hex_val))
   })
 
-    output$domainplot <- renderPlotly({
 
+  observeEvent(input$mutations, {
+      mut_selected(!mut_selected())
+      print(mut_selected)
+      if (mut_selected()) {
+        gene_info <- genedatatable(cur_gene())
+        # resi <- gene_info["Numbers"]
+
+        for (i in 1:nrow(gene_info)) {
+          row <- gene_info[i, ]
+          residue <- (row["Numbers"][[1]])
+          mut_type <- row["ANNOTATION"][[1]]
+          # mut_type <- as.character(mut_type)
+          hex <- annotation_colors[mut_type]
+          hex_val <- unname(hex)[1]
+          print(hex)
+          session$sendCustomMessage("highlightResidueWithSphere",
+                              list(positions = residue,
+                              colorHex=hex_val
+                              ))
+
+        }
+      }
+
+      else {
+        session$sendCustomMessage("clearSpheres", list())
+      }
+    })
+
+
+    observeEvent(input$domain, {
+      dom_selected(!dom_selected())
+      print(dom_selected())
+      if (dom_selected()) {
+        # rects <- pfam_rectangles()
+        cg <- cur_gene()
+        pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
+        rects <- rect_data(pd)
+        print(rects)
+        if (nrow(rects) != 0) {
+        for (i in 1:nrow(rects)) {
+          row <- rects[i, ]
+          domain_start <- row['xmin'][[1]]
+          domain_end <- row["xmax"][[1]]
+          hex <- row["fill_color"][[1]]
+          hex <- unname(hex)
+          session$sendCustomMessage("highlightDomains",
+         list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
+
+        }}
+      }
+
+    else {
+      session$sendCustomMessage("clearPaint", list())
+    }
+    })
+
+
+
+    plot_rect <- function(domain_db) {
       new_theme_empty <- theme_bw()
       new_theme_empty$line <- element_blank()
       new_theme_empty$rect <- element_blank()
@@ -506,10 +636,13 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                                               class = "unit")
 
 
-      rects <- pfam_rectangles()
+      # rects <- pfam_rectangles()
+      cg <- cur_gene()
+
+      pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
+      rects <- rect_data(pd)
       print(rects$id)
       print(rects)
-      cg <- cur_gene()
 
       if (nrow(rects) == 0) {
         return(plotly_empty(type="scatter", mode="markers") %>%
@@ -528,30 +661,38 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
                   color = "black", 
                   alpha = 0.6) + scale_fill_identity() +
-        labs(title = paste("Pfam Domains for", gene()), x = "Residue", y = "") +
+        # labs(title = paste("Pfam Domains for", gene()), x = "Residue", y = "") +
         theme_minimal() + scale_x_continuous(limits = c(0, first(cg$PROTEIN_LENGTH))) + new_theme_empty +
         guides(fill = FALSE)
 
 
-  gg <- ggplotly(p, tooltip = "text", dynamicTicks = TRUE, source = "domainplot") %>%
-    layout(
-      xaxis = list(
-        rangemode = "nonnegative",
+      gg <- ggplotly(p, tooltip = "text", dynamicTicks = TRUE, source = "domainplot") %>%
+        layout(
+          title = list(text = NULL),
+          margin = list(l = 6, r = 6, t = 6, b = 20, pad = 0),
 
-        range = c(0, first(cg$PROTEIN_LENGTH)),    # <— force initial range [0, protein_length]
-        autorange = FALSE         # <— prevent Plotly from auto-expanding it
-      ) 
-    ) %>% config(scrollZoom = TRUE)
+          xaxis = list(
+            rangemode = "nonnegative",
 
-  gg
-      
+            range = c(0, first(cg$PROTEIN_LENGTH)),    # <— force initial range [0, protein_length]
+            autorange = FALSE         # <— prevent Plotly from auto-expanding it
+          ) 
+        ) %>% config(scrollZoom = TRUE)
+
+      gg
+
+    }
+
+
+    output$domainplot <- renderPlotly({
+        plot_rect(pfam)      
     })
 
     observe({
       # priortiy event will be triggered at every event/click
       ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
       req(ed$key)
-
+      cg <- cur_gene()
       # print(typeof(ed$key))
 
       str <- ((ed$key)[[1]])
@@ -561,7 +702,10 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       # print(ed$fill)
 
       message("Clicked color: ", ed$customdata)
-      domain <- pfam_rectangles()[pfam_rectangles()$id == ed$key, ]
+      # cg <- cur_gene()
+      pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
+      rects <- rect_data(pd)
+      domain <- rects[rects$id == ed$key, ]
       domain_start <- domain$xmin
       domain_end <- domain$xmax
 

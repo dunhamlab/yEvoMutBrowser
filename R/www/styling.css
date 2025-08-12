@@ -30,3 +30,28 @@
     .custom-button:hover {
       background-color: darkmagenta !important;
     }
+
+
+    .domain_div {
+      width: 600px;
+      /* display: flex;
+      flex-direction: row; */
+      height: 65px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+
+    }
+
+    .domain_button_div {
+      /* display: inline-block;
+      width: 5%; */
+    }
+
+    .domainplot_div {
+      /* display: inline-block;        
+      width: 95%;  */
+      height: 50px;
+
+    }
+
+
