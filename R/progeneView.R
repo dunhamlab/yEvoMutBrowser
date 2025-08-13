@@ -266,11 +266,17 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
   # })
 
     output$resiinfo <- renderText({
-      req(input$resiinfo)
+      req(input$resi_aa, input$resi_num)
       print("DFFD")
-      print(cur_gene()$PROTEIN)
-      paste("Hovered residue:", input$resiinfo, '32')
+      new <- genedatatable(cur_gene())
+      print(new)
+      # protein <- (cur_gene()$AA_POS)
+      # print(protein)
+      print('f')
       
+      # paste("Hovered residue:", input$resiinfo, '32')
+      paste0("Residue: ", input$resi_num, " Amino Acid: ", input$resi_aa)
+
     })
 
 
@@ -496,8 +502,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                                               valid.unit = 3L,
                                               class = "unit")
 
-      
-      # Create a scatter plot with ggplot2
+            # Create a scatter plot with ggplot2
+
       gg <- ggplot(data_df, aes(x = value, y = 0, key=count_proteins_same$ANNOTATION, color = count_proteins_same$ANNOTATION,
         text = ifelse(
           grepl("indel", count_proteins_same$ANNOTATION), # Check if ANNOTATION contains "indel"
