@@ -36,7 +36,7 @@
       width: 600px;
       /* display: flex;
       flex-direction: row; */
-      height: 65px;
+      height: 140px;
       display: grid;
       grid-template-columns: 120px 1fr;
 
@@ -52,6 +52,12 @@
       width: 95%;  */
       height: 50px;
 
+    }
+
+    .mut_button_div {
+      height: 38px;
+      width: 88.25px;
+      align-self: center;
     }
 
 
