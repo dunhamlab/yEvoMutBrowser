@@ -522,13 +522,11 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       mut_selected(!mut_selected())
       if (mut_selected()) {
         gene_info <- genedatatable(cur_gene())
-        # resi <- gene_info["Numbers"]
 
         for (i in 1:nrow(gene_info)) {
           row <- gene_info[i, ]
           residue <- (row["Numbers"][[1]])
           mut_type <- row["ANNOTATION"][[1]]
-          # mut_type <- as.character(mut_type)
           hex <- annotation_colors[mut_type]
           hex_val <- unname(hex)[1]
           session$sendCustomMessage("highlightResidueWithSphere",
