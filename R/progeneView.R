@@ -6,7 +6,6 @@ gene_pro_view_ui <- function(id) {
     "Gene View2", div("", style = "height: 10px;"),
     plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
     selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
-    selectInput(NS(id, "uniprotid"), "Gene", choices = c("Q02486", "P37898", "P38631")),
 
     tags$div(
       id = "molstar-parent",
@@ -51,13 +50,6 @@ gene_pro_view_ui <- function(id) {
     
     ),
     
-    # actionButton(NS(id, 'domain'), 'Pfam Domains'),
-
-    # tags$div(class="domainplot_div",
-    # plotlyOutput(NS(id, "domainplot"), width = "100%", height = "150px"),
-    # ),
-    
-
     includeCSS("R/www/styling.css"),
 
     tags$div(class = "container",
@@ -125,9 +117,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     output$content <- renderText("Protein Info Card")
 
     output$description <- renderText(paste0(first(cur_gene()$DESCRIPTION)))
-
-
-
 
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
@@ -329,6 +318,39 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     annotation_colors <- set_names(color_vector, all_annotations)
 
+    new_theme_empty <- theme_bw()
+    new_theme_empty$line <- element_blank()
+    new_theme_empty$rect <- element_blank()
+    new_theme_empty$strip.text <- element_blank()
+    new_theme_empty$axis.text.y <- element_blank()
+    new_theme_empty$axis.title <- element_blank()
+    new_theme_empty$plot.margin <- structure(c(0, 0, -1, -1),
+                                            unit = "lines",
+                                            valid.unit = 3L,
+                                            class = "unit")
+
+    hover_text <- function(data, new_line) {
+        ifelse(
+          grepl("indel", data$ANNOTATION), # Check if ANNOTATION contains "indel"
+          paste0(
+            "Indel\n", abs(data$indel), " base ", ifelse(data$indel > 0,
+                                                    "insertion", "deletion"
+            ), "\nCount: ", data$Counts_diff_mutation,
+            "Position: ", data$AA_POS
+          ), # Text for indel annotations
+          ifelse(
+            is.na(data$PROTEIN),
+            paste0(
+              ANNOTATION, "\nCount: ", data$Counts_diff_mutation,
+              "Position: ", -abs(unique(data$POS) -
+                                     unique(data$START))
+            ),
+              paste0(data$combined, "Position: ", data$AA_POS)
+            )
+          )
+      }
+
+    
     output$geneViewPlot <- renderPlotly({
       ranges <- reactiveValues(x = NULL, y = NULL)
 
@@ -371,12 +393,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       ranges$x <- c(-50, xmax + 50)
 
       ranges$y <- c(0, max(count_proteins_same$Counts_tot) +
-        ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
+                      ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
 
-      print("??? combined AA_WT AA_POS AA_M")
-      print(count_proteins_same$combined)
-
-      print("??")
       p <- count_proteins_same %>%
         ggplot(
           aes(
@@ -401,7 +419,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2) +
         geom_hline(yintercept = 0, linetype = 2, alpha = .2, aes(text = NULL)) +
         geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL),
-                     size = 15, color = "cornflowerblue"
+          size = 15, color = "cornflowerblue"
         ) +
         geom_segment(aes(
           x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot,
@@ -411,24 +429,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           x = AA_POS,
           y = Counts_tot,
           color = ANNOTATION,
-          text = ifelse(
-            grepl("indel", ANNOTATION), # Check if ANNOTATION contains "indel"
-            paste0(
-              "Indel\n", abs(indel), " base ", ifelse(indel > 0,
-                                                      "insertion", "deletion"
-              ), "\nCount: ", Counts_diff_mutation,
-              "\nPosition: ", AA_POS
-            ), # Text for indel annotations
-            ifelse(
-              is.na(PROTEIN),
-              paste0(
-                ANNOTATION, "\nCount: ", Counts_diff_mutation,
-                "\nPosition: ", -abs(unique(cur_gene$POS) -
-                                       unique(cur_gene$START))
-              ),
-              paste0(combined, "\nPosition: ", AA_POS)
-            )
-          )
+          text = hover_text(count_proteins_same)
         ), size = 2) +
         ggtitle(as.character(gene())) +
         theme_classic() +
@@ -464,48 +465,13 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
     output$mutplot <- renderPlotly({
-
       cur_gene <- cur_gene()
       count_proteins_same <- genedatatable(cur_gene)
       cg <- cur_gene()
 
-
-      amino_acid_loc <- count_proteins_same$Numbers
-      data_df <- data.frame(value = amino_acid_loc, dummy_y = 0) 
-
-      annotation_colors <- set_names(color_vector, all_annotations)
-
-      new_theme_empty <- theme_bw()
-      new_theme_empty$line <- element_blank()
-      new_theme_empty$rect <- element_blank()
-      new_theme_empty$strip.text <- element_blank()
-      new_theme_empty$axis.text.y <- element_blank()
-      new_theme_empty$axis.title <- element_blank()
-      new_theme_empty$plot.margin <- structure(c(0, 0, -1, -1),
-                                              unit = "lines",
-                                              valid.unit = 3L,
-                                              class = "unit")
-
             # Create a scatter plot with ggplot2
       gg <- ggplot(count_proteins_same, aes(x = count_proteins_same$Numbers, y = 0, key=count_proteins_same$ANNOTATION, color = count_proteins_same$ANNOTATION,
-        text = ifelse(
-          grepl("indel", count_proteins_same$ANNOTATION), # Check if ANNOTATION contains "indel"
-          paste0(
-              "Indel\n", abs(indel), " base ", ifelse(indel > 0,
-                                                      "insertion", "deletion"
-              ), "\nCount: ", Counts_diff_mutation,
-              "\nPosition: ", AA_POS
-          ), # Text for indel annotations
-          ifelse(
-            is.na(count_proteins_same$PROTEIN),
-            paste0(
-              count_proteins_same$ANNOTATION, "Count: ", count_proteins_same$Counts_diff_mutation,
-              "Position: ", -abs(unique(cur_gene$POS) -
-                                   unique(cur_gene$START))
-            ),
-            paste0(count_proteins_same$combined, "Position: ", count_proteins_same$AA_POS)
-            )
-          )
+        text = hover_text(count_proteins_same)
       )) +
         scale_color_manual(values = annotation_colors) + 
         geom_point(size = 3.2, alpha = 0.3, shape=15 ) +
@@ -515,7 +481,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
              y = "Y-axis Variable") +  xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
 
         new_theme_empty + labs(x = "My X-axis Label") + guides(fill = FALSE) + theme(legend.position = "none")
-
 
 
       gg <- ggplotly(gg, tooltip = "text", source = "mutplot", dynamicTicks = TRUE) %>%
@@ -606,20 +571,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
 
-
     plot_rect <- function(domain_db) {
-      new_theme_empty <- theme_bw()
-      new_theme_empty$line <- element_blank()
-      new_theme_empty$rect <- element_blank()
-      new_theme_empty$strip.text <- element_blank()
-      new_theme_empty$axis.text.y <- element_blank()
-      new_theme_empty$axis.title <- element_blank()
-      new_theme_empty$plot.margin <- structure(c(0, 0, -1, -1),
-                                              unit = "lines",
-                                              valid.unit = 3L,
-                                              class = "unit")
-
-
       # rects <- pfam_rectangles()
       cg <- cur_gene()
 
@@ -637,8 +589,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                     ymin = ymin, ymax = ymax,
                     text = text,
                     key = id,
-                    fill = fill_color,
-                    customdata = fill_color
+                    fill = fill_color
                   ),
 
                   color = "black", 
@@ -674,13 +625,13 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       # priortiy event will be triggered at every event/click
       ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
       req(ed$key)
+      print(ed)
       cg <- cur_gene()
       print(ed$key)
       str <- ((ed$key)[[1]])
       split_vector <- unlist(strsplit(str, "_"))
       hex <- tail(split_vector, 1)
 
-      message("Clicked color: ", ed$customdata)
       pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
       rects <- rect_data(pd)
       domain <- rects[rects$id == ed$key, ]
