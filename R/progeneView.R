@@ -262,7 +262,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           ifelse(
             is.na(data$PROTEIN),
             paste0(
-              ANNOTATION, "\nCount: ", data$Counts_diff_mutation,
+              data$ANNOTATION, "\nCount: ", data$Counts_diff_mutation,
               "Position: ", -abs(unique(data$POS) -
                                      unique(data$START))
             ),
@@ -290,6 +290,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       dom_selected(FALSE)
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
       session$sendCustomMessage("initMolstar", uniprotid)
+      session$sendCustomMessage("resetCamera", list())
+
   })
 
 
@@ -356,6 +358,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       )
 
       cur_gene <- cur_gene()
+      print(cur_gene)
       count_proteins_same <- genedatatable(cur_gene)
       # Pattern for extracting the second part of protein
 
@@ -490,7 +493,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     hex_val <- unname(hex)[1]
     positions <- c(ed$x)
     session$sendCustomMessage("zoomToResidue", list(residueNumber = positions))
-
     session$sendCustomMessage("highlightResidueWithSphere",
                               list(positions = positions,
                               colorHex=hex_val))
@@ -614,6 +616,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       domain <- rects[rects$id == ed$key, ]
       domain_start <- domain$xmin
       domain_end <- domain$xmax
+      session$sendCustomMessage("zoomToResidue", list(residueNumber = domain_start))
 
       session$sendCustomMessage("highlightDomains",
       list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
