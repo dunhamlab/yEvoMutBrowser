@@ -24,8 +24,6 @@ gene_pro_view_ui <- function(id) {
     # ⬇️  place the script LAST so Shiny is ready
     tags$script(src = "static/molstar-custom.js"),
     verbatimTextOutput(NS(id, "resiinfo")),
-    # actionButton(NS(id, 'mutations'), 'Mutations'),
-    # plotlyOutput(NS(id, "mutplot"), width = "600px", height = "150px"),
     
     tags$div(class="domain_div",
       tags$div(class="mut_button_div",
@@ -63,7 +61,7 @@ gene_pro_view_ui <- function(id) {
       tags$div(class = "content_div",
         tags$div(class = 'url_div',
           tags$p("Protein: ", uiOutput(NS(id, "url"), inline = TRUE)),
-        ),      
+        ),
         tags$div(class = "description_div",
           tags$p("Description: ", textOutput(NS(id, "description"), inline = TRUE))
         ),
@@ -252,35 +250,36 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
     }
 
+    hover_text <- function(data, new_line) {
+        ifelse(
+          grepl("indel", data$ANNOTATION), # Check if ANNOTATION contains "indel"
+          paste0(
+            "Indel\n", abs(data$indel), " base ", ifelse(data$indel > 0,
+                                                    "insertion", "deletion"
+            ), "\nCount: ", data$Counts_diff_mutation,
+            "\nPosition: ", data$AA_POS
+          ), # Text for indel annotations
+          ifelse(
+            is.na(data$PROTEIN),
+            paste0(
+              ANNOTATION, "\nCount: ", data$Counts_diff_mutation,
+              "Position: ", -abs(unique(data$POS) -
+                                     unique(data$START))
+            ),
+              paste0(data$combined, "Position: ", data$AA_POS)
+            )
+          )
+      }
+
     output$resiinfo <- renderText({
       req(input$resi_aa, input$resi_num)
       new <- genedatatable(cur_gene())
       residue_num <- input$resi_num
       if (residue_num %in% new$Numbers) {
         row <- new[new$Numbers == residue_num, ]
-
-        ifelse(
-          grepl("indel", row$ANNOTATION), # Check if ANNOTATION contains "indel"
-          paste0(
-              "Indel\n", abs(row$indel), " base ", ifelse(row$indel > 0,
-                                                      "insertion", "deletion"
-              ), "\nCount: ", row$Counts_diff_mutation,
-              "\nPosition: ", row$AA_POS
-          ), # Text for indel annotations
-          ifelse(
-            is.na(row$PROTEIN),
-            paste0(
-              row$ANNOTATION, "Count: ", row$Counts_diff_mutation,
-              "Position: ", -abs(unique(row$POS) -
-                                   unique(row$START))
-            ),
-            paste0(row$combined, "Position: ", row$AA_POS)
-          )
-        )
-      }
-      else {
-      paste0("Position: ", input$resi_num, " Amino Acid: ", input$resi_aa)
-
+        hover_text(row, TRUE)
+      } else {
+        paste0("Position: ", input$resi_num, " Amino Acid: ", input$resi_aa)
       }
     })
 
@@ -294,7 +293,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
   })
 
 
-    rect_data <- function(filtered_rows) {
+    rect_data <- function(filtered_rows, color_func) {
       cg <- cur_gene()
       pd <- filtered_rows
       if (nrow(pd) == 0) {
@@ -310,8 +309,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         text = paste0(pd$Start, "-", pd$End, "\n", pd$Description)
       ) 
         
-      rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)), "_", rainbow(nrow(rects)))
-      rects$fill_color <- rainbow(nrow(rects))
+      rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)), "_", color_func(nrow(rects)))
+      rects$fill_color <- color_func(nrow(rects))
       rects
 
     }
@@ -329,28 +328,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                                             valid.unit = 3L,
                                             class = "unit")
 
-    hover_text <- function(data, new_line) {
-        ifelse(
-          grepl("indel", data$ANNOTATION), # Check if ANNOTATION contains "indel"
-          paste0(
-            "Indel\n", abs(data$indel), " base ", ifelse(data$indel > 0,
-                                                    "insertion", "deletion"
-            ), "\nCount: ", data$Counts_diff_mutation,
-            "Position: ", data$AA_POS
-          ), # Text for indel annotations
-          ifelse(
-            is.na(data$PROTEIN),
-            paste0(
-              ANNOTATION, "\nCount: ", data$Counts_diff_mutation,
-              "Position: ", -abs(unique(data$POS) -
-                                     unique(data$START))
-            ),
-              paste0(data$combined, "Position: ", data$AA_POS)
-            )
-          )
-      }
 
-    
     output$geneViewPlot <- renderPlotly({
       ranges <- reactiveValues(x = NULL, y = NULL)
 
@@ -511,6 +489,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     print(hex)
     hex_val <- unname(hex)[1]
     positions <- c(ed$x)
+    session$sendCustomMessage("zoomToResidue", list(residueNumber = positions))
 
     session$sendCustomMessage("highlightResidueWithSphere",
                               list(positions = positions,
@@ -549,7 +528,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         # rects <- pfam_rectangles()
         cg <- cur_gene()
         pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
-        rects <- rect_data(pd)
+        rects <- rect_data(pd, viridis)
         if (nrow(rects) != 0) {
         for (i in 1:nrow(rects)) {
           row <- rects[i, ]
@@ -557,6 +536,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           domain_end <- row["xmax"][[1]]
           hex <- row["fill_color"][[1]]
           hex <- unname(hex)
+          len <- nchar(hex)
+          hex <- substr(hex, 1, len - 2)
+
           session$sendCustomMessage("highlightDomains",
          list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
 
@@ -569,12 +551,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
 
-    plot_rect <- function(domain_db) {
-      # rects <- pfam_rectangles()
-      cg <- cur_gene()
-
-      pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
-      rects <- rect_data(pd)
+    plot_rect <- function(pd, cg) {
+      rects <- rect_data(pd, viridis)
 
       if (nrow(rects) == 0) {
         return(plotly_empty(type="scatter", mode="markers") %>%
@@ -590,7 +568,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                     fill = fill_color
                   ),
 
-                  color = "black", 
+                  color = "black",
                   alpha = 0.6) + scale_fill_identity() +
         # labs(title = paste("Pfam Domains for", gene()), x = "Residue", y = "") +
         theme_minimal() + scale_x_continuous(limits = c(0, first(cg$PROTEIN_LENGTH))) + new_theme_empty +
@@ -616,27 +594,27 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
 
     output$domainplot <- renderPlotly({
-        plot_rect(pfam)      
+      cg <- cur_gene()
+      pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
+      plot_rect(pd, cg)
     })
 
     observe({
       # priortiy event will be triggered at every event/click
       ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
       req(ed$key)
-      print(ed)
       cg <- cur_gene()
-      print(ed$key)
       str <- ((ed$key)[[1]])
       split_vector <- unlist(strsplit(str, "_"))
       hex <- tail(split_vector, 1)
-
+      len <- nchar(hex)
+      hex <- substr(hex, 1, len - 2)
       pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
-      rects <- rect_data(pd)
+      rects <- rect_data(pd, viridis)
       domain <- rects[rects$id == ed$key, ]
       domain_start <- domain$xmin
       domain_end <- domain$xmax
 
-      
       session$sendCustomMessage("highlightDomains",
       list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
     })
