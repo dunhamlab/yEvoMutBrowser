@@ -94,7 +94,7 @@ chrom_map_server <- function(
             hoverinfo = "text"
           )
       }
-
+      max_count = 0 #added outside of if statment so that it can be referenced in points below
       # Add multi-mutation rectangles
       if (nrow(final_gene_multi_muts) > 0) {
         # Create color scale
@@ -129,7 +129,8 @@ chrom_map_server <- function(
         }
         final_gene_multi_muts$color <- multi_mut_colors
 
-        # Adding invisible points for multi mutation hover functionality
+        # Adding invisible points for multi mutation hover functionality, handles logic differently for
+        if (max_count == 2){
         fig <- fig %>%
           add_trace(
             data = final_gene_multi_muts,
@@ -137,25 +138,37 @@ chrom_map_server <- function(
             y = ~CHROM,
             type = "scatter",
             mode = "markers",
-            marker = list(
-              color = ~Counts, # assuming you want to map 'Counts' to color
-              colorscale = list(
-                list(0, "#FFC0CB"),
-                list(1, "#8B0000")
-              ),
-              size = 10,
-              opacity = 0,
-              colorbar = list(title = "Mutation Count")
-            ),
+            marker = list(size = 10, opacity = 0, color = "pink"),
             name = "Multiple Mutations",
-            text = ~paste0(
-              "Gene Name: ", GENE, "<br>Independent Mutations: ",
-              Counts
-            ),
+            text = ~paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
             hoverinfo = "text"
-          )
+          )} else{
+            fig <- fig %>%
+              add_trace(
+                data = final_gene_multi_muts,
+                x = ~START + 4000,
+                y = ~CHROM,
+                type = "scatter",
+                mode = "markers",
+                marker = list(
+                  color = ~Counts, # assuming you want to map 'Counts' to color
+                  colorscale = list(
+                    list(0, "#FFC0CB"),
+                    list(1, "#8B0000")
+                  ),
+                  size = 10,
+                  opacity = 0,
+                  colorbar = list(title = "Mutation Count")
+                ),
+                name = "Multiple Mutations",
+                text = ~paste0(
+                  "Gene Name: ", GENE, "<br>Independent Mutations: ",
+                  Counts
+                ),
+                hoverinfo = "text"
+              )
+          }
       }
-
 
       # Addding shapes to graph
       fig <- fig %>% layout(
