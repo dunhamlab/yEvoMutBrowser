@@ -76,7 +76,6 @@ yEvoMutBrowser <- function(...) {
             variants_ui("variants"),
             snp_count_ui("snpCount"),
             gene_view_ui("geneView"),
-          
             gene_pro_view_ui("geneView2"),
             data_table_ui("dataTable"),
           )

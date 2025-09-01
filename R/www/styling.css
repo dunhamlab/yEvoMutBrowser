@@ -31,6 +31,24 @@
       background-color: darkmagenta !important;
     }
 
+    .info_div {
+      width: 600px;;
+    }
+
+    .info_div pre {
+      width: 600px;
+      margin-bottom: 10px;
+      background-color: rgb(255, 255, 255) !important;
+      border-radius: 0px !important;
+      border-color: cornflowerblue !important;
+      border-width: 2px !important;
+      font-family: sans-serif !important;
+      white-space: pre-wrap;  
+      word-break: normal;    
+      overflow-wrap: normal;  
+      font-size: 16px !important;
+      font-style: italic !important;  
+    }
 
     .domain_div {
       width: 600px;

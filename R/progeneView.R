@@ -8,6 +8,11 @@ gene_pro_view_ui <- function(id) {
 
       div("", style = "height: 10px;"),
       # plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
+      
+      tags$div(class = "info_div", 
+        verbatimTextOutput(NS(id, "info")),
+      ),
+
       selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
 
       tags$div(
@@ -101,6 +106,11 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     gene <- reactive(input$geneSelectDropDown)
 
+    output$info <- renderText({
+      req(gene())
+      paste0("Note: The yeast protein structures are derived from AlphaFold prediction models and represent the canonical form of the protein."
+)
+    })
 
     cur_gene <- reactive({
       # merge & filter gene info and mutation info and filter for selected gene
@@ -114,6 +124,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     output$content <- renderText("Protein Info Card")
 
     output$description <- renderText(paste0(first(cur_gene()$DESCRIPTION)))
+
+
 
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
@@ -291,9 +303,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       cg <- cur_gene()
       pd <- filtered_rows
       if (nrow(pd) == 0) {
-        return(tibble(xmin=double(), xmax=double(),
-                      ymin=double(), ymax=double(),
-                      text=character(), id=character()))
+        return(tibble(xmin = double(), xmax = double(),
+                      ymin = double(), ymax = double(),
+                      text = character(), id = character()))
       }
       rects <- tibble(
         xmin = pd$Start,
