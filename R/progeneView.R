@@ -3,8 +3,11 @@ gene_pro_view_ui <- function(id) {
   prefix <- ns("")
 
   tabPanel(
-    "Gene View2", div("", style = "height: 10px;"),
-    plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
+    "Protein View",
+    div(style = "margin-left: 20px;",
+    
+        div("", style = "height: 10px;"),
+    # plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
     selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
 
     tags$div(
@@ -24,11 +27,12 @@ gene_pro_view_ui <- function(id) {
     # ⬇️  place the script LAST so Shiny is ready
     tags$script(src = "static/molstar-custom.js"),
     verbatimTextOutput(NS(id, "resiinfo")),
-    
+    uiOutput(NS(id, "mutation_legend")),
     tags$div(class="domain_div",
       tags$div(class="mut_button_div",
     actionButton(NS(id, 'mutations'), 'Mutations'),
       ),
+
 
       tags$div(class="mut_plot_div",
     plotlyOutput(NS(id, "mutplot"), height = "140px"),
@@ -70,15 +74,19 @@ gene_pro_view_ui <- function(id) {
           tags$p("Pathways: ", uiOutput(NS(id, "pathway"), inline = TRUE))
         ),
         )
-),
+    ),
+
+    # plotlyOutput(NS(id, "testplot"), height = "200px"),
 
     # uiOutput(NS(id, "url"))
+
+    
+    )
    )
 }
 
 gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
   moduleServer(id, function(input, output, session) {
-
 
     mut_selected <- reactiveVal(FALSE)
     dom_selected <- reactiveVal(FALSE)
@@ -290,7 +298,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       dom_selected(FALSE)
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
       session$sendCustomMessage("initMolstar", uniprotid)
-      session$sendCustomMessage("resetCamera", list())
+      # session$sendCustomMessage("resetCamera", list())
 
   })
 
@@ -319,6 +327,27 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     annotation_colors <- set_names(color_vector, all_annotations)
 
+    alpha_val <- 0.4
+    transp_colors <- lapply(annotation_colors, function(col) {
+      adjustcolor(col, alpha.f = alpha_val)
+    })
+
+    output$mutation_legend <- renderUI({
+      tags$div(
+        style = "display: flex; flex-direction: row;",
+        lapply(names(transp_colors), function(mut) {
+          tags$div(
+            style = "display:flex; align-items:center; margin-bottom:4px; margin-top:30px;", 
+            tags$div(
+              style = sprintf("width:20px; height:20px; background:%s; margin-right:5px; border:1px solid #000; margin-left:5px; margin-top: 4px;" , 
+                              transp_colors[mut])
+            ),
+            tags$span(mut)
+          )
+        })
+      )
+    })
+
     new_theme_empty <- theme_bw()
     new_theme_empty$line <- element_blank()
     new_theme_empty$rect <- element_blank()
@@ -331,119 +360,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                                             class = "unit")
 
 
-    output$geneViewPlot <- renderPlotly({
-      ranges <- reactiveValues(x = NULL, y = NULL)
-
-      # Showing please select gene message
-      # Construct the string with spaces on each side of the loading message
-      geneview_message <- "Please select a gene below"
-      # Calculate the number of empty spaces needed on each side
-      gene_message_length <- nchar(geneview_message)
-      gene_spaces_on_each_side <- floor(
-        (total_spaces - gene_message_length) / 2
-      )
-      select_gene_message <- sprintf(
-        "%s%s%s%s",
-        "\n\n\n\n\n\n\n\n",
-        paste(rep(" ", gene_spaces_on_each_side), collapse = ""),
-        geneview_message,
-        paste(rep(" ", gene_spaces_on_each_side), collapse = "")
-      )
-
-      # Render gene view plot
-
-      validate(
-        need(gene(), select_gene_message),
-        need(filtered_data(), "Loading data...")
-      )
-
-      cur_gene <- cur_gene()
-      print(cur_gene)
-      count_proteins_same <- genedatatable(cur_gene)
-      # Pattern for extracting the second part of protein
-
-
-      annotation_colors <- set_names(color_vector, all_annotations)
-
-      # Generating ranges for the plot size
-      xmax <- genes_info %>%
-        filter(GENE == gene()) %>%
-        pull(PROTEIN_LENGTH) %>%
-        unique() %>%
-        as.numeric()
-      ranges$x <- c(-50, xmax + 50)
-
-      ranges$y <- c(0, max(count_proteins_same$Counts_tot) +
-                      ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
-
-      p <- count_proteins_same %>%
-        ggplot(
-          aes(
-            x = AA_POS,
-            y = Counts_tot,
-          )
-        ) +
-        # dummy geom_point to get legend showing all_annotations regardless of
-        # what data is displayed
-        geom_point(data = data.frame(
-          PROTEIN = rep(NA_character_, length(all_annotations)),
-          AA_WT = rep(NA_character_, length(all_annotations)),
-          AA_POS = rep(NA_real_, length(all_annotations)),
-          AA_M = rep(NA_character_, length(all_annotations)),
-          ANNOTATION = factor(all_annotations, levels = all_annotations),
-          Counts_diff_mutation = I(rep(
-            list(numeric(0)),
-            length(all_annotations)
-          )),
-          Counts_tot = rep(NA_integer_, length(all_annotations)),
-          combined = rep(NA_character_, length(all_annotations))
-        ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2) +
-        geom_hline(yintercept = 0, linetype = 2, alpha = .2, aes(text = NULL)) +
-        geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL),
-          size = 15, color = "cornflowerblue"
-        ) +
-        geom_segment(aes(
-          x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot,
-          text = NULL
-        ), color = "gray") +
-        geom_point(aes(
-          x = AA_POS,
-          y = Counts_tot,
-          color = ANNOTATION,
-          text = hover_text(count_proteins_same)
-        ), size = 2) +
-        ggtitle(as.character(gene())) +
-        theme_classic() +
-        theme(
-          axis.text.x = element_text(),
-          axis.title.y = element_text(),
-          axis.text.y = element_text(),
-          axis.ticks.y = element_line(),
-          plot.title = element_text(hjust = 0.5),
-          plot.margin = margin(20, 20, 0, 20)
-        ) +
-        xlab("Amino acid position") +
-        ylab("Mutation Count") +
-        scale_y_continuous(breaks = function(x) {
-          seq(floor(min(x)),
-              ceiling(max(x)),
-              by = 1
-          )
-        }) +
-        scale_color_manual(values = annotation_colors) + # Manual color scale
-        coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
-        annotate("text",
-                 x = 1, y = Inf,
-                 label = "Drag over mutations to see more", hjust = 0, vjust = 2,
-                 color = "black", size = 5
-        ) +
-        guides(color = guide_legend(title = "Annotation"))
-
-
-      print(count_proteins_same)
-
-      ggplotly(p, tooltip = "text")
-    })
 
     output$mutplot <- renderPlotly({
       cur_gene <- cur_gene()
@@ -481,6 +397,40 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       gg
     })
+
+
+  observe({
+    ed <- event_data("plotly_hover", source="mutplot", priority = 'event')
+    req(ed)
+    print(ed)
+    ann <- as.character(ed$key[[1]])
+    hex <- annotation_colors[ann]
+    print(hex)
+    hex_val <- unname(hex)[1]
+    positions <- c(ed$x)
+  my_rectangle <- list(
+    type = "rect",
+    fillcolor = "#fbff00",
+    # line = list(color = "black"),
+    opacity = 0.3,
+    x0 = ed$x - 0.5,
+    x1 = ed$x + 0.5,
+    y0 = 0.1,      # Use relative coordinates (0-1)
+    y1 = 0.9,      # Use relative coordinates (0-1)
+    xref = "x",    # x-coordinates in data space
+    yref = "paper" # y-coordinates as fraction of plot area (constant size)
+  )
+
+
+    plotlyProxy("mutplot", session) %>%
+          plotlyProxyInvoke("relayout", list(shapes = list(my_rectangle)))
+
+
+    plotlyProxy("domainplot", session) %>%
+          plotlyProxyInvoke("relayout", list(shapes = list(my_rectangle)))
+
+
+  })
 
 
   observe({
@@ -594,12 +544,42 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     }
 
-
     output$domainplot <- renderPlotly({
       cg <- cur_gene()
       pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
       plot_rect(pd, cg)
     })
+
+
+shared_zoom <- function(plot_id) {
+  # Function to share zoom between mutplot and domainplot
+  # This function uses a reactive value to store the zoom range
+  # and applies it to both plots when either plot is zoomed.
+
+  relayout_data <- event_data("plotly_relayout", source = plot_id)
+  
+  if (!is.null(relayout_data) && 
+      "xaxis.range[0]" %in% names(relayout_data) && 
+      "xaxis.range[1]" %in% names(relayout_data)) {
+    
+    new_range <- c(relayout_data[["xaxis.range[0]"]], relayout_data[["xaxis.range[1]"]])
+    
+    plotlyProxy("domainplot") %>%
+      plotlyProxyInvoke("relayout", list("xaxis.range" = new_range))
+
+    plotlyProxy("mutplot") %>%
+      plotlyProxyInvoke("relayout", list("xaxis.range" = new_range))
+
+  }
+}
+
+observeEvent(event_data("plotly_relayout", source = "mutplot"), {
+  shared_zoom("mutplot")
+})
+
+observeEvent(event_data("plotly_relayout", source = "domainplot"), {
+  shared_zoom("domainplot")
+})
 
     observe({
       # priortiy event will be triggered at every event/click
