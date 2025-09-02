@@ -50,6 +50,21 @@
       font-style: italic !important;  
     }
 
+    .resi_info_div pre {
+      width: 600px;
+      margin-bottom: 10px;
+      background-color: rgb(255, 255, 255) !important;
+      border-radius: 0px !important;
+      border-color: cornflowerblue !important;
+      border-width: 2px !important;
+      font-family: sans-serif !important;
+      white-space: pre-wrap;  
+      word-break: normal;    
+      overflow-wrap: normal;
+      margin-top: 6px;  
+      font-size: 14px !important;
+    }
+
     .domain_div {
       width: 600px;
       /* display: flex;

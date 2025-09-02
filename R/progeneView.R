@@ -32,7 +32,13 @@ gene_pro_view_ui <- function(id) {
       # ⬇️  place the script LAST so Shiny is ready
       tags$script(src = "static/molstar-custom.js"),
 
-      verbatimTextOutput(NS(id, "resiinfo")),
+      tags$div(class = "resi_info_div",
+        verbatimTextOutput(NS(id, "resiinfo")),
+
+      ),
+
+
+      # verbatimTextOutput(NS(id, "resiinfo")),
 
       uiOutput(NS(id, "mutation_legend")),
 
@@ -527,6 +533,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     output$domainplot <- renderPlotly({
       cg <- cur_gene()
+      # Get pfam domains for the current gene
       pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
       plot_rect(pd, cg)
     })
