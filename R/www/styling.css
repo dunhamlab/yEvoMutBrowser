@@ -1,96 +1,95 @@
-    div {
-      padding: 0px !important;
-    }
-    
-    .container {
-      width: 600px;
-      margin: 0px;
-    }
+/* Scope all styles to only apply within the Protein View tab */
+div[role="tabpanel"][aria-labelledby*="Protein View"] div {
+  padding: 0px !important;
+}
 
-    .my-verbatim-text {
-      font-weight: 100 !important;
-      font-family: sans-serif !important;
-      background-color: rgb(240, 240, 240) !important;
-      color: black !important;
-      border-radius: 10px !important;
-      font-size: 22px !important;
-      border: none !important;
-      display: inline-block !important;
-      width: 100% !important;
-      padding-left: 0px !important;
-      border-radius: 0px !important;
-      padding-top: 10px !important;
-      padding-bottom: 10px !important;
-      padding-left: 10px !important;
-      border-style: solid!important;
-      border-color: rgb(217, 217, 217) !important;
-      border-radius: 3px !important;
-    }
+div[role="tabpanel"][aria-labelledby*="Protein View"] .container {
+  width: 600px;
+  margin: 0px;
+}
 
-    .custom-button:hover {
-      background-color: darkmagenta !important;
-    }
+div[role="tabpanel"][aria-labelledby*="Protein View"] .my-verbatim-text {
+  font-weight: 100 !important;
+  font-family: sans-serif !important;
+  background-color: rgb(240, 240, 240) !important;
+  color: black !important;
+  border-radius: 10px !important;
+  font-size: 22px !important;
+  border: none !important;
+  display: inline-block !important;
+  width: 100% !important;
+  padding-left: 0px !important;
+  border-radius: 0px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  padding-left: 10px !important;
+  border-style: solid!important;
+  border-color: rgb(217, 217, 217) !important;
+  border-radius: 3px !important;
+}
 
-    .info_div {
-      width: 600px;;
-    }
+div[role="tabpanel"][aria-labelledby*="Protein View"] .custom-button:hover {
+  background-color: darkmagenta !important;
+}
 
-    .info_div pre {
-      width: 600px;
-      margin-bottom: 10px;
-      background-color: rgb(255, 255, 255) !important;
-      border-radius: 0px !important;
-      border-color: cornflowerblue !important;
-      border-width: 2px !important;
-      font-family: sans-serif !important;
-      white-space: pre-wrap;  
-      word-break: normal;    
-      overflow-wrap: normal;  
-      font-size: 16px !important;
-      font-style: italic !important;  
-    }
+div[role="tabpanel"][aria-labelledby*="Protein View"] .info_div {
+  width: 600px;;
+}
 
-    .resi_info_div pre {
-      width: 600px;
-      margin-bottom: 10px;
-      background-color: rgb(255, 255, 255) !important;
-      border-radius: 0px !important;
-      border-color: cornflowerblue !important;
-      border-width: 2px !important;
-      font-family: sans-serif !important;
-      white-space: pre-wrap;  
-      word-break: normal;    
-      overflow-wrap: normal;
-      margin-top: 6px;  
-      font-size: 14px !important;
-    }
+div[role="tabpanel"][aria-labelledby*="Protein View"] .info_div pre {
+  width: 600px;
+  margin-bottom: 10px;
+  background-color: rgb(255, 255, 255) !important;
+  border-radius: 0px !important;
+  border-color: cornflowerblue !important;
+  border-width: 2px !important;
+  font-family: sans-serif !important;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  font-size: 16px !important;
+  font-style: italic !important;
+}
 
-    .domain_div {
-      width: 600px;
-      /* display: flex;
-      flex-direction: row; */
-      height: 140px;
-      display: grid;
-      grid-template-columns: 120px 1fr;
+div[role="tabpanel"][aria-labelledby*="Protein View"] .resi_info_div pre {
+  width: 600px;
+  margin-bottom: 10px;
+  background-color: rgb(255, 255, 255) !important;
+  border-radius: 0px !important;
+  border-color: cornflowerblue !important;
+  border-width: 2px !important;
+  font-family: sans-serif !important;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  margin-top: 6px;
+  font-size: 14px !important;
+}
 
-    }
+div[role="tabpanel"][aria-labelledby*="Protein View"] .domain_div {
+  width: 600px;
+  /* display: flex;
+  flex-direction: row; */
+  height: 140px;
+  display: grid;
+  grid-template-columns: 120px 1fr;
 
-    .domain_button_div {
-      /* display: inline-block;
-      width: 5%; */
-    }
+}
 
-    .domainplot_div {
-      /* display: inline-block;        
-      width: 95%;  */
-      height: 50px;
+div[role="tabpanel"][aria-labelledby*="Protein View"] .domain_button_div {
+  /* display: inline-block;
+  width: 5%; */
+}
 
-    }
+div[role="tabpanel"][aria-labelledby*="Protein View"] .domainplot_div {
+  /* display: inline-block;
+  width: 95%;  */
+  height: 50px;
 
-    .mut_button_div {
-      height: 38px;
-      width: 88.25px;
-      align-self: center;
-    }
+}
 
-
+div[role="tabpanel"][aria-labelledby*="Protein View"] .mut_button_div {
+  height: 38px;
+  width: 88.25px;
+  align-self: center;
+}
