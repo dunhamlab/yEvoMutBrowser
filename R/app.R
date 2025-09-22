@@ -45,6 +45,7 @@ yEvoMutBrowser <- function(...) {
 
   # need to add this to upload the yEvo icon the theme
   addResourcePath(prefix = "img", directoryPath = "img")
+  addResourcePath(prefix = "static", directoryPath = "static")
 
   # create a variable called link that stores the base SGD database for locus
   link <- ORGANISM_GENE_INFO_LINK
@@ -75,6 +76,7 @@ yEvoMutBrowser <- function(...) {
             variants_ui("variants"),
             snp_count_ui("snpCount"),
             gene_view_ui("geneView"),
+            gene_pro_view_ui("geneView2"),
             data_table_ui("dataTable"),
           )
         )
@@ -156,8 +158,13 @@ yEvoMutBrowser <- function(...) {
       filtered_data, VARIANTS_PIE_CHART_COLORS
     )
     snp_count_server("snpCount", filtered_data, SNP_CHART_COLORS)
+
     gene_view_server(
       "geneView", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
+    )
+
+    gene_pro_view_server(
+      "geneView2", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
     )
 
     observeEvent(input$append_btn, {

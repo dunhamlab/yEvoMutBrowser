@@ -3,6 +3,7 @@ gene_view_ui <- function(id) {
     "Gene View", div("", style = "height: 10px;"),
     plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
     selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
+
     uiOutput(NS(id, "url"))
   )
 }
@@ -37,6 +38,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       url
     })
     }
+
 
     output$geneViewPlot <- renderPlotly({
       ranges <- reactiveValues(x = NULL, y = NULL)
