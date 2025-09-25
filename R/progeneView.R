@@ -62,12 +62,14 @@ gene_pro_view_ui <- function(id) {
         ),
       ),
 
+      # plotlyOutput(NS(id, "motifplot"), height = "65px"),
+
       includeCSS("R/www/styling.css"),
 
       tags$div(class = "container",
         # Inner div with class "header"
         tags$div(class = "protein-cont",
-          tags$div(class = "my-verbatim-text",  # <-- your custom class
+          tags$div(class = "my_verbatim_text",  # <-- your custom class
             textOutput(NS(id, "content"))
           )
         ),
@@ -149,6 +151,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     pfam <- read.csv(ORGANISM_PFAM_DOMAIN_INFO_PATH)
     pathway_info <- read.csv(ORGANISM_PATHWAY_INFO_PATH)
+    motif_info <- read.csv(ORGANISM_MOTIF_INFO_PATH)
 
     output$pathway <- renderUI({
       validate(
@@ -305,7 +308,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
   })
 
 
-    rect_data <- function(filtered_rows, color_func) {
+    rect_data <- function(filtered_rows, color_func, dtype="pfam") {
       cg <- cur_gene()
       pd <- filtered_rows
       if (nrow(pd) == 0) {
@@ -321,7 +324,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         text = paste0(pd$Start, "-", pd$End, "\n", pd$Description)
       )
 
-      rects$id <- paste0(first(cg$GENE), "_", seq_len(nrow(rects)), "_", color_func(nrow(rects)))
+      rects$id <- paste0(dtype,first(cg$GENE), "_", seq_len(nrow(rects)), "_", color_func(nrow(rects)))
       rects$fill_color <- color_func(nrow(rects))
       rects
 
@@ -491,8 +494,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
 
-    plot_rect <- function(pd, cg) {
-      rects <- rect_data(pd, viridis)
+    plot_rect <- function(pd, cg, dtype = "pfam", plotc="domainplot") {
+      rects <- rect_data(pd, viridis, dtype)
 
       if (nrow(rects) == 0) {
         return(plotly_empty(type="scatter", mode="markers") %>%
@@ -513,7 +516,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         guides(fill = FALSE)
 
 
-      gg <- ggplotly(p, tooltip = "text", dynamicTicks = TRUE, source = "domainplot") %>%
+      gg <- ggplotly(p, tooltip = "text", dynamicTicks = TRUE, source = plotc) %>%
         layout(
           title = list(text = NULL),
           margin = list(l = 6, r = 6, t = 6, b = 20, pad = 0),
@@ -537,6 +540,13 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
       plot_rect(pd, cg)
     })
+
+    # output$motifplot <- renderPlotly({
+    #   cg <- cur_gene()
+    #   # Get motif info for the current gene
+    #   md <- motif_info[motif_info$UniprotID == first(cg$UniprotID), ]
+    #   plot_rect(md, cg, dtype="motif", plotc="motifplot")
+    # })
 
 
     shared_zoom <- function(plot_id) {

@@ -11,7 +11,7 @@ ORGANISM_CHROMOSOME_INFO_PATH <- "chromosome_info.csv"
 ORGANISM_PFAM_DOMAIN_INFO_PATH <- "pfam.csv"
 ORGANISM_PROSITE_DOMAIN_INFO_PATH <- "prosite.csv"
 ORGANISM_PATHWAY_INFO_PATH <- "pathways.csv"
-
+ORGANISM_MOTIF_INFO_PATH <- "motifs.csv"
 
 
 ORGANISM_GENE_INFO_LINK <- "https://www.yeastgenome.org/locus/"
