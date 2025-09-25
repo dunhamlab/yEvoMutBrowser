@@ -29,16 +29,12 @@ gene_pro_view_ui <- function(id) {
         window.MY_MODULE_NS = '%s';
       ", prefix))),
 
-      # ⬇️  place the script LAST so Shiny is ready
       tags$script(src = "static/molstar-custom.js"),
 
       tags$div(class = "resi_info_div",
         verbatimTextOutput(NS(id, "resiinfo")),
 
       ),
-
-
-      # verbatimTextOutput(NS(id, "resiinfo")),
 
       uiOutput(NS(id, "mutation_legend")),
 
@@ -67,7 +63,7 @@ gene_pro_view_ui <- function(id) {
       tags$div(class = "container",
         # Inner div with class "header"
         tags$div(class = "protein-cont",
-          tags$div(class = "my-verbatim-text",  # <-- your custom class
+          tags$div(class = "my_verbatim_text",  # <-- your custom class
             textOutput(NS(id, "content"))
           )
         ),
