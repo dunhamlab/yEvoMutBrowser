@@ -1,13 +1,4 @@
-    /* div {
-      padding: 0px !important;
-    }
-    
-    /* .container {
-      width: 600px;
-      margin: 0px;
-    } */ 
-
-  .container {
+    .container {
       width: 600px !important;
       margin: 0px !important;
       padding-left: 0px !important;
@@ -75,7 +66,7 @@
       width: 600px;
       /* display: flex;
       flex-direction: row; */
-      height: 140px;
+      height: 100px;
       display: grid;
       grid-template-columns: 120px 1fr;
       align-items: center;
@@ -94,12 +85,51 @@
 
     }
 
-    .mut_button_div {
-      height: 38px;
-      width: 88.25px;
-      align-self: center;
-    }
+
+
+  .mut_button_div {
+    height: 38px;
+    width: 88.25px;
+    align-self: center;
+    background-color: transparent; /* Change from rgb(55, 15, 15) */
+  }
+  button.motif_button,
+  .motif_button.btn-default,
+  .motif_button.action-button,
+  .btn.motif_button {
+    background-color: cornflowerblue !important;
+    background-image: none !important;
+    color: white !important;
+    border: none !important;
+    border-color: cornflowerblue !important;
+    width: 100% !important;
+    border-radius: 0px !important;
+  }
+
+  button.motif_button:hover,
+  .motif_button.btn-default:hover,
+  .motif_button.action-button:hover {
+    background-color: #0056b3 !important;
+    background-image: none !important;
+    color: white !important;
+    border-color: #0056b3 !important;
+  }
+
+  button.motif_button:active,
+  button.motif_button:focus,
+  .motif_button.btn-default:active,
+  .motif_button.btn-default:focus {
+    background-color: #004085 !important;
+    background-image: none !important;
+    color: white !important;
+    border-color: #004085 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+  }
+
 
     .my_verbatim_text pre {
       background-color: rgb(0, 0, 0) !important;
     }
+
+    

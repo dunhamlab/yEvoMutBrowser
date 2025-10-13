@@ -44,7 +44,7 @@ gene_pro_view_ui <- function(id) {
 
       tags$div(class="domain_div",
         tags$div(class="mut_button_div",
-          actionButton(NS(id, 'mutations'), 'Mutations'),
+          actionButton(NS(id, 'mutations'), 'Mutations', class = "motif_button"),
         ),
 
         tags$div(class="mut_plot_div",
@@ -54,7 +54,7 @@ gene_pro_view_ui <- function(id) {
 
       tags$div(class="domain_div",
         tags$div(class="domain_button_div",
-          actionButton(NS(id, 'domain'), 'Pfam Domains'),
+          actionButton(NS(id, 'domain'), 'Pfam Domains', class = "motif_button"),
         ),
 
         tags$div(class="domainplot_div",
@@ -62,17 +62,15 @@ gene_pro_view_ui <- function(id) {
         ),
       ),
 
-      tags$div(class="domain_div",
-        tags$div(class="mut_button_div",
-          actionButton(NS(id, 'motif'), 'Motifs'),
-        ),
+tags$div(class="domain_div",
+  tags$div(class="mut_button_div",
+    actionButton(NS(id, 'motif'), 'Motifs', class = "motif_button"),  # Add class here
+  ),
 
-        tags$div(class="motif_plot_div",
-          plotlyOutput(NS(id, "motifplot"), height = "65px"),
-        ),
-      ),
-
-
+  tags$div(class="motif_plot_div",
+    plotlyOutput(NS(id, "motifplot"), height = "65px"),
+  ),
+),
       # plotlyOutput(NS(id, "motifplot"), height = "65px"),
 
       includeCSS("R/www/styling.css"),
