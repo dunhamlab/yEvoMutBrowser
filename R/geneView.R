@@ -258,7 +258,15 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
         ) +
         guides(color = guide_legend(title = "Annotation"))
 
-      ggplotly(p, tooltip = "text")
+      ggplotly(p, tooltip = "text") %>%
+        config(
+          toImageButtonOptions = list(
+            format = 'svg',
+            filename = 'gene_view_plot',
+            height = 500,
+            width = 700
+          )
+        )
     })
   })
 }

@@ -70,7 +70,15 @@ snp_count_server <- function(id, filtered_data, color_vector) {
         ggtitle("Single Nucleotide Changes") +
         xlab("Mutation Type and SNP Call")
 
-      p <- ggplotly(p, tooltip = "text")
+      p <- ggplotly(p, tooltip = "text") %>%
+        config(
+          toImageButtonOptions = list(
+            format = 'svg',
+            filename = 'snp_count_plot',
+            height = 500,
+            width = 800
+          )
+        )
     })
   })
 }

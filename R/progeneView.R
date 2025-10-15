@@ -391,7 +391,15 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           )
         ) %>%
 
-        config(scrollZoom = TRUE)
+        config(
+          scrollZoom = TRUE,
+          toImageButtonOptions = list(
+            format = 'svg',
+            filename = 'mutation_plot',
+            height = 400,
+            width = 800
+          )
+        )
 
       gg
     })
@@ -521,7 +529,15 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
             autorange = FALSE         # <— prevent Plotly from auto-expanding it
           )
         ) %>%
-        config(scrollZoom = TRUE)
+        config(
+          scrollZoom = TRUE,
+          toImageButtonOptions = list(
+            format = 'svg',
+            filename = 'domain_plot',
+            height = 200,
+            width = 800
+          )
+        )
 
       gg
 
