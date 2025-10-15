@@ -16,6 +16,12 @@ gene_pro_view_ui <- function(id) {
       selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
 
       tags$div(
+        style = "margin-bottom: 10px;",
+        actionButton(NS(id, "screenshot_btn"), "📷 Screenshot Protein",
+                    class = "btn btn-primary btn-sm")
+      ),
+
+      tags$div(
         id = "molstar-parent",
         style = "position: relative; width: 600px; height: 600px;",
         tags$canvas(
@@ -27,6 +33,118 @@ gene_pro_view_ui <- function(id) {
 
       tags$script(HTML(sprintf("
         window.MY_MODULE_NS = '%s';
+
+        // Function to take screenshot of Molstar viewer
+        window.takeMolstarScreenshot = function() {
+          console.log('Screenshot function called');
+
+          // Multiple ways to find the Molstar plugin
+          let plugin = null;
+
+          // Try different possible references to the plugin
+          if (window.molstarViewer && window.molstarViewer.plugin) {
+            plugin = window.molstarViewer.plugin;
+            console.log('Found plugin via window.molstarViewer');
+          } else if (window.plugin) {
+            plugin = window.plugin;
+            console.log('Found plugin via window.plugin');
+          } else if (window.molstar && window.molstar.plugin) {
+            plugin = window.molstar.plugin;
+            console.log('Found plugin via window.molstar');
+          } else {
+            // Try to find plugin through canvas element
+            const canvas = document.getElementById('molstar-canvas');
+            if (canvas && canvas._molstarPlugin) {
+              plugin = canvas._molstarPlugin;
+              console.log('Found plugin via canvas._molstarPlugin');
+            }
+          }
+
+          if (plugin) {
+            try {
+              console.log('Attempting screenshot with plugin:', plugin);
+              console.log('Plugin structure:', Object.keys(plugin));
+
+              // Try different screenshot methods based on Molstar API
+              if (plugin.helpers && plugin.helpers.screenshot && plugin.helpers.screenshot.downloadImage) {
+                console.log('Using plugin.helpers.screenshot.downloadImage');
+                plugin.helpers.screenshot.downloadImage({
+                  filename: 'protein_structure_' + new Date().toISOString().slice(0,10),
+                  resolution: 4  // 4x resolution for publication quality
+                });
+              } else if (plugin.canvas3d && plugin.canvas3d.toBlob) {
+                console.log('Using high-resolution plugin.canvas3d.toBlob');
+                // Try to render at higher resolution
+                plugin.canvas3d.toBlob(blob => {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'protein_structure_' + new Date().toISOString().slice(0,10) + '.png';
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }, 'image/png', 1.0);  // Maximum quality
+              } else if (plugin.canvas && plugin.canvas.toBlob) {
+                console.log('Using high-resolution plugin.canvas.toBlob');
+                plugin.canvas.toBlob(blob => {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'protein_structure_' + new Date().toISOString().slice(0,10) + '.png';
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }, 'image/png', 1.0);  // Maximum quality
+              } else {
+                // High-resolution canvas fallback
+                console.log('Using high-resolution canvas fallback method');
+                const canvas = document.getElementById('molstar-canvas');
+                if (canvas && canvas.toBlob) {
+                  // Create a high-resolution version
+                  const scale = 4;  // 4x resolution
+                  const tempCanvas = document.createElement('canvas');
+                  const tempCtx = tempCanvas.getContext('2d');
+
+                  tempCanvas.width = canvas.width * scale;
+                  tempCanvas.height = canvas.height * scale;
+                  tempCtx.imageSmoothingEnabled = false;  // Preserve sharpness
+                  tempCtx.scale(scale, scale);
+                  tempCtx.drawImage(canvas, 0, 0);
+
+                  tempCanvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'protein_structure_HQ_' + new Date().toISOString().slice(0,10) + '.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }, 'image/png', 1.0);  // Maximum quality
+                } else {
+                  console.error('No screenshot method found');
+                  console.log('Available plugin methods:', Object.keys(plugin));
+                  if (plugin.helpers) console.log('Helpers methods:', Object.keys(plugin.helpers));
+                  alert('Screenshot method not available. Check console for debugging info.');
+                }
+              }
+            } catch (error) {
+              console.error('Screenshot failed:', error);
+              alert('Screenshot failed: ' + error.message);
+            }
+          } else {
+            console.error('No Molstar plugin found');
+            console.log('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('mol')));
+            alert('No protein structure loaded. Please select a gene first.');
+          }
+        };
+
+        // Register message handler for Shiny custom messages
+        Shiny.addCustomMessageHandler('takeMolstarScreenshot', function(message) {
+          window.takeMolstarScreenshot();
+        });
       ", prefix))),
 
       tags$script(src = "static/molstar-custom.js"),
@@ -300,6 +418,11 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
   })
 
+    # Handle screenshot button click
+    observeEvent(input$screenshot_btn, {
+      # Call JavaScript function to take screenshot
+      session$sendCustomMessage("takeMolstarScreenshot", list())
+    })
 
     rect_data <- function(filtered_rows, color_func) {
       cg <- cur_gene()
