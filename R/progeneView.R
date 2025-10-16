@@ -17,8 +17,10 @@ gene_pro_view_ui <- function(id) {
 
       tags$div(
         style = "margin-bottom: 10px;",
-        actionButton(NS(id, "screenshot_btn"), "📷 Screenshot Protein",
-                    class = "btn btn-primary btn-sm")
+        downloadButton(NS(id, "export_chimerax"), "📋 Export for ChimeraX",
+                      class = "btn btn-success btn-sm"),
+        tags$span(style = "margin-left: 10px; font-size: 0.9em; color: #666;",
+                  "Export protein data for publication-quality images")
       ),
 
       tags$div(
@@ -33,118 +35,6 @@ gene_pro_view_ui <- function(id) {
 
       tags$script(HTML(sprintf("
         window.MY_MODULE_NS = '%s';
-
-        // Function to take screenshot of Molstar viewer
-        window.takeMolstarScreenshot = function() {
-          console.log('Screenshot function called');
-
-          // Multiple ways to find the Molstar plugin
-          let plugin = null;
-
-          // Try different possible references to the plugin
-          if (window.molstarViewer && window.molstarViewer.plugin) {
-            plugin = window.molstarViewer.plugin;
-            console.log('Found plugin via window.molstarViewer');
-          } else if (window.plugin) {
-            plugin = window.plugin;
-            console.log('Found plugin via window.plugin');
-          } else if (window.molstar && window.molstar.plugin) {
-            plugin = window.molstar.plugin;
-            console.log('Found plugin via window.molstar');
-          } else {
-            // Try to find plugin through canvas element
-            const canvas = document.getElementById('molstar-canvas');
-            if (canvas && canvas._molstarPlugin) {
-              plugin = canvas._molstarPlugin;
-              console.log('Found plugin via canvas._molstarPlugin');
-            }
-          }
-
-          if (plugin) {
-            try {
-              console.log('Attempting screenshot with plugin:', plugin);
-              console.log('Plugin structure:', Object.keys(plugin));
-
-              // Try different screenshot methods based on Molstar API
-              if (plugin.helpers && plugin.helpers.screenshot && plugin.helpers.screenshot.downloadImage) {
-                console.log('Using plugin.helpers.screenshot.downloadImage');
-                plugin.helpers.screenshot.downloadImage({
-                  filename: 'protein_structure_' + new Date().toISOString().slice(0,10),
-                  resolution: 4  // 4x resolution for publication quality
-                });
-              } else if (plugin.canvas3d && plugin.canvas3d.toBlob) {
-                console.log('Using high-resolution plugin.canvas3d.toBlob');
-                // Try to render at higher resolution
-                plugin.canvas3d.toBlob(blob => {
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'protein_structure_' + new Date().toISOString().slice(0,10) + '.png';
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }, 'image/png', 1.0);  // Maximum quality
-              } else if (plugin.canvas && plugin.canvas.toBlob) {
-                console.log('Using high-resolution plugin.canvas.toBlob');
-                plugin.canvas.toBlob(blob => {
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'protein_structure_' + new Date().toISOString().slice(0,10) + '.png';
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }, 'image/png', 1.0);  // Maximum quality
-              } else {
-                // High-resolution canvas fallback
-                console.log('Using high-resolution canvas fallback method');
-                const canvas = document.getElementById('molstar-canvas');
-                if (canvas && canvas.toBlob) {
-                  // Create a high-resolution version
-                  const scale = 4;  // 4x resolution
-                  const tempCanvas = document.createElement('canvas');
-                  const tempCtx = tempCanvas.getContext('2d');
-
-                  tempCanvas.width = canvas.width * scale;
-                  tempCanvas.height = canvas.height * scale;
-                  tempCtx.imageSmoothingEnabled = false;  // Preserve sharpness
-                  tempCtx.scale(scale, scale);
-                  tempCtx.drawImage(canvas, 0, 0);
-
-                  tempCanvas.toBlob(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'protein_structure_HQ_' + new Date().toISOString().slice(0,10) + '.png';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                  }, 'image/png', 1.0);  // Maximum quality
-                } else {
-                  console.error('No screenshot method found');
-                  console.log('Available plugin methods:', Object.keys(plugin));
-                  if (plugin.helpers) console.log('Helpers methods:', Object.keys(plugin.helpers));
-                  alert('Screenshot method not available. Check console for debugging info.');
-                }
-              }
-            } catch (error) {
-              console.error('Screenshot failed:', error);
-              alert('Screenshot failed: ' + error.message);
-            }
-          } else {
-            console.error('No Molstar plugin found');
-            console.log('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('mol')));
-            alert('No protein structure loaded. Please select a gene first.');
-          }
-        };
-
-        // Register message handler for Shiny custom messages
-        Shiny.addCustomMessageHandler('takeMolstarScreenshot', function(message) {
-          window.takeMolstarScreenshot();
-        });
       ", prefix))),
 
       tags$script(src = "static/molstar-custom.js"),
@@ -418,11 +308,119 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
   })
 
-    # Handle screenshot button click
-    observeEvent(input$screenshot_btn, {
-      # Call JavaScript function to take screenshot
-      session$sendCustomMessage("takeMolstarScreenshot", list())
-    })
+    # ChimeraX export download handler
+    output$export_chimerax <- downloadHandler(
+      filename = function() {
+        gene_name <- gene() %||% "unknown_gene"
+        paste0("ChimeraX_", gene_name, "_", Sys.Date(), ".txt")
+      },
+      content = function(file) {
+        req(gene())
+
+        # Get current gene data
+        cg <- cur_gene()
+        gene_info <- genedatatable(cg)
+
+        # Get domain data if available
+        pfam <- read.csv(ORGANISM_PFAM_DOMAIN_INFO_PATH)
+        domain_data <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
+
+        # Create ChimeraX instructions
+        content <- paste0(
+          "# ChimeraX Instructions for ", first(cg$GENE), "\n",
+          "# Generated from yEvoMutBrowser on ", Sys.Date(), "\n\n",
+
+          "## PROTEIN INFORMATION\n",
+          "Gene: ", first(cg$GENE), "\n",
+          "UniProt ID: ", first(cg$UniprotID), "\n",
+          "Description: ", first(cg$DESCRIPTION), "\n",
+          "Protein Length: ", first(cg$PROTEIN_LENGTH), " amino acids\n\n",
+
+          "## CHIMERAX COMMANDS\n",
+          "# Open protein structure:\n",
+          "open ", first(cg$UniprotID), "\n\n",
+
+          "# Basic styling:\n",
+          "hide all\n",
+          "show cartoon\n",
+          "color whitesmoke\n\n"
+        )
+
+        # Add mutation highlighting
+        if (nrow(gene_info) > 0) {
+          content <- paste0(content,
+            "## MUTATIONS TO HIGHLIGHT\n",
+            "# ", nrow(gene_info), " mutation positions found\n\n"
+          )
+
+          # Group mutations by annotation type
+          mutation_colors <- list(
+            "missense" = "red",
+            "nonsense" = "darkred",
+            "synonymous" = "blue",
+            "indel-frameshift" = "orange",
+            "indel-inframe" = "yellow",
+            "5'-upstream" = "purple"
+          )
+
+          for (ann_type in unique(gene_info$ANNOTATION)) {
+            positions <- gene_info[gene_info$ANNOTATION == ann_type, "Numbers"]
+            if (length(positions) > 0) {
+              color <- mutation_colors[[ann_type]] %||% "magenta"
+              pos_str <- paste(positions, collapse = ",")
+              content <- paste0(content,
+                "# ", ann_type, " mutations:\n",
+                "select :", pos_str, "\n",
+                "color sel ", color, "\n",
+                "show sel spheres\n\n"
+              )
+            }
+          }
+        }
+
+        # Add domain highlighting
+        if (nrow(domain_data) > 0) {
+          content <- paste0(content,
+            "## DOMAINS TO HIGHLIGHT\n",
+            "# ", nrow(domain_data), " Pfam domains found\n\n"
+          )
+
+          for (i in 1:nrow(domain_data)) {
+            domain <- domain_data[i, ]
+            content <- paste0(content,
+              "# Domain: ", domain$Description, "\n",
+              "select :", domain$Start, "-", domain$End, "\n",
+              "color sel lightblue\n",
+              "transparency sel 50\n\n"
+            )
+          }
+        }
+
+        # Add final commands
+        content <- paste0(content,
+          "## FINAL STYLING\n",
+          "# Center and orient the protein:\n",
+          "view all\n",
+          "turn y 180\n\n",
+
+          "# For high-quality images:\n",
+          "graphics silhouettes true\n",
+          "graphics quality higher\n\n",
+
+          "# To save image:\n",
+          "# save ~/Desktop/", first(cg$GENE), "_protein.png width 2400 height 2400\n\n",
+
+          "## QUICK START GUIDE\n",
+          "# 1. Go to https://www.cgl.ucsf.edu/chimerax/download.html\n",
+          "# 2. Download ChimeraX (free for academic use)\n",
+          "# 3. Open ChimeraX and paste the commands above\n",
+          "# 4. Or open this file: File > Open > [this file]\n",
+          "# 5. Adjust view and save high-resolution image\n"
+        )
+
+        writeLines(content, file)
+      }
+    )
 
     rect_data <- function(filtered_rows, color_func) {
       cg <- cur_gene()
