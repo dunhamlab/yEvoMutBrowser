@@ -1,3 +1,6 @@
+classroom_dropdown_text <- "View yEvo Classroom data"
+fhcc_sep_yevo_module_dropdown_text <- "View FHCC SEP yEvo Module data"
+
 selection_panel_ui <- function(id, mut_backend) {
   sidebarPanel(
     width = 3,
@@ -14,7 +17,7 @@ selection_panel_ui <- function(id, mut_backend) {
       ns = NS(id)
     ),
     radioButtons(NS(id, "View"), "Select an option:",
-                 choices = c("View By Class", "View By Selection Condition"),
+                 choices = c(classroom_dropdown_text, fhcc_sep_yevo_module_dropdown_text),
                  selected = character(0)
     ),
     div("", style = "height: 10px;"), # Create a 10px vertical space
@@ -33,10 +36,6 @@ selection_panel_ui <- function(id, mut_backend) {
       # PLEASE NOTE: "sample" is called "Sample Name" within ui to make it
       # easier to understand, but the official name in the df is sample
       selectInput(NS(id, "sample"), "Sample Name", choices = ""),
-      ns = NS(id)
-    ),
-    conditionalPanel(
-      condition = "input.cumulView || output.selectedCumulView",
       selectInput(NS(id, "condition"), "Condition", choices = c(
         "All Selected",
         mut_backend %>%
@@ -44,7 +43,11 @@ selection_panel_ui <- function(id, mut_backend) {
           pull(condition)
       )),
       selectInput(NS(id, "background"), "Ancestor Strain", choices = ""),
-      ns = NS(id)),
+      ns = NS(id)
+    ),
+    conditionalPanel(
+      condition = "input.fhccSepView || output.selectedCumulView",
+      ),
   )
 }
 
@@ -98,13 +101,13 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
     # Display settings
     observe({
       if (!is.null(input$View)) {
-        if (input$View == "View By Class") {
-          shinyjs::disable("cumulView")
+        if (input$View == classroom_dropdown_text) {
+          shinyjs::disable("fhccSepView")
           shinyjs::enable("classView")
           updateTextInput(session, "condition", value = "All Selected")
           updateTextInput(session, "background", value = "All Selected")
-        } else if (input$View == "View By Selection Condition") {
-          shinyjs::enable("cumulView")
+        } else if (input$View == fhcc_sep_yevo_module_dropdown_text) {
+          shinyjs::enable("fhccSepView")
           shinyjs::disable("classView")
           updateTextInput(session, "instructor", value = "All Selected")
           updateTextInput(session, "year", value = "All Selected")
@@ -112,7 +115,7 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
         }
       } else {
         shinyjs::disable("classView")
-        shinyjs::disable("cumulView")
+        shinyjs::disable("fhccSepView")
       }
     })
 
@@ -195,25 +198,29 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
           (input$instructor == "All Selected" &&
             input$condition == "All Selected")) {
           "master_table.csv"
-        } else if (input$View == "View By Class") {
-          selected_instructor <- input$instructor
-          selected_year <- input$year
-          selected_sample <- input$sample
-          if (selected_sample != "All Selected") {
-            paste0(
-              selected_instructor, "_", selected_year, "_",
-              selected_sample, ".csv"
-            )
-          } else if (selected_year != "All Selected") {
-            paste0(selected_instructor, "_", selected_year, ".csv")
-          } else if (selected_instructor != "All Selected") {
-            paste0(selected_instructor, ".csv")
-          }
-        } else if (input$View == "View By Selection Condition") {
-          if (input$background != "All Selected") {
-            paste0(input$condition, "_", input$background, ".csv")
+        } else {
+          if (input$View == classroom_dropdown_text) {
+            selected_instructor <- input$instructor
+            selected_year <- input$year
+            selected_sample <- input$sample
+            if (selected_sample != "All Selected") {
+              paste0(
+                selected_instructor, "_", selected_year, "_",
+                selected_sample, ".csv"
+              )
+            } else if (selected_year != "All Selected") {
+              paste0(selected_instructor, "_", selected_year, ".csv")
+            } else if (selected_instructor != "All Selected") {
+              paste0(selected_instructor, ".csv")
+            }
           } else {
-            paste0(input$condition, ".csv")
+            if (input$View == fhcc_sep_yevo_module_dropdown_text) {
+              if (input$background != "All Selected") {
+                paste0(input$condition, "_", input$background, ".csv")
+              } else {
+                paste0(input$condition, ".csv")
+              }
+            }
           }
         }
       },
@@ -234,14 +241,14 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
 
     output$selectedClassView <- reactive({
       if (!is.null(input$View)) {
-        value <- (input$View == "View By Class")
+        value <- (input$View == classroom_dropdown_text)
       }
     })
     outputOptions(output, "selectedClassView", suspendWhenHidden = FALSE)
 
     output$selectedCumulView <- reactive({
       if (!is.null(input$View)) {
-        value <- (input$View == "View By Selection Condition")
+        value <- (input$View == fhcc_sep_yevo_module_dropdown_text)
       }
     })
     outputOptions(output, "selectedCumulView", suspendWhenHidden = FALSE)

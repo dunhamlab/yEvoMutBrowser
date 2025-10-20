@@ -79,7 +79,8 @@ yEvoMutBrowser <- function(...) {
             gene_pro_view_ui("geneView2"),
             data_table_ui("dataTable"),
           )
-        )
+        ),
+        # current_view_panel_ui("currentlyViewedPanel")
       )
     ),
     tutorial_ui("tutorial"),
@@ -95,6 +96,7 @@ yEvoMutBrowser <- function(...) {
 
     c(selected_instructor, selected_year, selected_sample, selected_condition, selected_background, filtered_data) %<-%
       selection_panel_server("selectionPanel", filtered_data, mutation_data, mut_backend, genes_info)
+    current_view_panel_server("currentlyViewedPanel")
 
     # to create loading message below:
     loading_message <- "Loading..."
