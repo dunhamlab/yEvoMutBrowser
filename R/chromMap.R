@@ -194,7 +194,15 @@ chrom_map_server <- function(
         paper_bgcolor = "rgba(0,0,0,0)"
       )
 
-      fig
+      fig %>%
+        config(
+          toImageButtonOptions = list(
+            format = 'svg',
+            filename = 'chromosome_map',
+            height = 600,
+            width = 1000
+          )
+        )
     })
   })
 }

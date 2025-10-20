@@ -59,6 +59,14 @@ variants_server <- function(id, mutation_data, filtered_data, color_vector) {
             showgrid = FALSE, zeroline = FALSE,
             showticklabels = FALSE
           )
+        ) %>%
+        config(
+          toImageButtonOptions = list(
+            format = 'svg',
+            filename = 'variant_pie_chart',
+            height = 675,
+            width = 800
+          )
         )
     })
   })
