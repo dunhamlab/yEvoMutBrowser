@@ -6,6 +6,7 @@
 
 ### Imports
 # loading necessary libraries
+library(shinyWidgets)
 library(DBI)
 library(devtools)
 library(dplyr)

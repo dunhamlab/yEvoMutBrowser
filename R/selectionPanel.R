@@ -2,6 +2,9 @@ classroom_dropdown_text <- "View yEvo Classroom data"
 fhcc_sep_yevo_module_dropdown_text <- "View FHCC SEP yEvo Module data"
 
 selection_panel_ui <- function(id, mut_backend) {
+  all_conditions <- mut_backend %>%
+    pull(condition) %>%
+    unique
   sidebarPanel(
     width = 3,
     fileInput(NS(id, "datafile"), "Optional: Upload additional CSV File",
@@ -32,16 +35,15 @@ selection_panel_ui <- function(id, mut_backend) {
       condition = "input.uploadData || input.classView ||
       output.selectedClassView",
       selectInput(NS(id, "instructor"), "Instructor", choices = ""),
-      selectInput(NS(id, "year"), "Year", choices = ""),
+      selectizeInput(NS(id, "year"), "Year", choices = ""),
       # PLEASE NOTE: "sample" is called "Sample Name" within ui to make it
       # easier to understand, but the official name in the df is sample
       selectInput(NS(id, "sample"), "Sample Name", choices = ""),
-      selectInput(NS(id, "condition"), "Condition", choices = c(
-        "All Selected",
-        mut_backend %>%
-          count(condition) %>%
-          pull(condition)
-      )),
+      pickerInput(NS(id, "condition"), "Condition", choices =
+        all_conditions, selected = all_conditions, multiple = TRUE, options = pickerOptions(
+    actionsBox = TRUE,
+    selectedTextFormat = "count > 3"
+  )),
       selectInput(NS(id, "background"), "Ancestor Strain", choices = ""),
       ns = NS(id)
     ),
@@ -104,7 +106,7 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
         if (input$View == classroom_dropdown_text) {
           shinyjs::disable("fhccSepView")
           shinyjs::enable("classView")
-          updateTextInput(session, "condition", value = "All Selected")
+          # updateTextInput(session, "condition", value = "All Selected")
           updateTextInput(session, "background", value = "All Selected")
         } else if (input$View == fhcc_sep_yevo_module_dropdown_text) {
           shinyjs::enable("fhccSepView")
@@ -123,11 +125,11 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
     observe({
       options <- as.character(mutation_data() %>%
                                 pull(background))
-      if (input$condition != "All Selected") {
-      options <- as.character(mutation_data() %>%
-                                filter(condition == input$condition) %>%
-                                pull(background))
-      }
+      # if (input$condition != "All Selected") {
+      # options <- as.character(mutation_data() %>%
+      #                           filter(condition == input$condition) %>%
+      #                           pull(background))
+      # }
       if (length(unique(options)) != 1) {
         updateSelectInput(session, "background",
                           choices = c("All Selected", options)
@@ -267,9 +269,9 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
       if (input$sample != "All Selected") {
         data <- data %>% filter(sample == input$sample)
       }
-      if (input$condition != "All Selected") {
-        data <- data %>% filter(condition == input$condition)
-      }
+      # if (input$condition != "All Selected") {
+      #   data <- data %>% filter(condition == input$condition)
+      # }
       if (input$background != "All Selected") {
         data <- data %>% filter(background == input$background)
       }
