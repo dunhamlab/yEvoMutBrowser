@@ -10,21 +10,24 @@ selection_panel_ui <- function(id, mut_backend) {
 
   sidebarPanel(
     width = 3,
-    fileInput(NS(id, "datafile"), "Optional: Upload additional CSV File",
-              accept = ".csv"
-    ),
-    conditionalPanel(
-      # Asks for instructor/year so we can modify user uploaded file so we can
-      # combine it with our current data
-      condition = "output.filesUploaded",
-      textInput(NS(id, "inputted_instructor"), "Who is your Instructor"),
-      textInput(NS(id, "inputted_year"), "What is the current year"),
-      actionButton(NS(id, "submit_teach_year"), "Submit Teacher and Year"),
-      ns = NS(id)
-    ),
+    # fileInput(NS(id, "datafile"), "Optional: Upload additional CSV File",
+    #           accept = ".csv"
+    # ),
+    h4("Optional: Upload additional VCF data"),
+    actionButton(NS(id, "uploadData"), "Upload VCF data"),
+    # conditionalPanel(
+    #   # Asks for instructor/year so we can modify user uploaded file so we can
+    #   # combine it with our current data
+    #   condition = "output.filesUploaded",
+    #   textInput(NS(id, "inputted_instructor"), "Who is your Instructor"),
+    #   textInput(NS(id, "inputted_year"), "What is the current year"),
+    #   actionButton(NS(id, "submit_teach_year"), "Submit Teacher and Year"),
+    #   ns = NS(id)
+    # ),
+    h4("Select data to view"),
     radioButtons(NS(id, "View"), "Select an option:",
-                 choices = c(classroom_dropdown_text, fhcc_sep_yevo_module_dropdown_text),
-                 selected = character(0)
+                 choices = c(classroom_dropdown_text), # fhcc_sep_yevo_module_dropdown_text),
+                 selected = classroom_dropdown_text
     ),
     div("", style = "height: 10px;"), # Create a 10px vertical space
 
@@ -94,9 +97,9 @@ selection_panel_ui <- function(id, mut_backend) {
       ),
       ns = NS(id)
     ),
-    conditionalPanel(
-      condition = "input.fhccSepView || output.selectedCumulView",
-      ),
+    # conditionalPanel(
+    #   condition = "input.fhccSepView || output.selectedCumulView",
+    #   ),
   )
 }
 
@@ -104,7 +107,7 @@ region2gene_name <- function(gene_region, gene_info) {
   gene_info[gene_info$REGION == gene_region, "GENE"][1]
 }
 
-upload_vcf_data <- function(vcf_file, instructor, year, mut_backend, gene_info) {
+upload_vcf_data <- function(vcf_file, instructor, year, mut_backend, gene_info, session) {
       data <- read.csv(vcf_file$datapath)
       required_columns <- c(
         "CHROM", "POS", "REF", "ALT", "ANNOTATION", "REGION", "PROTEIN", "background", "condition", "sample"
@@ -134,19 +137,45 @@ upload_vcf_data <- function(vcf_file, instructor, year, mut_backend, gene_info) 
           "background", "condition", "instructor", "year", "sample"
         )]
         df <- rbind(mut_backend, data)
+        removeModal()
+        sendSweetAlert(
+          session = session,
+          title = "Success",
+          text = "VCF data uploaded successfully",
+          type = "success"
+        )
         return(df)
       } else {
-        # Handle the case where required columns are missing
-        print("Some required columns are missing.")
+        removeModal()
+        sendSweetAlert(
+          session = session,
+          title = "Data Upload Error",
+          text = "Some required columns are missing in your uploaded VCF file.",
+          type = "error"
+        )
         return(mut_backend)
       }
     }
 
 selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend, gene_info) {
   moduleServer(id, function(input, output, session) {
+    mutation_data(mut_backend)
+    observeEvent(input$uploadData, {
+      showModal(modalDialog(
+        title = "Upload VCF data",
+        footer = modalButton("Cancel"),
+        fileInput(NS(id, "datafile"), "Optional: Upload additional CSV File", accept = ".csv"),
+        textInput(NS(id, "inputted_instructor"), "Who is your Instructor"),
+      textInput(NS(id, "inputted_year"), "What is the current year"),
+      actionButton(NS(id, "submit_teach_year"), "Submit Teacher and Year")
+      ))
+    })
     # Initialize a reactive variable for the dataframe
     # Function to read and append the uploaded data to the cumulative dataframe
-    observeEvent(input$submit_teach_year, mutation_data(upload_vcf_data(input$datafile, input$inputted_instructor, input$inputted_year, mut_backend, gene_info)))
+    observeEvent(input$submit_teach_year, {
+      mutation_data(upload_vcf_data(input$datafile, input$inputted_instructor, input$inputted_year, mutation_data(), gene_info, session))
+      print(mutation_data()$instructor %>% unique)
+    })
 
     # Display settings
     observe({
