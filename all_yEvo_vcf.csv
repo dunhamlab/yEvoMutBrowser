@@ -2095,7 +2095,6 @@ chrV,122819,.,T,C,NA,NA,NA,synonymous,YEL017C-A,PMP2,Q37Q,5370,S288c,caspofungin
 chrVII,552165,.,T,G,NA,NA,NA,nonsense,YGR032W,GSC2,L1301*,5370,S288c,caspofungin,Kovarik,2025,9
 chrX,340477,.,C,T,NA,NA,NA,nonsense,YJL051W,IRC8,R231*,5370,S288c,caspofungin,Kovarik,2025,9
 chrIV,764633,.,G,A,NA,NA,NA,missense,YDR151C,CTH1,P175S,5370,S288c,caspofungin,Kovarik,2025,9
-chrIX,74418,.,N,NNN,NA,NA,NA,transposon,YIL146C,ATG32,NA,layla,S288c,freeze,leah,2025,leee_eah.01
 chrM,62486,.,TC,T,NA,NA,NA,intergenic,NA,NA,NA,YMD5371,S288c,caspofungin,Renz,2025,C_WT_01.C1
 chrIV,493515,.,G,T,NA,NA,NA,missense,YDR026C,NSI1,L252M,YMD5371,S288c,caspofungin,Renz,2025,C_WT_01.C1
 chrVII,550679,.,A,T,NA,NA,NA,nonsense,YGR032W,GSC2,K806*,YMD5371,S288c,caspofungin,Renz,2025,C_WT_01.C1
