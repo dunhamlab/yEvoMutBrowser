@@ -2,9 +2,12 @@ classroom_dropdown_text <- "View yEvo Classroom data"
 fhcc_sep_yevo_module_dropdown_text <- "View FHCC SEP yEvo Module data"
 
 selection_panel_ui <- function(id, mut_backend) {
-  all_conditions <- mut_backend %>%
-    pull(condition) %>%
-    unique
+  all_year_options <- mut_backend$year %>% unique
+  all_instructor_options <- mut_backend$instructor %>% unique
+  all_condition_options <- mut_backend$condition %>% unique
+  all_background_options <- mut_backend$background %>% unique
+  all_sample_options <- mut_backend$sample %>% unique
+
   sidebarPanel(
     width = 3,
     fileInput(NS(id, "datafile"), "Optional: Upload additional CSV File",
@@ -34,17 +37,61 @@ selection_panel_ui <- function(id, mut_backend) {
       # links condition to button via button key
       condition = "input.uploadData || input.classView ||
       output.selectedClassView",
-      selectInput(NS(id, "instructor"), "Instructor", choices = ""),
-      selectizeInput(NS(id, "year"), "Year", choices = ""),
-      # PLEASE NOTE: "sample" is called "Sample Name" within ui to make it
-      # easier to understand, but the official name in the df is sample
-      selectInput(NS(id, "sample"), "Sample Name", choices = ""),
-      pickerInput(NS(id, "condition"), "Condition", choices =
-        all_conditions, selected = all_conditions, multiple = TRUE, options = pickerOptions(
-    actionsBox = TRUE,
-    selectedTextFormat = "count > 3"
-  )),
-      selectInput(NS(id, "background"), "Ancestor Strain", choices = ""),
+      pickerInput(
+         NS(id, "instructor"),
+         "Instructor",
+         choices = all_instructor_options,
+         selected = all_instructor_options,
+         multiple = TRUE,
+         options = pickerOptions(
+           actionsBox = TRUE,
+           selectedTextFormat = "count > 3"
+         )
+      ),
+      pickerInput(
+         NS(id, "year"),
+         "Year",
+         choices = all_year_options,
+         selected = all_year_options,
+         multiple = TRUE,
+         options = pickerOptions(
+           actionsBox = TRUE,
+           selectedTextFormat = "count > 3"
+         )
+      ),
+      pickerInput(
+         NS(id, "condition"),
+         "Condition",
+         choices = all_condition_options,
+         selected = all_condition_options,
+         multiple = TRUE,
+         options = pickerOptions(
+           actionsBox = TRUE,
+           selectedTextFormat = "count > 3"
+         )
+      ),
+      pickerInput(
+         NS(id, "background"),
+         "Ancestor Strain",
+         choices = all_background_options,
+         selected = all_background_options,
+         multiple = TRUE,
+         options = pickerOptions(
+           actionsBox = TRUE,
+           selectedTextFormat = "count > 3"
+         )
+      ),
+      pickerInput(
+         NS(id, "sample"),
+         "Sample",
+         choices = all_sample_options,
+         selected = all_sample_options,
+         multiple = TRUE,
+         options = pickerOptions(
+           actionsBox = TRUE,
+           selectedTextFormat = "count > 3"
+         )
+      ),
       ns = NS(id)
     ),
     conditionalPanel(
@@ -57,20 +104,15 @@ region2gene_name <- function(gene_region, gene_info) {
   gene_info[gene_info$REGION == gene_region, "GENE"][1]
 }
 
-selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend, gene_info) {
-  moduleServer(id, function(input, output, session) {
-    # Initialize a reactive variable for the dataframe
-    # Function to read and append the uploaded data to the cumulative dataframe
-    observeEvent(input$submit_teach_year, {
-      file <- input$datafile
-      data <- read.csv(file$datapath)
+upload_vcf_data <- function(vcf_file, instructor, year, mut_backend, gene_info) {
+      data <- read.csv(vcf_file$datapath)
       required_columns <- c(
         "CHROM", "POS", "REF", "ALT", "ANNOTATION", "REGION", "PROTEIN", "background", "condition", "sample"
       )
       if (!is.null(file) && all(required_columns %in% colnames(data))) {
         # Add instructor and year columns
-        data$instructor <- rep(input$inputted_instructor, nrow(data))
-        data$year <- rep(input$inputted_year, nrow(data))
+        data$instructor <- rep(instructor, nrow(data))
+        data$year <- rep(year, nrow(data))
         data$ID <- rep("NA", nrow(data))
         data$QUAL <- rep("NA", nrow(data))
         data$FILTER <- rep("NA", nrow(data))
@@ -92,13 +134,19 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
           "background", "condition", "instructor", "year", "sample"
         )]
         df <- rbind(mut_backend, data)
-        mutation_data(df)
+        return(df)
       } else {
         # Handle the case where required columns are missing
         print("Some required columns are missing.")
-        mutation_data(mut_backend)
+        return(mut_backend)
       }
-    })
+    }
+
+selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend, gene_info) {
+  moduleServer(id, function(input, output, session) {
+    # Initialize a reactive variable for the dataframe
+    # Function to read and append the uploaded data to the cumulative dataframe
+    observeEvent(input$submit_teach_year, mutation_data(upload_vcf_data(input$datafile, input$inputted_instructor, input$inputted_year, mut_backend, gene_info)))
 
     # Display settings
     observe({
@@ -106,14 +154,9 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
         if (input$View == classroom_dropdown_text) {
           shinyjs::disable("fhccSepView")
           shinyjs::enable("classView")
-          # updateTextInput(session, "condition", value = "All Selected")
-          updateTextInput(session, "background", value = "All Selected")
         } else if (input$View == fhcc_sep_yevo_module_dropdown_text) {
           shinyjs::enable("fhccSepView")
           shinyjs::disable("classView")
-          updateTextInput(session, "instructor", value = "All Selected")
-          updateTextInput(session, "year", value = "All Selected")
-          updateTextInput(session, "sample", value = "All Selected")
         }
       } else {
         shinyjs::disable("classView")
@@ -141,96 +184,85 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
       }
     })
 
-    observe({
-      updateSelectInput(session, "instructor", choices = c(
-        "All Selected",
-        unique(mutation_data()$instructor)
-      ))
-    })
+    # observe({
+    #   updateSelectInput(session, "instructor", choices = c(
+    #     "All Selected",
+    #     unique(mutation_data()$instructor)
+    #   ))
+    # })
 
-    observe({
-      # Make sure the data exists before we do anything
-      req(mutation_data())
+    # observe({
+    #   # Make sure the data exists before we do anything
+    #   req(mutation_data())
+    #
+    #   # Figure out which years to show
+    #   if (input$instructor == "All Selected") {
+    #     years <- sort(unique(as.character(mutation_data()$year)))
+    #   } else {
+    #     years <- sort(unique(as.character(
+    #       mutation_data()$year[
+    #         mutation_data()$instructor == input$instructor
+    #       ]
+    #     )))
+    #   }
+    #
+    # observe({
+    #   updateSelectInput(session, "instructor", choices = c(
+    #     "All Selected",
+    #     unique(mutation_data()$instructor)
+    #   ))
+    # })
 
-      # Figure out which years to show
-      if (input$instructor == "All Selected") {
-        years <- sort(unique(as.character(mutation_data()$year)))
-      } else {
-        years <- sort(unique(as.character(
-          mutation_data()$year[
-            mutation_data()$instructor == input$instructor
-          ]
-        )))
-      }
-
-      # Update the dropdown menu with clean year choices
-      updateSelectizeInput(
-        session,
-        "year",
-        choices = c("All Selected", years),
-        selected = "All Selected",
-        server = TRUE
-      )
-    })
-
-
-    observe({
-      updateSelectInput(session, "instructor", choices = c(
-        "All Selected",
-        unique(mutation_data()$instructor)
-      ))
-    })
-
-    observe({
-      updateSelectInput(session, "sample", choices = c(
-        "All Selected",
-        as.character(mutation_data() %>%
-                       filter(instructor == input$instructor) %>%
-                       filter(year == input$year) %>%
-                       pull(sample))
-      ))
-    })
+    # observe({
+    #   updateSelectInput(session, "sample", choices = c(
+    #     "All Selected",
+    #     as.character(mutation_data() %>%
+    #                    filter(instructor == input$instructor) %>%
+    #                    filter(year == input$year) %>%
+    #                    pull(sample))
+    #   ))
+    # })
 
 
     # download button functionality
-    output$downloadBtn <- downloadHandler(
-      filename = function() {
-        # Set the filename for the downloaded file
-        if (is.null(input$View) ||
-          (input$instructor == "All Selected" &&
-            input$condition == "All Selected")) {
-          "master_table.csv"
-        } else {
-          if (input$View == classroom_dropdown_text) {
-            selected_instructor <- input$instructor
-            selected_year <- input$year
-            selected_sample <- input$sample
-            if (selected_sample != "All Selected") {
-              paste0(
-                selected_instructor, "_", selected_year, "_",
-                selected_sample, ".csv"
-              )
-            } else if (selected_year != "All Selected") {
-              paste0(selected_instructor, "_", selected_year, ".csv")
-            } else if (selected_instructor != "All Selected") {
-              paste0(selected_instructor, ".csv")
-            }
-          } else {
-            if (input$View == fhcc_sep_yevo_module_dropdown_text) {
-              if (input$background != "All Selected") {
-                paste0(input$condition, "_", input$background, ".csv")
-              } else {
-                paste0(input$condition, ".csv")
-              }
-            }
-          }
-        }
-      },
-      content = function(file) {
-        # Write the data to a CSV file
-        write.csv(filtered_data(), file)
-      }
-    )
+    # output$downloadBtn <- downloadHandler(
+    #   filename = function() {
+    #     # Set the filename for the downloaded file
+    #     if (is.null(input$View) ||
+    #       (input$instructor == "All Selected" &&
+    #         input$condition == "All Selected")) {
+    #       "master_table.csv"
+    #     } else {
+    #       if (input$View == classroom_dropdown_text) {
+    #         selected_instructor <- input$instructor
+    #         selected_year <- input$year
+    #         selected_sample <- input$sample
+    #         if (selected_sample != "All Selected") {
+    #           paste0(
+    #             selected_instructor, "_", selected_year, "_",
+    #             selected_sample, ".csv"
+    #           )
+    #         } else if (selected_year != "All Selected") {
+    #           paste0(selected_instructor, "_", selected_year, ".csv")
+    #         } else if (selected_instructor != "All Selected") {
+    #           paste0(selected_instructor, ".csv")
+    #         }
+    #       } else {
+    #         if (input$View == fhcc_sep_yevo_module_dropdown_text) {
+    #           if (input$background != "All Selected") {
+    #             paste0(input$condition, "_", input$background, ".csv")
+    #           } else {
+    #             paste0(input$condition, ".csv")
+    #           }
+    #         }
+    #       }
+    #     }
+    #   },
+    #   content = function(file) {
+    #     # Write the data to a CSV file
+    #     write.csv(filtered_data(), file)
+    #   }
+    # )
 
     # storing a bool to see if a file has been uploaded
     # if a file has be uploaded, using the condition that if
@@ -260,21 +292,21 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
     new_filtered_data <- reactive({
       data <- mutation_data()
       # filtering based on selections if NOT all selected
-      if (input$instructor != "All Selected") {
-        data <- data %>% filter(instructor == input$instructor)
-      }
-      if (input$year != "All Selected") {
-        data <- data %>% filter(year == input$year)
-      }
-      if (input$sample != "All Selected") {
-        data <- data %>% filter(sample == input$sample)
-      }
+      # if (input$instructor != "All Selected") {
+      #   data <- data %>% filter(instructor == input$instructor)
+      # }
+      # if (input$year != "All Selected") {
+      #   data <- data %>% filter(year == input$year)
+      # }
+      # if (input$sample != "All Selected") {
+      #   data <- data %>% filter(sample == input$sample)
+      # }
       # if (input$condition != "All Selected") {
       #   data <- data %>% filter(condition == input$condition)
       # }
-      if (input$background != "All Selected") {
-        data <- data %>% filter(background == input$background)
-      }
+      # if (input$background != "All Selected") {
+      #   data <- data %>% filter(background == input$background)
+      # }
       data
     })
 
