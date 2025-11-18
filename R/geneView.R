@@ -122,7 +122,6 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           # Extract the numbers
           Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),
           Letter2 = str_extract(PROTEIN, pattern),
-          indel = first(indel)
           indel = first(indel),
           .groups = "drop"
         )
