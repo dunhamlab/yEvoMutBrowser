@@ -34,4 +34,4 @@ VARIANTS_PIE_CHART_COLORS <- c(
   "#2ca02c", "#ffbb78", "#ff7f0e", "#aec7e8", "#1f77b4", "#9edae5"
 )
 SNP_CHART_COLORS <- c("#0072B2", "#CC79A7", "#009E73")
-GENE_VIEW_COLORS <- c("#800080", "#61D04F", "#F5C710", "#DF536B", "#FFB6C1", "#6495ED")
+GENE_VIEW_COLORS <- c("#800080", "#61D04F", "#F5C710", "#DF536B", "#FFB6C1", "#6495ED", "#6A5ACD")

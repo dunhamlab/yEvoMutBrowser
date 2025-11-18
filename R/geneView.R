@@ -88,7 +88,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
 
       all_annotations <- c(
         "missense", "nonsense", "5'-upstream",
-        "indel-frameshift", "indel-inframe", "synonymous"
+        "indel-frameshift", "indel-inframe", "synonymous", "transposon"
       )
       # IF ADDING NEW ANNOTATIONS - DON'T FORGET TO ADD BOTH HERE AND IN
       # annotation_colors BELOW
@@ -106,7 +106,9 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           # Extract the numbers
           Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),
           Letter2 = str_extract(PROTEIN, pattern),
-          indel = first(indel)
+          indel = first(indel),
+          POS = first(POS),
+          START = first(START)
         ) %>%
         ungroup()
 
@@ -124,7 +126,9 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           ANNOTATION = first(ANNOTATION),
           Counts_diff_mutation = list(COUNTS),
           Counts_tot = sum(COUNTS),
-          indel = first(indel)
+          indel = first(indel),
+          POS = first(POS),
+          START = first(START)
         ) %>%
         ungroup()
 
@@ -157,8 +161,12 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           # Extract the first character Amino Acid Wild Type
           AA_WT = substr(PROTEIN, 1, 1),
           AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
-                           # Extract Amino Acid Position
-                           as.numeric(str_extract(PROTEIN, "[0-9]+"))
+                           if_else(ANNOTATION == "transposon",
+                                   # Calculate amino acid position from nucleotide position for transposons
+                                   as.numeric(ceiling((POS - START + 1) / 3)),
+                                   # Extract Amino Acid Position for regular mutations
+                                   as.numeric(str_extract(PROTEIN, "[0-9]+"))
+                           )
           ),
           # Amino Acid Mutation
           AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
@@ -213,21 +221,27 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           y = Counts_tot,
           color = ANNOTATION,
           text = ifelse(
-            grepl("indel", ANNOTATION), # Check if ANNOTATION contains "indel"
+            ANNOTATION == "transposon", # Check if ANNOTATION is transposon
             paste0(
-              "Indel\n", abs(indel), " base ", ifelse(indel > 0,
-                                                      "insertion", "deletion"
-              ), "\nCount: ", Counts_diff_mutation,
-              "\nPosition: ", AA_POS
-            ), # Text for indel annotations
+              "Transposon insertion\nPosition: ", AA_POS
+            ), # Text for transposon annotations
             ifelse(
-              is.na(PROTEIN),
+              grepl("indel", ANNOTATION), # Check if ANNOTATION contains "indel"
               paste0(
-                ANNOTATION, "\nCount: ", Counts_diff_mutation,
-                "\nPosition: ", -abs(unique(cur_gene$POS) -
-                                       unique(cur_gene$START))
-              ),
-              paste0(combined, "\nPosition: ", AA_POS)
+                "Indel\n", abs(indel), " base ", ifelse(indel > 0,
+                                                        "insertion", "deletion"
+                ), "\nCount: ", Counts_diff_mutation,
+                "\nPosition: ", AA_POS
+              ), # Text for indel annotations
+              ifelse(
+                is.na(PROTEIN),
+                paste0(
+                  ANNOTATION, "\nCount: ", Counts_diff_mutation,
+                  "\nPosition: ", -abs(unique(cur_gene$POS) -
+                                         unique(cur_gene$START))
+                ),
+                paste0(combined, "\nPosition: ", AA_POS)
+              )
             )
           )
         ), size = 2) +

@@ -131,7 +131,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
-      "indel-frameshift", "indel-inframe", "synonymous")
+      "indel-frameshift", "indel-inframe", "synonymous", "transposon")
 
     letter_aa <- c("A", "R", "N", "D", "C", "E", "Q", "G", "H",
       "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"
