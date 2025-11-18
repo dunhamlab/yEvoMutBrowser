@@ -15,9 +15,9 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
     last_choices <- reactiveVal(character(0))
     
     # Updates gene dropdown only when choices actually change
-    final_filtered <- debounce(filtered_data, 300) # adding a lag so that filtered_data can actually finish updating and it doesn't grab an intermediate step
+    stable_filtered <- debounce(filtered_data, 200) # adding a lag so that filtered_data can actually finish updating and it doesn't grab an intermediate step
     
-    observeEvent(final_filtered(), {
+    observeEvent(stable_filtered(), {
       new_choices <- tryCatch({
         filtered_data() %>%
           dplyr::pull(GENE) %>%
