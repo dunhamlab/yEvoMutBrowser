@@ -72,7 +72,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
     # Plot
     output$geneViewPlot <- renderPlotly({
       # require a gene selection and filtered data
-      req(gene(), filtered_data())
+      req(gene(), stable_filtered())
       
       ranges <- reactiveValues(x = NULL, y = NULL)
       
@@ -90,11 +90,11 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       
       validate(
         need(gene(), select_gene_message),
-        need(filtered_data(), "Loading data...")
+        need(stable_filtered(), "Loading data...")
       )
       
-      # Use a local snapshot of filtered_data() to avoid extra invalidations mid-render
-      mutation_data_value <- isolate(filtered_data())
+      # Use a local snapshot of stable_filtered() to avoid extra invalidations mid-render
+      mutation_data_value <- isolate(stable_filtered())
       
       # Merge only if both exist
       common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
