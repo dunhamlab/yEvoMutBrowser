@@ -90,23 +90,55 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     mut_selected <- reactiveVal(FALSE)
     dom_selected <- reactiveVal(FALSE)
-    #gene view draopdown menu
-    observe({
-      choices <- filtered_data() %>% pull(GENE)
+    
+  #gene view dropdown menu
+  #creating stabilization so that the selected gene holds across different sample selections  
+  stable_data <- debounce(filtered_data, 150)
+  
+  last_choices <- reactiveVal(NULL)
 
-      # Filter choices to include only those present in genes_info
-      choices <- choices[choices %in% genes_info$GENE]
+  #generates information based on the stable data (so that it doesn't flip back and forth during filtering)
+  observeEvent(stable_data(), {
+  
+    new_choices <- tryCatch({
+        stable_data() %>%
+          dplyr::pull(GENE) %>%
+          intersect(genes_info$GENE) %>%
+          unique() %>%
+          sort() %>%
+          as.character()
+    }, error = function(e) character(0))
+    
+    if (identical(new_choices, last_choices()))
+      return()
+    
+    #holds onto selected gene
+    current_sel <- isolate(input$geneSelectDropDown)
+    
+    selected_gene <- if (!is.null(current_sel) &&
+                           nzchar(current_sel) &&
+                           current_sel %in% new_choices) {
+      current_sel
+    } else if (length(new_choices) > 0) {
+      new_choices[1]
+    } else {
+      NULL
+    }
+    
+    updateSelectizeInput(
+      session,
+      "geneSelectDropDown",
+      choices = new_choices,
+      selected = selected_gene,
+      server = TRUE,
+      options = list(maxOptions = length(new_choices))
+    )
+  
+    last_choices(new_choices)
+    
+  }, ignoreInit = FALSE)
 
-      choices <- sort(choices)
-
-      updateSelectizeInput(session, "geneSelectDropDown",
-                           choices = as.character(choices),
-                           server = TRUE,
-                           options = list(maxOptions = length(choices))
-      )
-    })
-
-    gene <- reactive(input$geneSelectDropDown)
+    gene <- reactive({input$geneSelectDropDown})
 
     output$info <- renderText({
       req(gene())
@@ -115,9 +147,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
     cur_gene <- reactive({
-      # merge & filter gene info and mutation info and filter for selected gene
-      fd <- filtered_data() %>%
-        merge(genes_info, by = intersect(names(filtered_data()), names(genes_info))) %>%
+      # merge & filter gene info and mutation info and filter for selected gene, using the stablized data
+      fd <- stable_data() %>%
+        merge(genes_info, by = intersect(names(stable_data()), names(genes_info))) %>%
         arrange(GENE)
 
       filter(fd, GENE == gene())
