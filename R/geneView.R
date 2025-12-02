@@ -161,9 +161,10 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           # Extract the first character Amino Acid Wild Type
           AA_WT = substr(PROTEIN, 1, 1),
           AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
-                           if_else(ANNOTATION == "transposon",
-                                   # Calculate amino acid position from nucleotide position for transposons
-                                   as.numeric(ceiling((POS - START + 1) / 3)),
+                           if_else(ANNOTATION == "transposon", {
+                                   # Debug: Calculate amino acid position from nucleotide position for transposons
+                                   calc_pos <- as.numeric(ceiling((POS - START + 1) / 3))
+                           },
                                    # Extract Amino Acid Position for regular mutations
                                    as.numeric(str_extract(PROTEIN, "[0-9]+"))
                            )
