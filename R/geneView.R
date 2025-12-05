@@ -10,47 +10,76 @@ gene_view_ui <- function(id) {
 
 gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
   moduleServer(id, function(input, output, session) {
-    #gene view draopdown menu
-    observe({
-      choices <- filtered_data() %>% pull(GENE)
-
-      # Filter choices to include only those present in genes_info
-      choices <- choices[choices %in% genes_info$GENE]
-
-      choices <- sort(choices)
-
-      updateSelectizeInput(session, "geneSelectDropDown",
-                           choices = as.character(choices),
-                           server = TRUE,
-                           options = list(maxOptions = length(choices))
-      )
-    })
-
+    
+    # Keeps last choice so it doesn't change as much when switching selections
+    last_choices <- reactiveVal(character(0))
+    
+    # Updates gene dropdown only when choices actually change
+    stable_filtered <- debounce(filtered_data, 200) # adding a lag so that filtered_data can actually finish updating and it doesn't grab an intermediate step
+    
+    observeEvent(stable_filtered(), {
+      new_choices <- tryCatch({
+        filtered_data() %>%
+          dplyr::pull(GENE) %>%
+          intersect(genes_info$GENE) %>%
+          unique() %>%
+          as.character() %>%
+          sort()
+      }, error = function(e) {
+        character(0)
+      })
+      
+      # Compare to previous choices, only updates when different
+      if (!identical(new_choices, last_choices())) {
+        # preserve current selection if possible
+        current_sel <- isolate(input$geneSelectDropDown)
+        selected_gene <- if (!is.null(current_sel) && nzchar(current_sel) && current_sel %in% new_choices) {
+          current_sel
+        } else if (length(new_choices) > 0) {
+          new_choices[1]
+        } else {
+          NULL
+        }
+        
+        updateSelectizeInput(
+          session,
+          "geneSelectDropDown",
+          choices = as.character(new_choices),
+          selected = selected_gene,
+          server = TRUE,
+          options = list(maxOptions = length(new_choices))
+        )
+        
+        # store for next comparison
+        last_choices(new_choices)
+      }
+    }, ignoreNULL = FALSE, ignoreInit = FALSE)
+    
+    # reactive wrapper for selected gene (keeps normal immediate reactivity)
     gene <- reactive(input$geneSelectDropDown)
-
+    
     # Learn about Gene button within gene viewer
-    if(link != "NONE") {
-    output$url <- renderUI({
-      url <- a("Learn about Gene",
-               href = gene_info_link_function(genes_info, input$geneSelectDropDown),
-               class = "btn btn-default", target = "_blank"
-      )
-      url
-    })
+    if (link != "NONE") {
+      output$url <- renderUI({
+        req(gene())
+        a("Learn about Gene",
+          href = gene_info_link_function(genes_info, gene()),
+          class = "btn btn-default", target = "_blank"
+        )
+      })
     }
-
-
+    
+    # Plot
     output$geneViewPlot <- renderPlotly({
+      # require a gene selection and filtered data
+      req(gene(), stable_filtered())
+      
       ranges <- reactiveValues(x = NULL, y = NULL)
-
-      # Showing please select gene message
-      # Construct the string with spaces on each side of the loading message
+      
+      # message when nothing selected
       geneview_message <- "Please select a gene below"
-      # Calculate the number of empty spaces needed on each side
       gene_message_length <- nchar(geneview_message)
-      gene_spaces_on_each_side <- floor(
-        (total_spaces - gene_message_length) / 2
-      )
+      gene_spaces_on_each_side <- floor((total_spaces - gene_message_length) / 2)
       select_gene_message <- sprintf(
         "%s%s%s%s",
         "\n\n\n\n\n\n\n\n",
@@ -58,32 +87,27 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
         geneview_message,
         paste(rep(" ", gene_spaces_on_each_side), collapse = "")
       )
-
-      # Render gene view plot
-
+      
       validate(
         need(gene(), select_gene_message),
-        need(filtered_data(), "Loading data...")
+        need(stable_filtered(), "Loading data...")
       )
-
-      mutation_data_value <- filtered_data()
-
-      # Merge the data frames based on the common columns
-      common_cols <- intersect(
-        colnames(mutation_data_value),
-        colnames(genes_info)
-      )
-      mutation_data_value <- merge(mutation_data_value, genes_info,
-                                   by = common_cols
-      )
-      mutation_data_value <- mutation_data_value[order(
-        mutation_data_value$GENE
-      ),]
-
-      # Filter data for the specific gene
-      cur_gene <- filter(mutation_data_value, GENE == gene())
-
-      # Pattern for extracting the second part of protein
+      
+      # Use a local snapshot of stable_filtered() to avoid extra invalidations mid-render
+      mutation_data_value <- isolate(stable_filtered())
+      
+      # Merge only if both exist
+      common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
+      if (length(common_cols) == 0) {
+        validate("No matching columns between mutation data and genes_info.")
+      }
+      mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
+      mutation_data_value <- mutation_data_value[order(mutation_data_value$GENE), ]
+      
+      # Filter for the gene
+      cur_gene <- dplyr::filter(mutation_data_value, GENE == gene())
+      
+      # pattern and annotations (unchanged)
       pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
 
       all_annotations <- c(
@@ -116,8 +140,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       if (length(count_proteins$COUNTS) <= 0) {
         validate("Loading data...")
       }
-
-      # Group by position numbers and summarize
+      
       count_proteins_same <- count_proteins %>%
         group_by(Numbers) %>%
         summarize(
@@ -135,30 +158,22 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       # Combine protein and count strings
       count_proteins_same <- count_proteins_same %>%
         mutate(
-          combined = map2_chr(
+          combined = purrr::map2_chr(
             PROTEIN, Counts_diff_mutation,
             function(prot, counts) {
               prot_list <- str_split(prot, ", ") %>% unlist()
               counts_list <- str_split(counts, ", ") %>% unlist()
-
-              combined_strings <- map2_chr(
-                prot_list, counts_list,
-                function(p, c) {
-                  letter1 <- substr(p, 1, 1)
-                  # numbers <- str_extract(p, "[0-9]+") %>% as.numeric()
-                  letter2 <- str_extract(p, pattern)
-                  paste("Count", letter1, "->", letter2, ":", c, "\n",
-                        sep = " "
-                  )
-                }
-              )
+              combined_strings <- purrr::map2_chr(prot_list, counts_list, function(p, c) {
+                letter1 <- substr(p, 1, 1)
+                letter2 <- str_extract(p, pattern)
+                paste("Count", letter1, "->", letter2, ":", c, "\n", sep = " ")
+              })
               paste(combined_strings, collapse = "")
             }
           )
         ) %>%
         mutate(
           PROTEIN = as.character(PROTEIN),
-          # Extract the first character Amino Acid Wild Type
           AA_WT = substr(PROTEIN, 1, 1),
           AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
                            if_else(ANNOTATION == "transposon", {
@@ -173,50 +188,37 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
           ANNOTATION = factor(ANNOTATION, levels = all_annotations)
         )
-
+      
       annotation_colors <- set_names(color_vector, all_annotations)
-
-      # Generating ranges for the plot size
+      
+      # ranges
       xmax <- genes_info %>%
         filter(GENE == gene()) %>%
         pull(PROTEIN_LENGTH) %>%
         unique() %>%
         as.numeric()
+      if (length(xmax) == 0 || is.na(xmax)) xmax <- 0
       ranges$x <- c(-50, xmax + 50)
-
-      ranges$y <- c(0, max(count_proteins_same$Counts_tot) +
-        ifelse(max(count_proteins_same$Counts_tot) < 5, 4, 1))
-
+      
+      ymax_count <- if (nrow(count_proteins_same) == 0) 0 else max(count_proteins_same$Counts_tot, na.rm = TRUE)
+      ranges$y <- c(0, ymax_count + ifelse(ymax_count < 5, 4, 1))
+      
+      # build ggplot (kept your original appearance + minor safe guards)
       p <- count_proteins_same %>%
-        ggplot(
-          aes(
-            x = AA_POS,
-            y = Counts_tot,
-          )
-        ) +
-        # dummy geom_point to get legend showing all_annotations regardless of
-        # what data is displayed
+        ggplot(aes(x = AA_POS, y = Counts_tot)) +
         geom_point(data = data.frame(
           PROTEIN = rep(NA_character_, length(all_annotations)),
           AA_WT = rep(NA_character_, length(all_annotations)),
           AA_POS = rep(NA_real_, length(all_annotations)),
           AA_M = rep(NA_character_, length(all_annotations)),
           ANNOTATION = factor(all_annotations, levels = all_annotations),
-          Counts_diff_mutation = I(rep(
-            list(numeric(0)),
-            length(all_annotations)
-          )),
+          Counts_diff_mutation = I(rep(list(numeric(0)), length(all_annotations))),
           Counts_tot = rep(NA_integer_, length(all_annotations)),
           combined = rep(NA_character_, length(all_annotations))
         ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2) +
-        geom_hline(yintercept = 0, linetype = 2, alpha = .2, aes(text = NULL)) +
-        geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0, text = NULL),
-                     size = 15, color = "cornflowerblue"
-        ) +
-        geom_segment(aes(
-          x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot,
-          text = NULL
-        ), color = "gray") +
+        geom_hline(yintercept = 0, linetype = 2, alpha = .2) +
+        geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0), size = 15, color = "cornflowerblue") +
+        geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot), color = "gray") +
         geom_point(aes(
           x = AA_POS,
           y = Counts_tot,
@@ -248,40 +250,21 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
         ), size = 2) +
         ggtitle(as.character(gene())) +
         theme_classic() +
-        theme(
-          axis.text.x = element_text(),
-          axis.title.y = element_text(),
-          axis.text.y = element_text(),
-          axis.ticks.y = element_line(),
-          plot.title = element_text(hjust = 0.5),
-          plot.margin = margin(20, 20, 0, 20)
-        ) +
+        theme(plot.title = element_text(hjust = 0.5), plot.margin = margin(20, 20, 0, 20)) +
         xlab("Amino acid position") +
         ylab("Mutation Count") +
-        scale_y_continuous(breaks = function(x) {
-          seq(floor(min(x)),
-              ceiling(max(x)),
-              by = 1
-          )
-        }) +
-        scale_color_manual(values = annotation_colors) + # Manual color scale
+        scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +
+        scale_color_manual(values = annotation_colors) +
         coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
-        annotate("text",
-                 x = 1, y = Inf,
-                 label = "Drag over mutations to see more", hjust = 0, vjust = 2,
-                 color = "black", size = 5
-        ) +
+        annotate("text", x = 1, y = Inf, label = "Drag over mutations to see more", hjust = 0, vjust = 2, color = "black", size = 5) +
         guides(color = guide_legend(title = "Annotation"))
-
+      
+      # convert to plotly, register events so other listeners work
       ggplotly(p, tooltip = "text") %>%
-        config(
-          toImageButtonOptions = list(
-            format = 'svg',
-            filename = 'gene_view_plot',
-            height = 500,
-            width = 700
-          )
-        )
+        event_register('plotly_hover') %>%
+        event_register('plotly_click') %>%
+        event_register('plotly_relayout') %>%
+        config(toImageButtonOptions = list(format = 'svg', filename = 'gene_view_plot', height = 500, width = 700))
     })
   })
 }
