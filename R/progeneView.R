@@ -300,7 +300,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       new <- genedatatable(cur_gene())
       residue_num <- input$resi_num
       if (residue_num %in% new$Numbers) {
+        print("LETS GO")
         row <- new[new$Numbers == residue_num, ]
+        print(row$combined)
         hover_text(row, TRUE)
       } else {
         paste0("Position: ", input$resi_num, " Amino Acid: ", input$resi_aa)
