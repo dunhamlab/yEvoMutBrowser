@@ -425,7 +425,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
   observe({
     ed <- event_data("plotly_hover", source="mutplot", priority = 'event')
+    print(ed$x)
     req(ed)
+    print("HOVER EVENT")
     ann <- as.character(ed$key[[1]])
     hex <- annotation_colors[ann]
     hex_val <- unname(hex)[1]
@@ -446,6 +448,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         plotlyProxyInvoke("relayout", list(shapes = list(my_rectangle)))
 
       plotlyProxy("domainplot", session) %>%
+        plotlyProxyInvoke("relayout", list(shapes = list(my_rectangle)))
+
+      plotlyProxy("motifplot", session) %>%
         plotlyProxyInvoke("relayout", list(shapes = list(my_rectangle)))
   })
 
@@ -546,12 +551,12 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
 
 
-    plot_rect <- function(pd, cg, dtype = "pfam", plotc="domainplot") {
+    plot_rect <- function(pd, cg, dtype = "pfam", plotc="domainplot", no_data_text="No Pfam domains") {
       rects <- rect_data(pd, viridis, dtype)
 
       if (nrow(rects) == 0) {
         return(plotly_empty(type="scatter", mode="markers") %>%
-                 layout(title = "No Pfam domains"))
+                 layout(title = no_data_text))
       }
 
       p <- ggplot(rects) +
@@ -597,7 +602,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       cg <- cur_gene()
       # Get motif info for the current gene
       md <- motif_info[motif_info$UniprotID == first(cg$UniprotID), ]
-      plot_rect(md, cg, dtype="motif", plotc="motifplot")
+      plot_rect(md, cg, dtype="motif", plotc="motifplot", no_data_text="No Motif Data Available")
     })
 
 
