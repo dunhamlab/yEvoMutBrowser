@@ -7,14 +7,14 @@ gene_pro_view_ui <- function(id) {
     div(style = "margin-left: 20px;",
 
       div("", style = "height: 10px;"),
-      # plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
-
-      tags$div(class = "info_div", 
+      tags$div(class = "info_div",
         verbatimTextOutput(NS(id, "info")),
       ),
 
+      # Dropdown menu for gene selection
       selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
 
+      # Molstar viewer container
       tags$div(
         id = "molstar-parent",
         style = "position: relative; width: 600px; height: 600px;",
@@ -25,23 +25,22 @@ gene_pro_view_ui <- function(id) {
       )
       ,
 
+      # Creates namespace for the module to be used in JS
       tags$script(HTML(sprintf("
         window.MY_MODULE_NS = '%s';
       ", prefix))),
 
-      # ⬇️  place the script LAST so Shiny is ready
       tags$script(src = "static/molstar-custom.js"),
 
+      # Residue info box
       tags$div(class = "resi_info_div",
         verbatimTextOutput(NS(id, "resiinfo")),
-
       ),
 
 
-      # verbatimTextOutput(NS(id, "resiinfo")),
-
       uiOutput(NS(id, "mutation_legend")),
 
+      # Mutation Display
       tags$div(class="domain_div",
         tags$div(class="mut_button_div",
           actionButton(NS(id, 'mutations'), 'Mutations', class = "motif_button"),
@@ -52,6 +51,7 @@ gene_pro_view_ui <- function(id) {
         ),
       ),
 
+      # Domain Display
       tags$div(class="domain_div",
         tags$div(class="domain_button_div",
           actionButton(NS(id, 'domain'), 'Pfam Domains', class = "motif_button"),
@@ -62,33 +62,35 @@ gene_pro_view_ui <- function(id) {
         ),
       ),
 
-tags$div(class="domain_div",
-  tags$div(class="mut_button_div",
-    actionButton(NS(id, 'motif'), 'Motifs', class = "motif_button"),  # Add class here
-  ),
+      # Motif Display
+      tags$div(class="domain_div",
+        tags$div(class="mut_button_div",
+          actionButton(NS(id, 'motif'), 'Motifs', class = "motif_button"),  # Add class here
+        ),
 
-  tags$div(class="motif_plot_div",
-    plotlyOutput(NS(id, "motifplot"), height = "65px"),
-  ),
-),
-      # plotlyOutput(NS(id, "motifplot"), height = "65px"),
+        tags$div(class="motif_plot_div",
+          plotlyOutput(NS(id, "motifplot"), height = "65px"),
+        ),
+      ),
 
       includeCSS("R/www/styling.css"),
 
+
+      # Protein Info Card
       tags$div(class = "container",
-        # Inner div with class "header"
         tags$div(class = "protein-cont",
-          tags$div(class = "my_verbatim_text",  # <-- your custom class
+          tags$div(class = "my_verbatim_text", 
             textOutput(NS(id, "content"))
           )
         ),
-        # Content section
+
         tags$div(class = "content_div",
           tags$div(class = 'url_div',
             tags$p("Protein: ", uiOutput(NS(id, "url"), inline = TRUE)),
           ),
           tags$div(class = "description_div",
-            tags$p("Description: ", textOutput(NS(id, "description"), inline = TRUE))
+            tags$p("Description: ", textOutput(NS(id, "description"),
+                                               inline = TRUE))
           ),
 
           tags$div(class = "pathway_div",
@@ -103,12 +105,13 @@ tags$div(class="domain_div",
 gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
   moduleServer(id, function(input, output, session) {
 
+    # Reactive values to track selected states
     mut_selected <- reactiveVal(FALSE)
     dom_selected <- reactiveVal(FALSE)
     motif_selected <- reactiveVal(FALSE)
 
-    #gene view draopdown menu
     observe({
+
       choices <- filtered_data() %>% pull(GENE)
 
       # Filter choices to include only those present in genes_info
@@ -141,7 +144,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
     output$content <- renderText("Protein Info Card")
-    print("HEEH")
     output$description <- renderText(paste0(first(cur_gene()$DESCRIPTION)))
 
 
@@ -158,8 +160,10 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                          "Gly", "His", "Ile", "Leu", "Lys", "Met", "Phe",
                          "Pro", "Ser", "Thr", "Trp", "Tyr", "Val")
 
+    # Map one-letter to three-letter amino acid codes
     names(three_letter_aa) <- letter_aa
 
+    # Read in data
     pfam <- read.csv(ORGANISM_PFAM_DOMAIN_INFO_PATH)
     pathway_info <- read.csv(ORGANISM_PATHWAY_INFO_PATH)
     motif_info <- read.csv(ORGANISM_MOTIF_INFO_PATH)
@@ -170,12 +174,14 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         need(filtered_data(), "Loading data...")
       )
 
+      # Extract information for the selected gene
       sgd <- first(cur_gene()$SGDID)
       row <- pathway_info[pathway_info$SGDID == sgd, ]
       BASE_URL <- "https://pathway.yeastgenome.org/YEAST/new-image?type=PATHWAY&object="
 
       if (nrow(row) == 0) {
-                           tags$p("N/A")} else {
+        tags$p("N/A")
+      } else {
 
         links <- lapply(seq_len(nrow(row)), function(i) {
           url <- paste0(BASE_URL, row$PathwayID[i])
@@ -295,38 +301,37 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         )
       }
 
+    # Listens to hover events from JS and updates the text output
     output$resiinfo <- renderText({
       req(input$resi_aa, input$resi_num)
       new <- genedatatable(cur_gene())
       residue_num <- input$resi_num
       if (residue_num %in% new$Numbers) {
-        print("LETS GO")
         row <- new[new$Numbers == residue_num, ]
-        print(row$combined)
         hover_text(row, TRUE)
       } else {
         paste0("Position: ", input$resi_num, " Amino Acid: ", input$resi_aa)
       }
     })
 
-
+    # Observe gene selection changes and loads in
+    # AlphaFold Structure into Mol* Viewer
     observeEvent(input$geneSelectDropDown, {
       print("MUTATION BUTTON CLICKED")
       print(cur_gene())
 
       gene_name <- input$geneSelectDropDown
+      # Reset selections
       mut_selected(FALSE)
       dom_selected(FALSE)
       motif_selected(FALSE)
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
-      print("DDD")
-      print(uniprotid)
+      # Renders AlphaFold Structure
       session$sendCustomMessage("initMolstar", uniprotid)
-      # session$sendCustomMessage("resetCamera", list())
-
   })
 
 
+    # General purpose function to create rectanglular data for plotting
     rect_data <- function(filtered_rows, color_func, dtype="pfam") {
       cg <- cur_gene()
       pd <- filtered_rows
@@ -349,6 +354,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     }
 
+    # Create a named vector of annotation colors
     annotation_colors <- set_names(color_vector, all_annotations)
 
     alpha_val <- 0.4
@@ -356,14 +362,18 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       adjustcolor(col, alpha.f = alpha_val)
     })
 
+    # Create a legend for the mutation types
     output$mutation_legend <- renderUI({
       tags$div(
         style = "display: flex; flex-direction: row;",
         lapply(names(transp_colors), function(mut) {
           tags$div(
-            style = "display:flex; align-items:center; margin-bottom:4px; margin-top:30px;", 
+            style = "display:flex; align-items:center; 
+            margin-bottom:4px; margin-top:30px;",
             tags$div(
-              style = sprintf("width:20px; height:20px; background:%s; margin-right:5px; border:1px solid #000; margin-left:5px; margin-top: 4px;" , 
+              style = sprintf("width:20px; height:20px;
+              background:%s; margin-right:5px; border:1px 
+              solid #000; margin-left:5px; margin-top: 4px;",
                               transp_colors[mut])
             ),
             tags$span(mut)
@@ -384,26 +394,28 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                                             class = "unit")
 
 
-
     output$mutplot <- renderPlotly({
       cur_gene <- cur_gene()
       count_proteins_same <- genedatatable(cur_gene)
       cg <- cur_gene()
 
       # Create a scatter plot with ggplot2
-      gg <- ggplot(count_proteins_same, aes(x = count_proteins_same$Numbers, y = 0, key=count_proteins_same$ANNOTATION, color = count_proteins_same$ANNOTATION,
+      gg <- ggplot(count_proteins_same, aes(x = count_proteins_same$Numbers,
+        y = 0, key=count_proteins_same$ANNOTATION,
+        color = count_proteins_same$ANNOTATION,
         text = hover_text(count_proteins_same)
       )) +
-        scale_color_manual(values = annotation_colors) + 
-        geom_point(size = 3.2, alpha = 0.3, shape=15 ) +
-        # geom_point(color = "#5b91e2", size = 2.2) + # Add points with specified color and size
-        labs(
-             x = "X-axis Variable",             # Add x-axis label
-             y = "Y-axis Variable") +  xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
+        scale_color_manual(values = annotation_colors) +
+        geom_point(size = 3.2, alpha = 0.3, shape = 15) +
+        # labs(
+        #      x = "X-axis Variable",             # Add x-axis label
+        #      y = "Y-axis Variable") + 
+        xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
 
-        new_theme_empty + labs(x = "My X-axis Label") + guides(fill = FALSE) + theme(legend.position = "none")
+        new_theme_empty + labs(x = "My X-axis Label") + 
+        guides(fill = FALSE) + theme(legend.position = "none")
 
-
+      # Hover text
       gg <- ggplotly(gg, tooltip = "text", source = "mutplot", dynamicTicks = TRUE) %>%
         layout(
           title = list(text = NULL),
@@ -411,9 +423,10 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
           xaxis = list(
             rangemode = "nonnegative",
-
-          range = c(0, first(cg$PROTEIN_LENGTH)),   # <— force initial range [0, protein_length]
-          autorange = FALSE         # <— prevent Plotly from auto-expanding it
+            # Force initial range [0, protein_length]
+            range = c(0, first(cg$PROTEIN_LENGTH)),
+            # Prevent Plotly from auto-expanding it
+            autorange = FALSE
           )
         ) %>%
 
@@ -422,12 +435,12 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       gg
     })
 
-
+  # Displays 'tracking tool' when hovering over mutation points
   observe({
-    ed <- event_data("plotly_hover", source="mutplot", priority = 'event')
-    print(ed$x)
+    # Get the hover event data
+    ed <- event_data("plotly_hover", source = "mutplot", priority = 'event')
     req(ed)
-    print("HOVER EVENT")
+    # Extract annotation information
     ann <- as.character(ed$key[[1]])
     hex <- annotation_colors[ann]
     hex_val <- unname(hex)[1]
@@ -444,6 +457,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       yref = "paper" # y-coordinates as fraction of plot area (constant size)
     )
 
+      # Update the plotlyProxy for the other plots
       plotlyProxy("mutplot", session) %>%
         plotlyProxyInvoke("relayout", list(shapes = list(my_rectangle)))
 
@@ -454,20 +468,23 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         plotlyProxyInvoke("relayout", list(shapes = list(my_rectangle)))
   })
 
+    # Highlights and zooms into mutation points when clicked
+    observe({
+      # Get the click event data
+      ed <- event_data("plotly_click", source = "mutplot", priority = "event")
+      req(ed)
+      ann <- as.character(ed$key[[1]])
+      hex <- annotation_colors[ann]
+      hex_val <- unname(hex)[1]
+      positions <- c(ed$x)
+      session$sendCustomMessage("zoomToResidue",
+                                list(residueNumber = positions))
+      session$sendCustomMessage("highlightResidueWithSphere",
+                                list(positions = positions,
+                                     colorHex = hex_val))
+    })
 
-  observe({
-    ed <- event_data("plotly_click", source="mutplot", priority = 'event')
-    req(ed)
-    ann <- as.character(ed$key[[1]])
-    hex <- annotation_colors[ann]
-    hex_val <- unname(hex)[1]
-    positions <- c(ed$x)
-    session$sendCustomMessage("zoomToResidue", list(residueNumber = positions))
-    session$sendCustomMessage("highlightResidueWithSphere",
-                              list(positions = positions,
-                                   colorHex = hex_val))
-  })
-
+    # Toggle mutation highlighting
     observeEvent(input$mutations, {
       mut_selected(!mut_selected())
       if (mut_selected()) {
@@ -480,9 +497,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           hex <- annotation_colors[mut_type]
           hex_val <- unname(hex)[1]
           session$sendCustomMessage("highlightResidueWithSphere",
-                              list(positions = residue,
-                              colorHex=hex_val
-                              ))
+                                    list(positions = residue,
+                                      colorHex = hex_val
+                                    ))
 
         }
       } else {
@@ -490,44 +507,45 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       }
     })
 
+    # Toggle domain highlighting
     observeEvent(input$domain, {
       dom_selected(!dom_selected())
       if (dom_selected()) {
         cg <- cur_gene()
+        # Fetches relevant Pfam domains
         pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
+        # Transforms the data into rectangles
         rects <- rect_data(pd, viridis)
-        print(rects)
+        # Highlights each domain one by one
         if (nrow(rects) != 0) {
-                               for (i in 1:nrow(rects)) {
-                                 row <- rects[i, ]
-                                 domain_start <- row['xmin'][[1]]
-                                 domain_end <- row["xmax"][[1]]
-                                 hex <- row["fill_color"][[1]]
-                                 hex <- unname(hex)
-                                 len <- nchar(hex)
-                                 hex <- substr(hex, 1, len - 2)
-
-                                 session$sendCustomMessage("highlightDomains",
-                                 list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
+          for (i in 1:nrow(rects)) {
+            row <- rects[i, ]
+            domain_start <- row['xmin'][[1]]
+            domain_end <- row["xmax"][[1]]
+            hex <- row["fill_color"][[1]]
+            hex <- unname(hex)
+            len <- nchar(hex)
+            hex <- substr(hex, 1, len - 2)
+            session$sendCustomMessage("highlightDomains",
+                                      list(residueStart = domain_start,
+                                           residueEnd = domain_end, colorHex = hex))
           }
         }
+      } else {
+        session$sendCustomMessage("clearPaint", list())
       }
-
-    else {
-      session$sendCustomMessage("clearPaint", list())
-    }
     })
 
-
-
+    # Toggle motif highlighting
     observeEvent(input$motif, {
       motif_selected(!motif_selected())
       if (motif_selected()) {
         cg <- cur_gene()
+        # Fetches relevant motif information
         pd <- motif_info[motif_info$UniprotID == first(cg$UniprotID), ]
-        # pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
+        # Transforms the data into rectangles
         rects <- rect_data(pd, viridis)
-        print(rects)
+        # Highlights each motif one by one
         if (nrow(rects) != 0) {
           for (i in 1:nrow(rects)) {
             row <- rects[i, ]
@@ -539,18 +557,17 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
             hex <- substr(hex, 1, len - 2)
 
             session$sendCustomMessage("highlightDomains",
-            list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
+                                      list(residueStart = domain_start,
+                                           residueEnd = domain_end, colorHex = hex))
           }
         }
+      } else {
+        session$sendCustomMessage("clearPaint", list())
       }
-
-    else {
-      session$sendCustomMessage("clearPaint", list())
-    }
     })
 
 
-
+    # Plotting rectangular, continuous data
     plot_rect <- function(pd, cg, dtype = "pfam", plotc="domainplot", no_data_text="No Pfam domains") {
       rects <- rect_data(pd, viridis, dtype)
 
@@ -569,20 +586,24 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
                   color = "black",
                   alpha = 0.6) + scale_fill_identity() +
-        theme_minimal() + scale_x_continuous(limits = c(0, first(cg$PROTEIN_LENGTH))) + new_theme_empty +
+        theme_minimal() +
+        scale_x_continuous(limits = c(0, first(cg$PROTEIN_LENGTH))) +
+        new_theme_empty +
         guides(fill = FALSE)
 
 
-      gg <- ggplotly(p, tooltip = "text", dynamicTicks = TRUE, source = plotc) %>%
+      gg <- ggplotly(p, tooltip = "text", 
+                     dynamicTicks = TRUE, source = plotc) %>%
         layout(
           title = list(text = NULL),
           margin = list(l = 6, r = 6, t = 6, b = 20, pad = 0),
 
           xaxis = list(
             rangemode = "nonnegative",
-
-            range = c(0, first(cg$PROTEIN_LENGTH)),    # <— force initial range [0, protein_length]
-            autorange = FALSE         # <— prevent Plotly from auto-expanding it
+            # Force initial range [0, protein_length]
+            range = c(0, first(cg$PROTEIN_LENGTH)),
+            # Prevent Plotly from auto-expanding it
+            autorange = FALSE
           )
         ) %>%
         config(scrollZoom = TRUE)
@@ -602,37 +623,32 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       cg <- cur_gene()
       # Get motif info for the current gene
       md <- motif_info[motif_info$UniprotID == first(cg$UniprotID), ]
-      plot_rect(md, cg, dtype="motif", plotc="motifplot", no_data_text="No Motif Data Available")
+      plot_rect(md, cg, dtype = "motif", plotc = "motifplot",
+                no_data_text = "No Motif Data Available")
     })
 
 
-        observe({
-      # priortiy event will be triggered at every event/click
+    observe({
+      # priortiy event will be triggered at every click
       ed <- event_data("plotly_click", source = "motifplot", priority = 'event')
       req(ed$key)
-      print("MOTIF CLICKED")
       cg <- cur_gene()
       str <- ((ed$key)[[1]])
-      print(str)
       split_vector <- unlist(strsplit(str, "_"))
       hex <- tail(split_vector, 1)
       len <- nchar(hex)
       hex <- substr(hex, 1, len - 2)
-      print(hex)
       uniprot <- first(cg$UniprotID)
-      # pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
       pd <- motif_info[motif_info$UniprotID == first(uniprot), ]
-      print(pd)
       rects <- rect_data(pd, viridis, dtype="motif")
-      print(rects)
       motif <- rects[rects$id == ed$key, ]
       motif_start <- motif$xmin
       motif_end <- motif$xmax
-      print(motif_start)
-      print(motif_start)
-      session$sendCustomMessage("zoomToResidue", list(residueNumber = motif_start))
+      session$sendCustomMessage("zoomToResidue", 
+                                list(residueNumber = motif_start))
       session$sendCustomMessage("highlightDomains",
-      list(residueStart=motif_start, residueEnd=motif_end, colorHex=hex))
+                                list(residueStart = motif_start,
+                                     residueEnd = motif_end, colorHex = hex))
     })
 
 
@@ -647,7 +663,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
             "xaxis.range[0]" %in% names(relayout_data) && 
             "xaxis.range[1]" %in% names(relayout_data)) {
 
-        new_range <- c(relayout_data[["xaxis.range[0]"]], relayout_data[["xaxis.range[1]"]])
+        new_range <- c(relayout_data[["xaxis.range[0]"]],
+                       relayout_data[["xaxis.range[1]"]])
 
         plotlyProxy("domainplot") %>%
           plotlyProxyInvoke("relayout", list("xaxis.range" = new_range))
@@ -657,7 +674,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
         plotlyProxy("motifplot") %>%
           plotlyProxyInvoke("relayout", list("xaxis.range" = new_range))
-
 
       }
     }
@@ -677,7 +693,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     observe({
       # priortiy event will be triggered at every event/click
-      ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
+      ed <- event_data("plotly_click",
+                       source = "domainplot", priority = "event")
       req(ed$key)
       cg <- cur_gene()
       str <- ((ed$key)[[1]])
@@ -690,9 +707,11 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       domain <- rects[rects$id == ed$key, ]
       domain_start <- domain$xmin
       domain_end <- domain$xmax
-      session$sendCustomMessage("zoomToResidue", list(residueNumber = domain_start))
+      session$sendCustomMessage("zoomToResidue",
+                                list(residueNumber = domain_start))
       session$sendCustomMessage("highlightDomains",
-      list(residueStart=domain_start, residueEnd=domain_end, colorHex=hex))
+                                list(residueStart = domain_start,
+                                     residueEnd = domain_end, colorHex = hex))
     })
   })
 }
