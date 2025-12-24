@@ -48,7 +48,11 @@ selection_panel_ui <- function(id, mut_backend) {
   )
 }
 
-selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend) {
+region2gene_name <- function(gene_region, gene_info) {
+  gene_info[gene_info$REGION == gene_region, "GENE"][1]
+}
+
+selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend, gene_info) {
   moduleServer(id, function(input, output, session) {
     # Initialize a reactive variable for the dataframe
     # Function to read and append the uploaded data to the cumulative dataframe
@@ -56,8 +60,7 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
       file <- input$datafile
       data <- read.csv(file$datapath)
       required_columns <- c(
-        "CHROM", "POS", "REF", "ALT", "ANNOTATION", "REGION",
-        "GENE", "PROTEIN", "background", "condition", "sample"
+        "CHROM", "POS", "REF", "ALT", "ANNOTATION", "REGION", "PROTEIN", "background", "condition", "sample"
       )
       if (!is.null(file) && all(required_columns %in% colnames(data))) {
         # Add instructor and year columns
@@ -68,6 +71,10 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
         data$FILTER <- rep("NA", nrow(data))
         data$INFO <- rep("NA", nrow(data))
         data$seq_file <- rep("NA", nrow(data))
+
+        if (!('GENE' %in% data)) {
+          data$GENE <- sapply(data$REGION, function(region_name) {region2gene_name(region_name, gene_info)})
+        }
         data <- subset(data, select=c(
           "CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
           "ANNOTATION", "REGION", "GENE", "PROTEIN", "seq_file",
