@@ -537,6 +537,13 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Toggle mutation highlighting
     observeEvent(input$mutations, {
       mut_selected(!mut_selected())
+
+      if (mut_selected()) {
+        runjs(sprintf("$('#%s').addClass('active');", session$ns("mutations")))
+      } else {
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("mutations")))
+      }
+
       if (mut_selected()) {
         gene_info <- genedatatable(cur_gene())
 
@@ -561,12 +568,21 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     observeEvent(input$domain, {
       dom_selected(!dom_selected())
       if (dom_selected()) {
+        runjs(sprintf("$('#%s').addClass('active');", session$ns("domain")))
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
+      } else {
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
+      }
+
+      if (dom_selected()) {
+        motif_selected(FALSE)
         cg <- cur_gene()
         # Fetches relevant Pfam domains
         pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
         # Transforms the data into rectangles
         rects <- rect_data(pd, viridis)
         # Highlights each domain one by one
+        session$sendCustomMessage("clearPaint", list())
         if (nrow(rects) != 0) {
           for (i in 1:nrow(rects)) {
             row <- rects[i, ]
@@ -590,6 +606,15 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     observeEvent(input$motif, {
       motif_selected(!motif_selected())
       if (motif_selected()) {
+        runjs(sprintf("$('#%s').addClass('active');", session$ns("motif")))
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
+      } else {
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
+      }
+
+
+      if (motif_selected()) {
+        dom_selected(FALSE)
         cg <- cur_gene()
         # Fetches relevant motif information
         pd <- motif_info[motif_info$UniprotID == first(cg$UniprotID), ]
@@ -605,7 +630,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
             hex <- unname(hex)
             len <- nchar(hex)
             hex <- substr(hex, 1, len - 2)
-
+            session$sendCustomMessage("clearPaint", list())
             session$sendCustomMessage("highlightDomains",
                                       list(residueStart = domain_start,
                                            residueEnd = domain_end, colorHex = hex))
