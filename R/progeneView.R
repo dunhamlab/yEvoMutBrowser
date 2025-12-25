@@ -361,6 +361,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       mut_selected(FALSE)
       dom_selected(FALSE)
       motif_selected(FALSE)
+      runjs(sprintf("$('#%s').removeClass('active');", session$ns("mutations")))
+      runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
+      runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
       # Renders AlphaFold Structure
       session$sendCustomMessage("initMolstar", uniprotid)
