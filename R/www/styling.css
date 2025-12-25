@@ -94,10 +94,10 @@
     align-self: center;
     background-color: transparent; /* Change from rgb(55, 15, 15) */
   }
-  button.motif_button,
-  .motif_button.btn-default,
-  .motif_button.action-button,
-  .btn.motif_button {
+  button.button_style,
+  .button_style.btn-default,
+  .button_style.action-button,
+  .btn.button_style {
     background-color: cornflowerblue !important;
     background-image: none !important;
     color: white !important;
@@ -107,19 +107,19 @@
     border-radius: 0px !important;
   }
 
-  button.motif_button:hover,
-  .motif_button.btn-default:hover,
-  .motif_button.action-button:hover {
+  button.button_style:hover,
+  .button_style.btn-default:hover,
+  .button_style.action-button:hover {
     background-color: #0056b3 !important;
     background-image: none !important;
     color: white !important;
     border-color: #0056b3 !important;
   }
 
-  button.motif_button:active,
-  button.motif_button:focus,
-  .motif_button.btn-default:active,
-  .motif_button.btn-default:focus {
+  button.button_style:active,
+  button.button_style:focus,
+  .button_style.btn-default:active,
+  .button_style.btn-default:focus {
     background-color: #004085 !important;
     background-image: none !important;
     color: white !important;

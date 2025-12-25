@@ -4,7 +4,7 @@ gene_pro_view_ui <- function(id) {
 
   tabPanel(
     "Protein View",
-    div(style = "margin-left: 20px;",
+    div(style = "margin-left: 20px; width: 600px;",
 
       div("", style = "height: 10px;"),
       tags$div(class = "info_div",
@@ -13,6 +13,8 @@ gene_pro_view_ui <- function(id) {
 
       # Dropdown menu for gene selection
       selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
+    
+      actionButton(NS(id, "screenshot"), "Take Screenshot 📷", class = "button_style", width = "100%"),
 
       # Molstar viewer container
       tags$div(
@@ -42,7 +44,7 @@ gene_pro_view_ui <- function(id) {
       # Mutation Display
       tags$div(class="domain_div",
         tags$div(class="mut_button_div",
-          actionButton(NS(id, 'mutations'), 'Mutations', class = "motif_button"),
+          actionButton(NS(id, 'mutations'), 'Mutations', class = "button_style"),
         ),
 
         tags$div(class="mut_plot_div",
@@ -53,7 +55,7 @@ gene_pro_view_ui <- function(id) {
       # Domain Display
       tags$div(class="domain_div",
         tags$div(class="domain_button_div",
-          actionButton(NS(id, 'domain'), 'Pfam Domains', class = "motif_button"),
+          actionButton(NS(id, 'domain'), 'Pfam Domains', class = "button_style"),
         ),
 
         tags$div(class="domainplot_div",
@@ -64,7 +66,7 @@ gene_pro_view_ui <- function(id) {
       # Motif Display
       tags$div(class="domain_div",
         tags$div(class="mut_button_div",
-          actionButton(NS(id, 'motif'), 'Motifs', class = "motif_button"),  # Add class here
+          actionButton(NS(id, 'motif'), 'Motifs', class = "button_style"),  # Add class here
         ),
 
         tags$div(class="motif_plot_div",
@@ -97,10 +99,10 @@ gene_pro_view_ui <- function(id) {
             tags$p("Pathways: ", uiOutput(NS(id, "pathway"), inline = TRUE))
           ),
         )
-      ),
 
-    actionButton(NS(id, "screenshot"), "Take Screenshot")
+      ),
     )
+
   )
 }
 
