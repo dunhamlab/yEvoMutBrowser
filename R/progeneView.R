@@ -98,6 +98,8 @@ gene_pro_view_ui <- function(id) {
           ),
         )
       ),
+
+    actionButton(NS(id, "screenshot"), "Take Screenshot")
     )
   )
 }
@@ -522,6 +524,12 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       session$sendCustomMessage("highlightResidueWithSphere",
                                 list(positions = positions,
                                      colorHex = hex_val))
+    })
+
+    observeEvent(input$screenshot, {
+      print("TAKING SCREENSHOT")
+      session$sendCustomMessage("testRun", list())
+      session$sendCustomMessage("takeScreenshot", list())
     })
 
     # Toggle mutation highlighting

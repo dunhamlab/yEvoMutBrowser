@@ -10,6 +10,7 @@ import { QueryContext } from 'molstar/lib/mol-model/structure/query/context';
 import { OrderedSet } from 'molstar/lib/mol-data/int';
 import { createStructureRepresentationParams } from 'molstar/lib/mol-plugin-state/helpers/structure-representation-params';
 import { MolScriptBuilder as MS, MolScriptBuilder } from 'molstar/lib/mol-script/language/builder';
+import { Structure } from 'molstar/lib/mol-model/structure';
 
 
 /** 
@@ -24,8 +25,6 @@ export async function highlightResidueWithSphere(
   positions: number[],
   colorHex: string = '#ff0000',
 ) {
-
-
 
     // Flattens nested arrays
     const flatten = (arr: any): any[] => {
@@ -180,6 +179,18 @@ window.Shiny?.addCustomMessageHandler(
 
 
 window.Shiny?.addCustomMessageHandler(
+  "applyPlddtColoring",
+  (_msg: any) => {
+    console.log("applyPlddtColoring handler triggered!");
+    if (!plugin) {
+      console.warn("Mol* plugin not ready");
+      return;
+    }
+    applyPlddtColoring(plugin);
+  }
+);
+
+window.Shiny?.addCustomMessageHandler(
   "zoomToResidue",
   (msg: {residueNumber: number; chainId?: string}) => {
     if (!plugin) return console.warn("Mol* not ready");
@@ -227,6 +238,26 @@ window.Shiny?.addCustomMessageHandler(
   }
 )
 
+window.Shiny?.addCustomMessageHandler(
+  "clearSpheres",
+  (_msg: any) => {
+    if (!plugin) {
+      console.warn("Mol* plugin not ready cannot clear spheres");
+      return;
+    }
+    clearSpheres(plugin);
+  }
+);
+
+window.Shiny?.addCustomMessageHandler("takeScreenshot", 
+  (_msg: any) => {
+  if (!plugin) {
+    console.warn("Mol* plugin not ready");
+    return;
+  }
+  takeScreenshot(plugin);
+});
+
 
 // Initializes the Mol* plugin and loads proteins based on UniProt ID 
 async function initMolstar(uniprot_id:string) {
@@ -235,6 +266,7 @@ async function initMolstar(uniprot_id:string) {
     plugin = new PluginContext(MySpec);
     await plugin.init();
 
+    
     const canvas = document.getElementById('molstar-canvas') as HTMLCanvasElement;
     const parent = document.getElementById('molstar-parent') as HTMLDivElement;
 
@@ -244,12 +276,11 @@ async function initMolstar(uniprot_id:string) {
       return;
     }  
 
-    // Subscribe to hover events to send residue info back to Shiny
       plugin.behaviors.interaction.hover.subscribe(e => {
         const loci = e.current.loci;
         if (!StructureElement.Loci.is(loci) || loci.elements.length === 0) return;
 
-        const info = getResidueInfo(loci);
+        const info = getResidueInfo(loci); // change below to return object (see next)
         if (!info) return;
 
         const ns = (window as any).MY_MODULE_NS as string; // your module prefix
@@ -278,9 +309,11 @@ async function initMolstar(uniprot_id:string) {
   // Create structure (model or assembly)
   const structureData = await plugin.builders.structure.createStructure(structure, { name: 'model', params: {} });
 
+const struct = structureData.obj?.data;
   // Create polymer component (e.g. protein chains)
   const polymer = await plugin.builders.structure.tryCreateComponentStatic(structureData, 'polymer');
 
+  
   if (!polymer) {
     console.warn('No polymer component found');
     return;
@@ -296,6 +329,11 @@ await plugin.build()
   }, { ref: cartoonRef })
   .commit();
 
+//If you want to apply pLDDT coloring, uncomment the following lines and then bundle
+//   if (struct) {
+//   await plddtColoring(plugin, struct); 
+// }
+
   plugin.managers.camera.reset();
     console.log('initMolstar completed for', uniprot_id);
 
@@ -308,7 +346,97 @@ await plugin.build()
 }
 
 
-// Clears all overpaint layers and mutations from the structure
+async function plddtColoring(plugin: PluginContext, struct: Structure) {
+  console.log("Applying deez");
+  const model = struct.models[0];
+  const { atomicConformation, atomicHierarchy } = model;
+  const bFactors = atomicConformation.B_iso_or_equiv;  
+  const residueAtomSegments = atomicHierarchy.residueAtomSegments;
+  const residueCount = atomicHierarchy.residues._rowCount;
+  
+  // Step 1: Collect all residues grouped by pLDDT color category
+  const veryHighConf: number[] = []; // pLDDT > 90 (dark blue)
+  const highConf: number[] = [];     // 70-90 (cyan/light blue)
+  const lowConf: number[] = [];      // 50-70 (yellow)
+  const veryLowConf: number[] = [];  // < 50 (orange)
+  
+  for (let resIndex = 0; resIndex < residueCount; resIndex++) {
+    const atomStartIndex = residueAtomSegments.offsets[resIndex];
+    const plddt = bFactors.value(atomStartIndex);
+    const seqId = atomicHierarchy.residues.label_seq_id.value(resIndex);
+    
+    if (plddt > 90) {
+      veryHighConf.push(seqId);
+    } else if (plddt > 70) {
+      highConf.push(seqId);
+    } else if (plddt > 50) {
+      lowConf.push(seqId);
+    } else {
+      veryLowConf.push(seqId);
+    }
+  }
+  
+  console.log('pLDDT distribution:', {
+    veryHigh: veryHighConf.length,
+    high: highConf.length,
+    low: lowConf.length,
+    veryLow: veryLowConf.length
+  });
+
+
+  if (veryHighConf.length > 0) {
+    addColorLayer(plugin, struct, veryHighConf, '#0053D6'); // dark blue
+  }
+  if (highConf.length > 0) {
+    addColorLayer(plugin, struct, highConf, '#65CBF3'); // cyan
+  }
+  if (lowConf.length > 0) {
+    addColorLayer(plugin, struct, lowConf, '#FFDB13'); // yellow
+  }
+  if (veryLowConf.length > 0) {
+    addColorLayer(plugin, struct, veryLowConf, '#FF7D45'); // orange
+  }
+  await plugin.build()
+    .to(cartoonRef)
+    .apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, 
+      { layers: overpaintLayers })
+    .commit();
+  
+  console.log('pLDDT coloring applied');
+
+}
+
+
+function addColorLayer(
+  plugin: PluginContext, 
+  structure: Structure, 
+  residueIds: number[], 
+  colorHex: string
+) {
+  const hex = colorHex.startsWith("#") ? colorHex.slice(1) : colorHex;
+  const colorValue = parseInt(hex, 16);
+  
+  // Create query for these residues
+  const query = atoms({
+    residueTest: ctx => {
+      const seqId = StructureProperties.residue.label_seq_id(ctx.element);
+      return residueIds.includes(seqId);
+    },
+  });
+  
+  const selection = query(new QueryContext(structure));
+  const bundle = StructureElement.Bundle.fromSelection(selection);
+  
+  // Add to cache
+  overpaintLayers.push({
+    bundle,
+    color: Color(colorValue),
+    clear: false
+  });
+}
+
+
+
 async function clearOverlays(plugin: PluginContext) {
   // gets rid of cache
   overpaintLayers.length = 0;
@@ -327,7 +455,7 @@ async function clearOverlays(plugin: PluginContext) {
   console.log('Overpaint layers cleared');
 }
 
-// Clears only the overpaint layers from the structure
+
 async function clearPaint(plugin: PluginContext) {
   overpaintLayers.length = 0;
 
@@ -341,13 +469,15 @@ async function clearPaint(plugin: PluginContext) {
   
 }
 
-async function clearSpheres(plugin:PluginContext) {
+
+export async function clearSpheres(plugin:PluginContext) {
+  console.log("clear spheres called");
+
   plugin.build().delete('mutations').commit();
 }
 
 
 
-// Highlights specified residue range with given color
 async function highlightDomains(
     plugin: PluginContext,
     residueStart: number,
@@ -393,7 +523,7 @@ async function highlightDomains(
 
 }
 
-// Extracts residue information from hovered loci
+
 function getResidueInfo(loci: any): { aa: string, num: number, label: string } | undefined {
   if (!StructureElement.Loci.is(loci) || !loci.elements || loci.elements.length === 0) return;
 
@@ -416,7 +546,6 @@ function getResidueInfo(loci: any): { aa: string, num: number, label: string } |
 }
 
 
-// Zooms camera to focus on specified residue in given chain
 export async function zoomToResidue(
   plugin: PluginContext,
   residueNumber: number,
@@ -460,15 +589,114 @@ export async function resetCamera(plugin: PluginContext) {
   console.log('Camera view reset to show entire structure');
 }
 
+// Standalone function that applies pLDDT coloring WITHOUT clearing existing highlights
+export async function applyPlddtColoring(plugin: PluginContext) {
+  console.log("applyPlddtColoring called");
+  
+  const structure = plugin.managers.structure.hierarchy.current.structures[0]?.cell.obj?.data;
+  if (!structure) {
+    console.warn('No structure loaded');
+    return;
+  }
 
+  const model = structure.models[0];
+  const { atomicConformation, atomicHierarchy } = model;
+  const bFactors = atomicConformation.B_iso_or_equiv;  
+  const residueAtomSegments = atomicHierarchy.residueAtomSegments;
+  const residueCount = atomicHierarchy.residues._rowCount;
+  
+  // Collect all residues grouped by pLDDT color category
+  const veryHighConf: number[] = [];
+  const highConf: number[] = [];
+  const lowConf: number[] = [];
+  const veryLowConf: number[] = [];
+  
+  for (let resIndex = 0; resIndex < residueCount; resIndex++) {
+    const atomStartIndex = residueAtomSegments.offsets[resIndex];
+    const plddt = bFactors.value(atomStartIndex);
+    const seqId = atomicHierarchy.residues.label_seq_id.value(resIndex);
+    
+    if (plddt > 90) {
+      veryHighConf.push(seqId);
+    } else if (plddt > 70) {
+      highConf.push(seqId);
+    } else if (plddt > 50) {
+      lowConf.push(seqId);
+    } else {
+      veryLowConf.push(seqId);
+    }
+  }
+  
+  console.log('pLDDT distribution:', {
+    veryHigh: veryHighConf.length,
+    high: highConf.length,
+    low: lowConf.length,
+    veryLow: veryLowConf.length
+  });
+
+  // Add pLDDT colors to existing cache (just like highlightDomains does)
+  if (veryHighConf.length > 0) {
+    addColorLayer(plugin, structure, veryHighConf, '#0053D6');
+  }
+  if (highConf.length > 0) {
+    addColorLayer(plugin, structure, highConf, '#65CBF3');
+  }
+  if (lowConf.length > 0) {
+    addColorLayer(plugin, structure, lowConf, '#FFDB13');
+  }
+  if (veryLowConf.length > 0) {
+    addColorLayer(plugin, structure, veryLowConf, '#FF7D45');
+  }
+  
+  // Apply ALL layers (existing + new pLDDT colors)
+  await plugin.build()
+    .to(cartoonRef)
+    .apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, 
+      { layers: overpaintLayers })
+    .commit();
+  
+  console.log('pLDDT coloring applied on top of existing highlights');
+}
+
+export async function takeScreenshot(plugin: PluginContext) {
+  console.log('Taking screenshot...');
+  try {
+    const canvas = document.getElementById('molstar-canvas') as HTMLCanvasElement;
+    if (!canvas) {
+      console.error('Canvas not found');
+      return;
+    }
+    
+    // Get the image data from canvas
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `molstar_screenshot_${Date.now()}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      console.log('Screenshot downloaded');
+    }, 'image/png');
+    
+  } catch (error) {
+    console.error('Screenshot failed:', error);
+  }
+}
 // Exposes functions globally
 (window as any).initMolstar = initMolstar;
 (window as any).highlightDomains = highlightDomains;
 (window as any).clearOverlays = clearOverlays;
 (window as any).highlightResidueWithSphere = highlightResidueWithSphere;
 (window as any).zoomToResidue = zoomToResidue;
-
+(window as any).clearSpheres = clearSpheres;
+(window as any).applyPlddtColoring = applyPlddtColoring;
+(window as any).takeScreenshot = takeScreenshot;
 // Automatically loads default protein onto webpage
 window.onload = () => {
+  
   initMolstar('P37898');
 };
+
