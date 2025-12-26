@@ -325,15 +325,17 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           ), "\nCount: ", data$Counts_diff_mutation,
           "\nPosition: ", data$AA_POS
         ), # Text for indel annotations
-        ifelse(
-          is.na(data$PROTEIN),
-          paste0(
-            data$ANNOTATION, "\nCount: ", data$Counts_diff_mutation,
-            "Position: ", -abs(unique(data$POS) -
-                                    unique(data$START))
-          ),
-          paste0(data$combined, "Position: ", data$AA_POS)
-          )
+        paste0(data$combined, "Position: ", data$AA_POS)
+        # COMMENTED THIS OUT BECAUSE IT IS NOT NECESSARY
+        # ifelse(
+        #   is.na(data$PROTEIN),
+        #   paste0(data$PROTEIN,
+        #     data$ANNOTATION, "\nCountyy: ", data$Counts_diff_mutation,
+        #     "Position: ", -abs(unique(data$POS) -
+        #                             unique(data$START))
+        #   ),
+        #   paste0(data$combined, "Position: ", data$AA_POS)
+        #   )
         )
       }
 
@@ -343,7 +345,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       new <- genedatatable(cur_gene())
       residue_num <- input$resi_num
       if (residue_num %in% new$Numbers) {
-        row <- new[new$Numbers == residue_num, ]
+        # Filtered out rows with 'N/A' values
+        row <- new[!is.na(new$Numbers) & new$Numbers == residue_num, ]
         hover_text(row, TRUE)
       } else {
         paste0("Position: ", input$resi_num, " Amino Acid: ", input$resi_aa)
