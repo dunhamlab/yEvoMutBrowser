@@ -329,7 +329,6 @@ await plugin.build()
   }, { ref: cartoonRef })
   .commit();
 
-//If you want to apply pLDDT coloring, uncomment the following lines and then bundle
 //   if (struct) {
 //   await plddtColoring(plugin, struct); 
 // }
@@ -658,33 +657,68 @@ export async function applyPlddtColoring(plugin: PluginContext) {
   console.log('pLDDT coloring applied on top of existing highlights');
 }
 
-export async function takeScreenshot(plugin: PluginContext) {
+export async function takeScreenshot(
+  plugin: PluginContext, 
+  resolution: number = 5      
+) {
   console.log('Taking screenshot...');
   try {
-    const canvas = document.getElementById('molstar-canvas') as HTMLCanvasElement;
-    if (!canvas) {
-      console.error('Canvas not found');
+    if (!plugin.canvas3d) {
+      console.error('Canvas3D not available');
       return;
     }
+
+    // Get current canvas dimensions
+    const canvas = document.getElementById('molstar-canvas') as HTMLCanvasElement;
+    const width = canvas.width * resolution;
+    const height = canvas.height * resolution;
+
+    // Create high-resolution image pass
+    const imagePass = plugin.canvas3d.getImagePass({
+      multiSample: { mode: 'on', sampleLevel: 2 },
+      transparentBackground: false,
+      postprocessing: plugin.canvas3d.props.postprocessing
+    });
+
+    // Render the scene to the image pass
+    imagePass.setSize(width, height);
     
-    // Get the image data from canvas
-    canvas.toBlob((blob) => {
-      if (!blob) return;
+    // Get the rendered image data 
+    const imageData = await imagePass.getImageData(
+      plugin.canvas3d.webgl as any,  // runtime context
+      width, 
+      height
+    );
+    
+    // Create a temporary canvas for the high-res image
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    const ctx = tempCanvas.getContext('2d');
+    
+    if (ctx) {
+      ctx.putImageData(imageData, 0, 0);
       
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `molstar_screenshot_${Date.now()}.png`;
-      link.click();
-      URL.revokeObjectURL(url);
-      
-      console.log('Screenshot downloaded');
-    }, 'image/png');
+      // Download the image
+      tempCanvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `molstar_screenshot_${Date.now()}.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    }
+    
+    console.log('Screenshot downloaded!!!');
     
   } catch (error) {
     console.error('Screenshot failed:', error);
   }
 }
+
+
 // Exposes functions globally
 (window as any).initMolstar = initMolstar;
 (window as any).highlightDomains = highlightDomains;
@@ -696,7 +730,5 @@ export async function takeScreenshot(plugin: PluginContext) {
 (window as any).takeScreenshot = takeScreenshot;
 // Automatically loads default protein onto webpage
 window.onload = () => {
-  
   initMolstar('P37898');
 };
-
