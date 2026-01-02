@@ -243,9 +243,21 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           PROTEIN = first(PROTEIN),
           ANNOTATION = first(ANNOTATION),
           COUNTS = n(),
+          POS = first(POS),
+          START = first(START),
+          STOP = first(STOP),
+          STRAND = first(STRAND),
+          INFO = first(INFO), # Include INFO field for transposon type
           Letter1 = substr(PROTEIN, 1, 1), # Extract the first character
-          # Extract the numbers
-          Numbers = as.numeric(str_extract(PROTEIN, "[0-9]+")),
+          # Extract the numbers - calculate protein position for transposons
+          Numbers = if_else(ANNOTATION == "transposon",
+                           # Calculate protein position from genomic position
+                           if_else(STRAND == 1,
+                                  # Forward strand: distance from start
+                                  round((POS - START + 1) / 3),
+                                  # Reverse strand: distance from stop
+                                  round((STOP - POS + 1) / 3)),
+                           as.numeric(str_extract(PROTEIN, "[0-9]+"))),
           Letter2 = str_extract(PROTEIN, pattern),
           indel = first(indel)
         ) %>%
@@ -259,7 +271,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           ANNOTATION = first(ANNOTATION),
           Counts_diff_mutation = list(COUNTS),
           Counts_tot = sum(COUNTS),
-          indel = first(indel)
+          indel = first(indel),
+          INFO = first(INFO) # Propagate INFO field for transposons
         ) %>%
         ungroup()
 
@@ -276,7 +289,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                 prot_list, counts_list,
                 function(p, c) {
                   letter1 <- substr(p, 1, 1)
-                  # numbers <- str_extract(p, "[0-9]+") %>% as.numeric()
                   letter2 <- str_extract(p, pattern)
                   paste("Count", three_letter_aa[letter1], "->", three_letter_aa[letter2], ":", c, "\n",
                     sep = " "
@@ -318,25 +330,24 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     hover_text <- function(data, new_line) {
       ifelse(
-        grepl("indel", data$ANNOTATION), # Check if ANNOTATION contains "indel"
+        data$ANNOTATION == "transposon", # Check if it's a transposon
         paste0(
-          "Indel\n", abs(data$indel), " base ", ifelse(data$indel > 0,
-                                                  "insertion", "deletion"
-          ), "\nCount: ", data$Counts_diff_mutation,
+          "Transposon insertion\n",
+          "Type: ", data$INFO, "\n",
+          "Count: ", data$Counts_diff_mutation,
           "\nPosition: ", data$AA_POS
-        ), # Text for indel annotations
-        paste0(data$combined, "Position: ", data$AA_POS)
-        # COMMENTED THIS OUT BECAUSE IT IS NOT NECESSARY
-        # ifelse(
-        #   is.na(data$PROTEIN),
-        #   paste0(data$PROTEIN,
-        #     data$ANNOTATION, "\nCountyy: ", data$Counts_diff_mutation,
-        #     "Position: ", -abs(unique(data$POS) -
-        #                             unique(data$START))
-        #   ),
-        #   paste0(data$combined, "Position: ", data$AA_POS)
-        #   )
+        ),
+        ifelse(
+          grepl("indel", data$ANNOTATION), # Check if ANNOTATION contains "indel"
+          paste0(
+            "Indel\n", abs(data$indel), " base ", ifelse(data$indel > 0,
+                                                    "insertion", "deletion"
+            ), "\nCount: ", data$Counts_diff_mutation,
+            "\nPosition: ", data$AA_POS
+          ), # Text for indel annotations
+          paste0(data$combined, "Position: ", data$AA_POS)
         )
+      )
       }
 
     # Listens to hover events from JS and updates the text output
@@ -449,9 +460,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       )) +
         scale_color_manual(values = annotation_colors) +
         geom_point(size = 3.2, alpha = 0.3, shape = 15) +
-        # labs(
-        #      x = "X-axis Variable",             # Add x-axis label
-        #      y = "Y-axis Variable") + 
         xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
 
         new_theme_empty + labs(x = "My X-axis Label") + 
