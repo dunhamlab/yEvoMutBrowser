@@ -1,3 +1,4 @@
+
   .container {
       width: 600px !important;
       margin: 0px !important;
@@ -85,12 +86,62 @@
 
     }
 
-    .mut_button_div {
-      height: 38px;
-      width: 88.25px;
-      align-self: center;
+
+  .mut_button_div {
+    height: 38px;
+    /* width: 88.25px; */
+    width: 100%;
+    align-self: center;
+    background-color: transparent; /* Change from rgb(55, 15, 15) */
+  }
+  button.button_style,
+  .button_style.btn-default,
+  .button_style.action-button,
+  .btn.button_style {
+    background-color: cornflowerblue !important;
+    background-image: none !important;
+    color: white !important;
+    border: none !important;
+    border-color: cornflowerblue !important;
+    width: 100% !important;
+    border-radius: 0px !important;
+  }
+
+  button.button_style:hover,
+  .button_style.btn-default:hover,
+  .button_style.action-button:hover {
+    background-color: #0056b3 !important;
+    background-image: none !important;
+    color: white !important;
+    border-color: #0056b3 !important;
+  }
+
+
+button.button_style:active,
+.button_style.btn-default:active {
+  background-color: #004085 !important;
+  background-image: none !important;
+  color: white !important;
+  border: none !important;
+  border-color: #004085 !important;
+}
+
+button.button_style:focus,
+.button_style.btn-default:focus {
+  outline: none !important;
+}
+
+.my_verbatim_text pre {
+  background-color: rgb(0, 0, 0) !important;
     }
 
-    .my_verbatim_text pre {
-      background-color: rgb(0, 0, 0) !important;
-    }
+
+  button.button_style.active,
+  .button_style.btn-default.active,
+  .button_style.action-button.active {
+    background-color: #004085 !important; /* stays dark when active */
+    background-image: none !important;
+    color: white !important;
+    border-color: #004085 !important;
+  }
+

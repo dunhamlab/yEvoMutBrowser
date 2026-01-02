@@ -1,0 +1,475 @@
+UniprotID,Start,End,Description
+P37898,45,53,Effector region
+Q01574,552,600,FACS
+P39727,402,403,Phenylalanine-tyrosine motif
+P31380,703,706,DEGH box
+P10962,139,144,Nuclear localization signal
+P31378,14,37,Bipartite nuclear localization signal
+P39720,1034,1042,9aaTAD
+P35845,716,722,FFAT
+O13527,619,653,Bipartite nuclear localization signal
+P18238,241,246,Nucleotide carrier signature motif
+P16661,21,32,Dolichol recognition
+P32789,116,118,KEN box
+Q3E7A4,13,23,Cx9C motif 1
+P38226,112,117,HXXXXD motif
+P38225,501,551,FACS
+P16892,180,182,TXY
+P04912,129,130,[ST]-Q motif
+P09436,47,57,'HIGH' region
+P38144,324,327,DEAH box
+P32788,19,30,Ear-binding motif
+P38139,373,375,Microbody targeting signal
+P38112,171,199,Q motif
+P38157,41,49,Nuclear localization signal
+P29469,675,678,Arginine finger
+P38132,592,595,Arginine finger
+P38162,99,114,Cx14C motif
+P38137,410,458,FACS
+P18239,252,257,Nucleotide carrier signature motif
+P21372,90,96,Nuclear localization signal
+P31244,322,325,DEAH box
+P38212,104,107,PY motif
+P38086,506,509,DEGH box
+P38165,27,35,9aaTAD 1
+P32784,414,419,HXXXXD motif
+P32367,296,300,Nuclear localization signal
+P32830,40,66,Twin CX3C motif
+P38288,372,377,ExDxxE motif
+P38342,14,18,GXSXG
+Q01976,116,137,Nudix box
+Q12490,1178,1212,Bipartite nuclear localization signal
+Q12491,1193,1227,Bipartite nuclear localization signal
+Q3E7Y5,498,501,DEAH box
+Q12193,1179,1213,Bipartite nuclear localization signal
+P25628,491,497,FYXDWWN motif
+P11709,416,429,CCHC-box
+P25627,257,264,Nuclear localization signal
+P25337,2,11,Nuclear localization signal
+P08679,458,460,C-terminal peroxisome targeting signal (PTS1)
+P25358,178,182,HxxHH motif
+P25336,4,11,PIP box
+P17967,519,522,Prevents secretion from ER
+P25378,45,53,Effector region
+P25365,1062,1065,Prevents secretion from ER
+P25384,1193,1227,Bipartite nuclear localization signal
+P32839,69,83,Mitochondrial-targeting signal
+Q04066,36,40,HGGXW
+P24813,17,24,Bipartite nuclear localization signal
+P35176,222,225,Prevents secretion from ER
+P15202,513,515,Microbody targeting signal
+P32325,83,88,POLO box domain (PBD)-binding
+Q12389,137,165,Q motif
+P39517,46,74,Q motif
+Q07648,140,141,"Gly-cisPro motif, important for rejection of L-amino acids"
+Q04623,428,433,HXXXXD motif
+P32474,514,517,Prevents secretion from ER
+Q12099,23,51,Q motif
+Q03833,316,332,Bipartite nuclear localization signal
+Q12315,154,170,Bipartite nuclear localization signal 1
+Q03281,124,137,Nuclear localization signal
+Q04344,114,118,Histidine triad motif
+P49775,96,100,Histidine triad motif
+Q05549,423,426,DEAH box
+P04911,129,130,[ST]-Q motif
+Q06667,123,127,EXKPK motif
+Q06683,158,161,DEAH box
+Q07532,10,43,Bipartite nuclear localization signal
+P33399,240,256,Nuclear localization signal
+Q04341,17,27,Cx9C motif 1
+O75012,30,40,Cx9C motif 1
+Q03834,27,34,PIP box
+P15424,106,134,Q motif
+P04803,43,51,'HIGH' region
+P32494,606,618,Nuclear localization signal
+Q04121,124,133,Amiloride-binding
+Q12451,745,751,FFAT
+P40316,85,88,D-box
+P35056,120,124,WxxxF/Y motif 1
+P15436,1056,1074,CysB motif
+P23394,172,202,Q motif
+Q03776,230,235,Nuclear localization signal
+P43123,109,112,Substrate binding
+Q00816,277,283,Nuclear localization signal
+P25441,25,29,Nuclear localization signal
+Q03465,382,398,Nuclear localization signal
+Q12468,164,177,JAMM motif
+P28791,380,383,Prevents secretion from ER
+P11075,653,657,HUS box
+P33333,82,87,HXXXXD motif
+P32380,54,59,Nuclear localization signal
+Q03868,385,399,PxP
+P38904,683,699,Nuclear localization signal
+P11484,428,430,Contributes to ribosome binding
+Q07478,62,90,Q motif
+P08153,635,659,Nuclear localization signal
+Q05471,824,827,DEAH box
+P54857,142,146,(A/G)XSXG lipase motif
+Q07748,195,199,"CCCFC; essential for catalytic activity, may be the site of iron coordination"
+P15565,95,101,Nuclear localization signal
+P52488,619,622,Nuclear localization signal
+P26370,55,62,Nuclear localization signal
+Q99220,539,542,Prevents secretion from ER
+Q12185,117,122,HXXXXD motif
+Q12472,1193,1227,Bipartite nuclear localization signal
+Q03855,1178,1212,Bipartite nuclear localization signal
+Q99231,1178,1212,Bipartite nuclear localization signal
+Q03494,1193,1227,Bipartite nuclear localization signal
+Q07793,1178,1212,Bipartite nuclear localization signal
+Q07791,1193,1227,Bipartite nuclear localization signal
+P0C2I2,1178,1212,Bipartite nuclear localization signal
+Q05506,151,162,'HIGH' region
+P0C2I3,1178,1212,Bipartite nuclear localization signal
+P40471,16,20,GXSXG
+P07278,142,146,Inhibitor sequence (IS)
+P21826,552,554,SKL peroxisome targeting motif
+P39002,527,576,FACS
+P38998,371,373,Microbody targeting signal
+P32354,435,451,Bipartite nuclear localization signal
+P40457,417,433,Bipartite nuclear localization signal 1
+P40562,209,212,DEAH box
+P10363,123,133,Zinc knuckle motif
+Q00245,45,53,Effector region
+P40485,673,678,"PXIXIT-like, required for interaction with CNA1 and CNA2, and calcineurin-dependent dephosphorylation"
+Q00578,64,75,Nuclear localization signal
+P32597,597,600,DEGH box
+P40543,127,130,ATG8 interaction motif (AIM)
+P32639,634,637,DEIH box
+P32657,513,516,DEAH box
+P39518,567,617,FACS
+P03069,167,200,Nuclear localization signal
+P18494,129,137,9aaTAD
+P24279,541,544,Arginine finger
+P40078,15,22,Nuclear localization signal 1
+P04147,12,17,Nuclear export signal
+P24384,603,606,DEAH box
+P39994,558,560,Peroxisomal target signal 1 (PTS1)
+P06839,235,238,DEAH box
+P39956,455,471,Bipartite nuclear localization signal
+P40018,105,132,Nuclear localization signal
+O74700,35,59,Twin CX3C motif
+P39962,444,447,YXXZ targeting signal
+P38555,42,50,Effector region
+Q3E7X8,345,348,DEAH box
+Q03612,1178,1212,Bipartite nuclear localization signal
+Q03619,1178,1212,Bipartite nuclear localization signal
+P43549,408,410,NPA 1
+P43601,284,288,L/FRRG motif
+P43583,2141,2143,YYX motif
+P07834,82,85,Nuclear localization signal
+P43555,441,445,Di-lysine motif
+P43610,352,355,DEGH box
+P43564,143,147,APM2-interacting WQEMP motif
+P07270,75,83,9aaTAD
+P43602,460,463,PY-motif
+P43588,109,122,JAMM motif
+P07560,49,57,Effector region
+P32908,1057,1061,Nuclear localization signal
+P25808,7,35,Q motif
+D6VTK4,53,61,Glycine zipper motif
+P43534,195,199,"CCCFC; essential for catalytic activity, may be the site of iron coordination"
+P43587,51,53,GLC7-binding
+P01123,37,45,Effector region
+P0CX63,1193,1227,Bipartite nuclear localization signal
+P22149,291,293,CDC [2Fe-2S] cluster binding motif
+P43633,200,202,KEN box
+P50082,29,35,C-box
+P53104,429,432,LIR
+P26309,17,25,D-box
+P53197,55,61,C-box
+P53264,228,232,GXSXG lipase motif
+P27697,134,137,KxGQ motif
+P33307,366,381,Nuclear localization signal
+P20447,114,140,Q motif
+P53045,160,164,Histidine box-1
+P53337,307,310,Di-lysine motif
+P32805,96,107,Nuclear localization signal
+P46655,210,219,'HIGH' region
+P06774,162,185,Subunit association domain (SAD)
+P51979,268,271,DEIH box
+P53115,841,844,DEAQ box
+P53193,48,50,HSP70 binding
+P14681,183,185,TXY
+P53158,175,179,KxDL
+P53281,135,138,PY motif
+P53338,46,54,Nuclear localization signal
+P53091,707,710,Arginine finger
+P00958,205,215,'HIGH' region
+P53166,117,141,Q motif
+P22438,20,32,'HIGH' region
+P53164,257,278,Nudix box
+P49687,369,385,Bipartite nuclear localization signal
+P31755,187,189,DXD motif
+P21147,161,166,Histidine box-1
+P12383,1054,1062,9aaTAD
+P53112,86,94,SH3-binding
+P53248,587,589,Microbody targeting signal
+P40961,109,112,AIM
+P50085,138,141,AIM
+P53131,215,218,DEAH box
+P32863,21,25,Nuclear localization signal
+P45818,122,150,Q motif
+P02406,7,13,Nuclear localization signal
+P13856,32,40,Effector region
+P53324,176,178,Involved in the stabilization of the negatively charged intermediate by the formation of the oxyanion hole
+P53327,427,430,DEVH box
+Q02260,128,144,Nuclear localization signal
+P53148,146,149,MELT
+P23615,8,12,Nuclear localization signal
+P21827,15,26,Nuclear localization signal
+P39007,45,47,DXD motif 1
+P53299,57,77,Twin CX3C motif
+P36421,48,56,'HIGH' region
+P48412,15,31,Nuclear localization signal
+P07806,190,200,'HIGH' region
+P41806,74,77,Prevents secretion from ER
+P53262,262,265,ER retention motif
+P53049,71,73,Diacidic ER export motif DxE
+P51996,42,50,Effector region
+Q12141,1178,1212,Bipartite nuclear localization signal
+Q12269,1178,1212,Bipartite nuclear localization signal
+Q12316,1178,1212,Bipartite nuclear localization signal
+P0CX64,1193,1227,Bipartite nuclear localization signal
+P38862,331,336,GXGXXG motif
+P38824,104,114,Cx9C motif 1
+P38719,2,30,Q motif
+P38812,45,49,Phosphoryl acceptor
+P38714,188,198,'HIGH' region
+P38861,399,415,Nuclear localization signal
+P21957,200,206,FFAT
+P38713,514,520,FFAT
+P33400,228,234,Nuclear localization signal
+P38712,81,109,Q motif
+P38827,904,909,RxxxRR motif
+Q00772,190,192,TXY
+P18888,2,8,Nuclear localization signal
+P23624,3,6,Nuclear localization signal
+P87108,40,65,Twin CX3C motif
+P38838,152,160,SHP box
+P38815,5,15,PxP
+O13535,1216,1250,Bipartite nuclear localization signal
+P32458,12,19,Basic motif
+P09119,27,33,Nuclear localization signal
+P39540,172,176,HxxHH motif
+P20448,41,69,Q motif
+P16474,679,682,Prevents secretion from ER
+P40355,498,500,DXD
+P47047,262,265,DEVH box
+P47122,70,72,Gly-Pro-Asn (GPN)-loop; involved in dimer interface
+P40368,607,623,Bipartite nuclear localization signal
+Q02772,21,32,Cx10C motif
+P40857,214,217,Endoplasmic reticulum retention signal
+P47148,281,283,Peroxisomal target signal 1 (PTS1)
+P40352,469,472,DEGH box
+P41903,347,349,Microbody targeting signal
+P47183,195,199,"CCCFC; essential for catalytic activity, may be the site of iron coordination"
+P10081,22,50,Q motif
+P57744,44,68,Twin CX3C motif
+P46992,259,264,ExDxxE motif
+P47098,1178,1212,Bipartite nuclear localization signal
+P47100,1178,1212,Bipartite nuclear localization signal
+P36064,42,52,Cx9C motif 1
+P36012,115,132,Nuclear localization signal
+Q03957,37,44,Nuclear localization signal
+P36120,143,172,Q motif
+P36009,203,206,DEAH box
+P36108,219,229,MIT-interacting motif
+P36152,311,314,Cx2C motif 1
+Q02207,898,900,Microbody targeting signal
+P36016,878,881,Prevents secretion from ER
+P34078,168,179,Nuclear export signal
+O60200,13,23,Cx9C motif 1
+P36046,307,317,Cx9C motif 1
+Q02455,1496,1565,Required for nuclear localization
+P36044,519,521,DXD
+P33749,237,245,9aaTAD
+P32860,196,199,CxxC motif
+P36102,143,163,PABPC-interacting motif-2 (PAM-2)
+P15938,473,476,DEAH box
+Q00246,101,109,Effector region
+P36068,15,23,Nuclear localization signal
+P34163,199,203,GXSXG
+P36165,286,291,GXGXXG
+P10081,22,50,Q motif
+P35723,203,206,Di-lysine motif
+P28320,242,258,Nuclear localization signal
+P28321,121,125,GXSXG
+P34248,477,479,PAL
+Q06159,8,11,ATG8-binding
+Q08004,7,16,Nuclear localization signal
+P19073,32,40,Effector region
+Q05809,39,49,Cx9C motif 1
+Q01519,27,37,Cx9C motif
+Q12287,26,36,Cx9C motif 1
+Q3E731,30,40,Cx9C motif 1
+Q06218,17,45,Q motif
+Q06151,266,270,Histidine triad motif
+P32892,231,259,Q motif
+Q05871,278,280,Microbody targeting signal
+P40319,185,189,HxxHH motif
+Q12396,440,444,Di-lysine motif
+P32353,200,204,Histidine box-1
+P09201,2,5,Pro/N-degron
+P23900,352,354,NPA 1
+P39012,610,614,Prevents secretion from ER
+Q06543,70,72,Gly-Pro-Asn (GPN)-loop; involved in dimer interface
+P32485,174,176,TXY
+P31539,773,789,Nuclear localization signal
+Q12385,374,379,HXXXXD motif
+P08638,874,882,9aaTAD
+P29496,548,551,Arginine finger
+P11325,56,66,'HIGH' region
+Q12524,77,99,Nudix box
+P32849,681,684,DEGH box
+Q00416,1909,1927,Nuclear localization signal
+P35207,444,447,DEVH box
+Q12749,35,39,Nuclear localization signal
+Q99260,39,47,Effector region
+P0CD98,92,94,NPA
+Q99208,498,501,DEAH box
+Q07888,498,501,DEAH box
+Q12088,1178,1212,Bipartite nuclear localization signal
+P0C2I5,1178,1212,Bipartite nuclear localization signal
+P0C2I6,1178,1212,Bipartite nuclear localization signal
+P0C2J3,1193,1227,Bipartite nuclear localization signal
+Q06698,729,732,DEAH box
+P04710,243,248,Nucleotide carrier signature motif
+P48524,156,160,PY-motif
+Q03758,129,133,PY-motif
+P32796,668,670,Microbody targeting signal
+Q3E7A9,5,15,Cx9C motif 1
+Q3E846,25,35,Cx9C motif
+Q04217,516,519,DEAH box
+Q04651,349,350,Isoleucine-leucine motif
+P47912,527,576,FACS
+P38911,256,271,Nuclear localization signal
+Q03532,42,70,Q motif
+P15108,701,705,TPR repeat-binding
+Q03649,230,234,GXSXG
+Q03667,118,128,Cx9C motif
+P33748,261,269,9aaTAD
+Q04958,1377,1382,GXGXXG
+P32567,398,402,DXDXT motif
+Q04364,91,95,WxxxF motif
+P00729,24,27,Vacuolar targeting signal
+P06838,17,23,Nuclear localization signal
+Q00453,6,11,Nuclear localization signal
+P25303,288,290,Cell attachment site
+P35187,808,811,DEAH box
+P34160,22,30,Nuclear localization signal
+P40308,235,239,GXSXG
+P54787,229,237,GBH motif I
+P19880,35,42,Bipartite nuclear localization signal
+Q04210,157,160,Di-lysine motif
+P32939,37,45,Effector region
+P20107,141,145,Histidine repeat 1
+Q03434,1178,1212,Bipartite nuclear localization signal
+Q04711,1178,1212,Bipartite nuclear localization signal
+Q04371,420,423,Subfamily III RTxK motif
+Q04214,1178,1212,Bipartite nuclear localization signal
+Q04670,1178,1212,Bipartite nuclear localization signal
+P53933,281,285,DXDXT motif
+P53629,523,529,FYXDWWN motif
+P40344,270,273,ATG8 interaction motif (AIM)
+P53867,102,105,APEAR
+P53852,65,75,'HIGH' region
+P33308,77,99,Nuclear localization signal
+P24783,113,141,Q motif
+P53734,197,205,Q motif
+P53550,134,155,Nudix box
+Q01722,281,288,Nuclear localization signal
+P53843,286,296,MIT-interacting motif
+P40345,43,50,Bipartite nuclear localization signal
+P32389,89,97,9aaTAD 1
+P30952,552,554,SKL peroxisome targeting motif
+P53939,391,398,SUMO-binding
+P13382,1348,1372,CysB motif
+P21951,2164,2181,CysB motif
+P20095,346,349,DEAH box
+P01120,39,47,Effector region
+P06781,36,44,Effector region
+P32561,320,340,ESA1-RPD3 motif
+P32259,889,893,Nuclear localization signal
+P53955,640,645,"PXIXIT-like, required for interaction with CNA1 and CNA2, and calcineurin-dependent dephosphorylation"
+P32573,290,292,Microbody targeting signal
+P17555,169,369,SH3-binding
+P40150,428,430,Contributes to ribosome binding
+P42883,195,199,"CCCFC; essential for catalytic activity, may be the site of iron coordination"
+P53633,11,13,SKL peroxisome targeting motif
+P53729,15,22,psi-PxLVp motif
+Q99337,1172,1206,Bipartite nuclear localization signal
+Q12112,1178,1212,Bipartite nuclear localization signal
+P35193,412,415,WXXL
+Q99325,242,245,ATG8-binding
+P32798,140,144,Histidine repeat 1
+Q08412,373,376,AIM
+P20449,92,120,Q motif
+Q08558,269,271,Peroxisome targeting signal (PTS1)
+Q12123,265,269,Histidine triad motif
+Q99321,65,86,Nudix box
+P06634,142,170,Q motif
+Q08649,245,266,ESA1-RPD3 motif
+P30624,531,580,FACS
+P13188,258,268,'HIGH' region
+Q12096,198,200,DXD
+Q08726,69,71,Gly-Pro-Asn (GPN)-loop; involved in dimer interface
+Q08773,312,315,DEAH box
+P22023,1362,1365,Prevents secretion from ER
+Q08448,88,92,Lipase-specific GXSXG motif
+Q12106,4,12,PxP
+P22133,2,5,Pro/N-degron
+Q12404,315,318,Prevents secretion from ER
+Q99316,274,277,Prevents secretion from ER
+Q01926,332,335,YGMN
+P48525,53,61,'HIGH' region
+P22148,266,271,Nuclear localization signal
+Q08214,8,12,Nuclear localization signal
+P52960,985,993,9aaTAD
+P01119,39,47,Effector region
+P38630,830,834,Nuclear localization signal
+Q02805,487,490,PY-motif
+Q12149,700,704,Nuclear localization signal
+P34758,272,276,"KKRVK motif; Required for interaction with GLC7, endocytosis and actin cytoskeleton organization"
+Q08199,418,421,Prevents secretion from ER
+P22082,894,897,DEGH box
+P47988,744,752,9aaTAD
+Q12043,54,59,HXXXXD acyltransferase motif
+Q08562,7,10,SUMO interacting motif; type a 1
+P36017,36,44,Effector region
+Q12109,111,120,'HIGH' region
+Q12273,1178,1212,Bipartite nuclear localization signal
+Q92393,1178,1212,Bipartite nuclear localization signal
+Q12113,1193,1227,Bipartite nuclear localization signal
+Q12501,1193,1227,Bipartite nuclear localization signal
+Q08957,187,189,CDC [2Fe-2S] cluster binding motif
+P0CD91,118,120,NPA 1
+Q02887,342,346,L/FRRG motif
+P26637,66,76,'HIGH' region
+P22516,393,396,DEAH box
+P43635,484,486,Microbody targeting signal
+Q06616,165,170,CDC5-binding
+P49573,304,315,REP-III
+P24784,154,182,Q motif
+P04386,862,870,9aaTAD
+P02829,705,709,TPR repeat-binding
+P48526,94,104,'HIGH' region
+Q06508,101,106,HXXXXD motif
+P30665,700,703,Arginine finger
+Q02783,353,356,YGMN
+P32333,195,211,Nuclear localization signal
+P48527,94,103,'HIGH' region
+Q06449,124,127,PY motif
+Q08931,69,75,Bipartite nuclear localization signal
+P14284,1446,1473,CysB motif
+P06780,39,47,Effector region
+P45978,241,257,FFD box
+P41808,207,209,TXY
+Q06510,77,82,HXXXXD motif
+Q03010,14,22,NEE-box
+Q12414,1178,1212,Bipartite nuclear localization signal
+P0C2I9,1178,1212,Bipartite nuclear localization signal
+Q06522,107,111,GXSXG
+P0C2J1,1178,1212,Bipartite nuclear localization signal
+P0C2J0,1179,1213,Bipartite nuclear localization signal
+Q06595,41,49,Nuclear localization signal
+Q08995,121,124,DEAH box
