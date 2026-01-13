@@ -62,3 +62,6 @@ node_modules/
 package-lock.json
 npm-debug.log*
 
+# Build outputs
+dist/
+
