@@ -1,8 +1,6 @@
 renv.lock
-molstar-custom/node_modules/
-molstar-custom/src/
-molstar-custom/dist/
-molstar-custom/package-lock.json
-molstar-custom/.DS_Store
-molstar-custom/tsconfig.json
-molstar-custom/package.json
+molstar-custom/
+node_modules/
+.DS_Store
+*.log
+.git/
