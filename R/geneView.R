@@ -8,7 +8,7 @@ gene_view_ui <- function(id) {
   )
 }
 
-gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
+gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector,chrom_selected_gene) {
   moduleServer(id, function(input, output, session) {
     
     # Keeps last choice so it doesn't change as much when switching selections
@@ -56,7 +56,25 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
     }, ignoreNULL = FALSE, ignoreInit = FALSE)
     
     # reactive wrapper for selected gene (keeps normal immediate reactivity)
-    gene <- reactive(input$geneSelectDropDown)
+    gene <- reactive({
+      if (!is.null(chrom_selected_gene())) {
+        chrom_selected_gene()
+      } else {
+        input$geneSelectDropDown
+      }
+    })
+    
+    observeEvent(chrom_selected_gene(), {
+      req(chrom_selected_gene())
+      
+      updateSelectizeInput(
+        session,
+        "geneSelectDropDown",
+        selected = chrom_selected_gene()
+      )
+      chrom_selected_gene <- reactiveVal(NULL)
+    })
+    
     
     # Learn about Gene button within gene viewer
     if (link != "NONE") {

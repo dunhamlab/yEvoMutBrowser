@@ -8,7 +8,7 @@ chrom_map_ui <- function(id) {
 
 chrom_map_server <- function(
   id, final_gene, formatted_loading_message,
-  chrom_info) {
+  chrom_info, chrom_selected_gene) {
   moduleServer(id, function(input, output, session) {
     # Displays Chromosome Map info; filtering by sample
     output$info <- renderText({
@@ -42,6 +42,7 @@ chrom_map_server <- function(
       # Creating chromosome bars
       fig <- plot_ly(
         data = chrom_info,
+        source = "chromMap",
         x = ~length,
         y = ~CHROM,
         type = "bar",
@@ -91,7 +92,9 @@ chrom_map_server <- function(
               "Gene Name: ", GENE, "<br>Independent Mutations: ",
               Counts
             ),
-            hoverinfo = "text"
+            hoverinfo = "text",
+            customdata = ~GENE,
+            source = "chromMap"
           )
       }
       max_count = 0 #added outside of if statment so that it can be referenced in points below
@@ -141,7 +144,9 @@ chrom_map_server <- function(
             marker = list(size = 10, opacity = 0, color = "pink"),
             name = "Multiple Mutations",
             text = ~paste0("Gene Name: ", GENE, "<br>Independent Mutations: ", Counts),
-            hoverinfo = "text"
+            hoverinfo = "text",
+            customdata = ~GENE,
+            source = "chromMap"
           )} else{
             fig <- fig %>%
               add_trace(
@@ -165,7 +170,9 @@ chrom_map_server <- function(
                   "Gene Name: ", GENE, "<br>Independent Mutations: ",
                   Counts
                 ),
-                hoverinfo = "text"
+                hoverinfo = "text",
+                customdata = ~GENE,
+                source = "chromMap"
               )
           }
       }
@@ -195,6 +202,7 @@ chrom_map_server <- function(
       )
 
       fig %>%
+        event_register("plotly_click") %>% 
         config(
           toImageButtonOptions = list(
             format = 'svg',
@@ -204,5 +212,12 @@ chrom_map_server <- function(
           )
         )
     })
+    observeEvent(plotly::event_data("plotly_click", source = "chromMap"), {
+      ed <- plotly::event_data("plotly_click", source = "chromMap")
+      req(ed$customdata)
+      
+      chrom_selected_gene(ed$customdata)
+    })
+    
   })
 }

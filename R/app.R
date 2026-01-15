@@ -71,6 +71,7 @@ yEvoMutBrowser <- function(...) {
         # Right side, Data Visualization
         mainPanel(
           tabsetPanel(
+            id = "dataVizTabs",
             type = "tabs",
             chrom_map_ui("chromMap"),
             variants_ui("variants"),
@@ -149,10 +150,26 @@ yEvoMutBrowser <- function(...) {
 
     sequencing_pdf_server("sequencingPDF", "img/Black_box.pdf")
 
+    chrom_selected_gene <- reactiveVal(NULL)
+    
     chrom_map_server(
-      "chromMap", final_gene,
-      formatted_loading_message, chrom_info
+      "chromMap",
+      final_gene = final_gene,
+      formatted_loading_message = formatted_loading_message,
+      chrom_info = chrom_info,
+      chrom_selected_gene = chrom_selected_gene
     )
+    
+    observeEvent(chrom_selected_gene(), {
+      req(chrom_selected_gene())
+      
+      updateTabsetPanel(
+        session,
+        inputId = "dataVizTabs",
+        selected = "Gene View"
+      )
+    })
+    
     variants_server(
       "variants", mutation_data,
       filtered_data, VARIANTS_PIE_CHART_COLORS
@@ -160,8 +177,16 @@ yEvoMutBrowser <- function(...) {
     snp_count_server("snpCount", filtered_data, SNP_CHART_COLORS)
 
     gene_view_server(
-      "geneView", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
+      id = "geneView",
+      total_spaces = total_spaces,
+      filtered_data = filtered_data,
+      genes_info = genes_info,
+      link = link,
+      gene_info_link_function = ORGANISM_GENE_INFO_LINK_FUNCTION,
+      color_vector = GENE_VIEW_COLORS,
+      chrom_selected_gene = chrom_selected_gene
     )
+    
 
     gene_pro_view_server(
       "geneView2", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
