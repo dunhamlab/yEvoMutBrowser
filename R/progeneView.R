@@ -13,7 +13,6 @@ gene_pro_view_ui <- function(id) {
 
       # Dropdown menu for gene selection
       selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
-    
       actionButton(NS(id, "screenshot"), "Take Screenshot 📷", class = "button_style", width = "100%"),
 
       # Molstar viewer container
@@ -42,7 +41,7 @@ gene_pro_view_ui <- function(id) {
       uiOutput(NS(id, "mutation_legend")),
 
       # Mutation Display
-      tags$div(class="domain_div",
+      tags$div(class="annotation_div",
         tags$div(class="mut_button_div",
           actionButton(NS(id, 'mutations'), 'Mutations', class = "button_style"),
         ),
@@ -53,7 +52,7 @@ gene_pro_view_ui <- function(id) {
       ),
 
       # Domain Display
-      tags$div(class="domain_div",
+      tags$div(class="annotation_div",
         tags$div(class="domain_button_div",
           actionButton(NS(id, 'domain'), 'Pfam Domains', class = "button_style"),
         ),
@@ -64,7 +63,7 @@ gene_pro_view_ui <- function(id) {
       ),
 
       # Motif Display
-      tags$div(class="domain_div",
+      tags$div(class="annotation_div",
         tags$div(class="mut_button_div",
           actionButton(NS(id, 'motif'), 'Motifs', class = "button_style"),  # Add class here
         ),
@@ -81,7 +80,7 @@ gene_pro_view_ui <- function(id) {
       tags$div(class = "container",
         tags$div(class = "protein-cont",
 
-          tags$div(class = "my_verbatim_text",  # <-- your custom class
+          tags$div(class = "protein_info_label",
             textOutput(NS(id, "content"))
           )
         ),
@@ -114,60 +113,60 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     dom_selected <- reactiveVal(FALSE)
     motif_selected <- reactiveVal(FALSE)
 
-    
-  #gene view dropdown menu
-  #creating stabilization so that the selected gene holds across different sample selections  
-  stable_data <- debounce(filtered_data, 150)
-  
-  last_choices <- reactiveVal(NULL)
 
-  #generates information based on the stable data (so that it doesn't flip back and forth during filtering)
-  observeEvent(stable_data(), {
-  
-    new_choices <- tryCatch({
+    #gene view dropdown menu
+    #creating stabilization so that the selected gene holds across different sample selections  
+    stable_data <- debounce(filtered_data, 150)
+
+    last_choices <- reactiveVal(NULL)
+
+    #generates information based on the stable data (so that it doesn't flip back and forth during filtering)
+    observeEvent(stable_data(), {
+
+      new_choices <- tryCatch({
         stable_data() %>%
           dplyr::pull(GENE) %>%
           intersect(genes_info$GENE) %>%
           unique() %>%
           sort() %>%
           as.character()
-    }, error = function(e) character(0))
-    
-    if (identical(new_choices, last_choices()))
-      return()
-    
-    #holds onto selected gene
-    current_sel <- isolate(input$geneSelectDropDown)
-    
-    selected_gene <- if (!is.null(current_sel) &&
-                           nzchar(current_sel) &&
-                           current_sel %in% new_choices) {
-      current_sel
-    } else if (length(new_choices) > 0) {
-      new_choices[1]
-    } else {
-      NULL
-    }
-    
-    updateSelectizeInput(
-      session,
-      "geneSelectDropDown",
-      choices = new_choices,
-      selected = selected_gene,
-      server = TRUE,
-      options = list(maxOptions = length(new_choices))
-    )
-  
-    last_choices(new_choices)
-    
-  }, ignoreInit = FALSE)
+      }, error = function(e) character(0))
+
+      if (identical(new_choices, last_choices()))
+        return()
+
+      #holds onto selected gene
+      current_sel <- isolate(input$geneSelectDropDown)
+
+      selected_gene <- if (!is.null(current_sel) &&
+                             nzchar(current_sel) &&
+                             current_sel %in% new_choices) {
+        current_sel
+      } else if (length(new_choices) > 0) {
+        new_choices[1]
+      } else {
+        NULL
+      }
+
+      updateSelectizeInput(
+        session,
+        "geneSelectDropDown",
+        choices = new_choices,
+        selected = selected_gene,
+        server = TRUE,
+        options = list(maxOptions = length(new_choices))
+      )
+
+      last_choices(new_choices)
+
+    }, ignoreInit = FALSE)
 
     gene <- reactive({input$geneSelectDropDown})
 
     output$info <- renderText({
       req(gene())
       paste0("Note: The yeast protein structures are derived from AlphaFold prediction models and represent the canonical form of the protein."
-)
+      )
     })
 
     cur_gene <- reactive({
@@ -227,8 +226,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           )
         })
 
-    # return a container with all links
-    do.call(tags$div, links)
+        # return a container with all links
+        do.call(tags$div, links)
       }
     })
 
@@ -300,16 +299,16 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           )
         ) %>%
         mutate(
-        PROTEIN = as.character(PROTEIN),
-        # Extract the first character Amino Acid Wild Type
-        AA_WT = substr(PROTEIN, 1, 1),
-        AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
+          PROTEIN = as.character(PROTEIN),
+          # Extract the first character Amino Acid Wild Type
+          AA_WT = substr(PROTEIN, 1, 1),
+          AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
             # Extract Amino Acid Position
             as.numeric(str_extract(PROTEIN, "[0-9]+"))
-        ),
-        # Amino Acid Mutation
-        AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
-        ANNOTATION = factor(ANNOTATION, levels = all_annotations)
+          ),
+          # Amino Acid Mutation
+          AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
+          ANNOTATION = factor(ANNOTATION, levels = all_annotations)
         )
 
 
@@ -328,7 +327,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       })
     }
 
-    hover_text <- function(data, new_line) {
+    hover_text <- function(data) {
       ifelse(
         data$ANNOTATION == "transposon", # Check if it's a transposon
         paste0(
@@ -367,7 +366,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Observe gene selection changes and loads in
     # AlphaFold Structure into Mol* Viewer
     observeEvent(input$geneSelectDropDown, {
-      print("MUTATION BUTTON CLICKED")
       print(cur_gene())
 
       gene_name <- input$geneSelectDropDown
@@ -385,9 +383,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
 
     # General purpose function to create rectanglular data for plotting
-    rect_data <- function(filtered_rows, color_func, dtype="pfam") {
+    rect_data <- function(annotation_data, color_func, dtype="pfam") {
       cg <- cur_gene()
-      pd <- filtered_rows
+      pd <- annotation_data
       if (nrow(pd) == 0) {
         return(tibble(xmin = double(), xmax = double(),
                       ymin = double(), ymax = double(),
@@ -543,8 +541,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
     observeEvent(input$screenshot, {
-      print("TAKING SCREENSHOT")
-      session$sendCustomMessage("testRun", list())
       session$sendCustomMessage("takeScreenshot", list())
     })
 
@@ -578,6 +574,21 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       }
     })
 
+  highlight_all <- function(rects) {
+    for (i in 1:nrow(rects)) {
+      row <- rects[i, ]
+      domain_start <- row['xmin'][[1]]
+      domain_end <- row["xmax"][[1]]
+      hex <- row["fill_color"][[1]]
+      hex <- unname(hex)
+      len <- nchar(hex)
+      hex <- substr(hex, 1, len - 2)
+      session$sendCustomMessage("highlightDomains",
+                                list(residueStart = domain_start,
+                                     residueEnd = domain_end, colorHex = hex))
+    }
+  }
+
     # Toggle domain highlighting
     observeEvent(input$domain, {
       dom_selected(!dom_selected())
@@ -598,18 +609,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         # Highlights each domain one by one
         session$sendCustomMessage("clearPaint", list())
         if (nrow(rects) != 0) {
-          for (i in 1:nrow(rects)) {
-            row <- rects[i, ]
-            domain_start <- row['xmin'][[1]]
-            domain_end <- row["xmax"][[1]]
-            hex <- row["fill_color"][[1]]
-            hex <- unname(hex)
-            len <- nchar(hex)
-            hex <- substr(hex, 1, len - 2)
-            session$sendCustomMessage("highlightDomains",
-                                      list(residueStart = domain_start,
-                                           residueEnd = domain_end, colorHex = hex))
-          }
+          highlight_all(rects)
         }
       } else {
         session$sendCustomMessage("clearPaint", list())
@@ -636,19 +636,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         rects <- rect_data(pd, viridis)
         # Highlights each motif one by one
         if (nrow(rects) != 0) {
-          for (i in 1:nrow(rects)) {
-            row <- rects[i, ]
-            domain_start <- row['xmin'][[1]]
-            domain_end <- row["xmax"][[1]]
-            hex <- row["fill_color"][[1]]
-            hex <- unname(hex)
-            len <- nchar(hex)
-            hex <- substr(hex, 1, len - 2)
-            session$sendCustomMessage("clearPaint", list())
-            session$sendCustomMessage("highlightDomains",
-                                      list(residueStart = domain_start,
-                                           residueEnd = domain_end, colorHex = hex))
-          }
+          highlight_all(rects)
         }
       } else {
         session$sendCustomMessage("clearPaint", list())
@@ -724,28 +712,45 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                 no_data_text = "No Motif Data Available")
     })
 
-
-    observe({
-      # priortiy event will be triggered at every click
-      ed <- event_data("plotly_click", source = "motifplot", priority = 'event')
-      req(ed$key)
+    highlight_specific <- function(ed, annotation_data, dtype, uniprot_needed) {
       cg <- cur_gene()
       str <- ((ed$key)[[1]])
       split_vector <- unlist(strsplit(str, "_"))
       hex <- tail(split_vector, 1)
       len <- nchar(hex)
       hex <- substr(hex, 1, len - 2)
-      uniprot <- first(cg$UniprotID)
-      pd <- motif_info[motif_info$UniprotID == first(uniprot), ]
-      rects <- rect_data(pd, viridis, dtype="motif")
-      motif <- rects[rects$id == ed$key, ]
-      motif_start <- motif$xmin
-      motif_end <- motif$xmax
-      session$sendCustomMessage("zoomToResidue", 
-                                list(residueNumber = motif_start))
+      if (uniprot_needed) {
+        identifier <- first(cg$UniprotID)
+        pd <- annotation_data[annotation_data$UniprotID == first(identifier), ]
+      } else {
+        identifier <- first(cg$UniparcID)
+        pd <- annotation_data[annotation_data$UniparcID == first(identifier), ]
+      }
+      rects <- rect_data(pd, viridis, dtype=dtype)
+      data <- rects[rects$id == ed$key, ]
+      data_start <- data$xmin
+      data_end <- data$xmax
+      session$sendCustomMessage("zoomToResidue",
+                                list(residueNumber = data_start))
       session$sendCustomMessage("highlightDomains",
-                                list(residueStart = motif_start,
-                                     residueEnd = motif_end, colorHex = hex))
+                                list(residueStart = data_start,
+                                     residueEnd = data_end, colorHex = hex))
+    }
+
+    observe({
+      # priortiy event will be triggered at every click
+      ed <- event_data("plotly_click", source = "motifplot", priority = 'event')
+      req(ed$key)
+      highlight_specific(ed, motif_info, dtype="motif", uniprot_needed = TRUE)
+    })
+
+
+    observe({
+      # priortiy event will be triggered at every event/click
+      ed <- event_data("plotly_click",
+                       source = "domainplot", priority = "event")
+      req(ed$key)
+      highlight_specific(ed, pfam, dtype = "pfam", uniprot_needed = FALSE)
     })
 
 
@@ -785,30 +790,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
     observeEvent(event_data("plotly_relayout", source = "motifplot"), {
       shared_zoom("motifplot")
-    })
-
-
-    observe({
-      # priortiy event will be triggered at every event/click
-      ed <- event_data("plotly_click",
-                       source = "domainplot", priority = "event")
-      req(ed$key)
-      cg <- cur_gene()
-      str <- ((ed$key)[[1]])
-      split_vector <- unlist(strsplit(str, "_"))
-      hex <- tail(split_vector, 1)
-      len <- nchar(hex)
-      hex <- substr(hex, 1, len - 2)
-      pd <- pfam[pfam$UniparcID == first(cg$UniparcID), ]
-      rects <- rect_data(pd, viridis)
-      domain <- rects[rects$id == ed$key, ]
-      domain_start <- domain$xmin
-      domain_end <- domain$xmax
-      session$sendCustomMessage("zoomToResidue",
-                                list(residueNumber = domain_start))
-      session$sendCustomMessage("highlightDomains",
-                                list(residueStart = domain_start,
-                                     residueEnd = domain_end, colorHex = hex))
     })
   })
 }
