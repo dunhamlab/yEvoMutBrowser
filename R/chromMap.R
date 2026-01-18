@@ -12,7 +12,7 @@ chrom_map_server <- function(
   moduleServer(id, function(input, output, session) {
     # Displays Chromosome Map info; filtering by sample
     output$info <- renderText({
-      return("Drag over variant tick mark to see details\n")
+      return("Drag over variant tick mark to see details. Click to go to corresponding Gene View page.\n")
     })
 
     output$chromPlot <- renderPlotly({
