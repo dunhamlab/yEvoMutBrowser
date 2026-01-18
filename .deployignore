@@ -1,7 +1,0 @@
- renv.lock
- molstar-custom/*
-!molstar-custom
-node_modules
-.DS_Store
-*.log
-.git

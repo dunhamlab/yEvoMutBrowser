@@ -6,7 +6,7 @@
       padding: 0px !important;
       }
 
-    .my_verbatim_text {
+    .protein_info_label {
       font-weight: 300 !important;
       font-family: sans-serif !important;
       background-color: cornflowerblue !important;
@@ -63,7 +63,7 @@
       font-size: 14px !important;
     }
 
-    .domain_div {
+    .annotation_div {
       width: 600px;
       /* display: flex;
       flex-direction: row; */
@@ -131,7 +131,7 @@ button.button_style:focus,
   outline: none !important;
 }
 
-.my_verbatim_text pre {
+.protein_info_label pre {
   background-color: rgb(0, 0, 0) !important;
     }
 
