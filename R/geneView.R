@@ -72,7 +72,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
         "geneSelectDropDown",
         selected = chrom_selected_gene()
       )
-      chrom_selected_gene <- reactiveVal(NULL)
+      chrom_selected_gene(NULL)
     })
     
     
