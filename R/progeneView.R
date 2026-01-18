@@ -575,6 +575,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
   highlight_all <- function(rects) {
+    session$sendCustomMessage("clearPaint", list())
     for (i in 1:nrow(rects)) {
       row <- rects[i, ]
       domain_start <- row['xmin'][[1]]
@@ -607,7 +608,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         # Transforms the data into rectangles
         rects <- rect_data(pd, viridis)
         # Highlights each domain one by one
-        session$sendCustomMessage("clearPaint", list())
         if (nrow(rects) != 0) {
           highlight_all(rects)
         }
@@ -636,6 +636,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         rects <- rect_data(pd, viridis)
         # Highlights each motif one by one
         if (nrow(rects) != 0) {
+
           highlight_all(rects)
         }
       } else {
