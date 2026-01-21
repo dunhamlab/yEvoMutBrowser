@@ -834,6 +834,10 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       highlight_specific(ed, pfam, dtype = "pfam", uniprot_needed = FALSE)
     })
 
+    observeEvent(input$screenshot, {
+      session$sendCustomMessage("takeScreenshot", list())
+    })
+
     shared_zoom <- function(plot_id) {
       # Function to share zoom between mutplot and domainplot
       # This function uses a reactive value to store the zoom range
