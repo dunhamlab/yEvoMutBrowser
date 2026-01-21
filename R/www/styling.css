@@ -145,3 +145,16 @@ button.button_style:focus,
     border-color: #004085 !important;
   }
 
+  .plddt_head {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 4px;
+    margin-left: 5px;
+  }
+
+  .plddt_legend_div {
+    border-style: solid;
+    border-radius: 1px;
+    border-radius: 0px;
+    border-color: rgb(172, 172, 172);
+  }
