@@ -38,21 +38,6 @@ gene_pro_view_ui <- function(id) {
         verbatimTextOutput(NS(id, "resiinfo")),
       ),
 
-      switchInput(
-        NS(id, "mySwitch"),
-        label = "PLDDT",
-        value = FALSE
-      ),
-
-      tags$div(class = "plddt_legend_div",
-        tags$div(class = "plddt_head",
-          tags$span("pLDDT Confidence Levels")
-        ),
-        tags$div(class = "plddt_legend_box",
-          uiOutput(NS(id, "plddt_legend")),
-        )
-      ),
-
       uiOutput(NS(id, "mutation_legend")),
 
       # Mutation Display
@@ -115,6 +100,21 @@ gene_pro_view_ui <- function(id) {
         )
 
       ),
+
+      switchInput(
+        NS(id, "mySwitch"),
+        label = "PLDDT",
+        value = FALSE
+      ),
+
+      tags$div(class = "plddt_legend_div",
+        tags$div(class = "plddt_head",
+          tags$span("pLDDT Confidence Levels")
+        ),
+        tags$div(class = "plddt_legend_box",
+          uiOutput(NS(id, "plddt_legend")),
+        )
+      ),
     )
 
   )
@@ -141,7 +141,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     observeEvent(input$mySwitch, {
       # Skip if this was a programmatic update
       if (programmatic_update()) {
-        print("PROGRAMMIC TRUE NOW IT HAS BECOME FALSE")
         programmatic_update(FALSE)  # Reset the flag
         return()
       }
@@ -420,8 +419,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Observe gene selection changes and loads in
     # AlphaFold Structure into Mol* Viewer
     observeEvent(input$geneSelectDropDown, {
-      print(cur_gene())
-
       gene_name <- input$geneSelectDropDown
       # Reset selections
       mut_selected(FALSE)
@@ -630,8 +627,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Toggle mutation highlighting
     observeEvent(input$mutations, {
       mut_selected(!mut_selected())
-      print("MUT SELECTED")
-      print(mut_selected())
       update_switch()
       if (mut_selected()) {
         runjs(sprintf("$('#%s').addClass('active');", session$ns("mutations")))
