@@ -345,67 +345,6 @@ await plugin.build()
 }
 
 
-async function plddtColoring(plugin: PluginContext, struct: Structure) {
-  console.log("Applying deez");
-  const model = struct.models[0];
-  const { atomicConformation, atomicHierarchy } = model;
-  const bFactors = atomicConformation.B_iso_or_equiv;  
-  const residueAtomSegments = atomicHierarchy.residueAtomSegments;
-  const residueCount = atomicHierarchy.residues._rowCount;
-  
-  // Step 1: Collect all residues grouped by pLDDT color category
-  const veryHighConf: number[] = []; // pLDDT > 90 (dark blue)
-  const highConf: number[] = [];     // 70-90 (cyan/light blue)
-  const lowConf: number[] = [];      // 50-70 (yellow)
-  const veryLowConf: number[] = [];  // < 50 (orange)
-  
-  for (let resIndex = 0; resIndex < residueCount; resIndex++) {
-    const atomStartIndex = residueAtomSegments.offsets[resIndex];
-    const plddt = bFactors.value(atomStartIndex);
-    const seqId = atomicHierarchy.residues.label_seq_id.value(resIndex);
-    
-    if (plddt > 90) {
-      veryHighConf.push(seqId);
-    } else if (plddt > 70) {
-      highConf.push(seqId);
-    } else if (plddt > 50) {
-      lowConf.push(seqId);
-    } else {
-      veryLowConf.push(seqId);
-    }
-  }
-  
-  console.log('pLDDT distribution:', {
-    veryHigh: veryHighConf.length,
-    high: highConf.length,
-    low: lowConf.length,
-    veryLow: veryLowConf.length
-  });
-
-
-  if (veryHighConf.length > 0) {
-    addColorLayer(plugin, struct, veryHighConf, '#0053D6'); // dark blue
-  }
-  if (highConf.length > 0) {
-    addColorLayer(plugin, struct, highConf, '#65CBF3'); // cyan
-  }
-  if (lowConf.length > 0) {
-    addColorLayer(plugin, struct, lowConf, '#FFDB13'); // yellow
-  }
-  if (veryLowConf.length > 0) {
-    addColorLayer(plugin, struct, veryLowConf, '#FF7D45'); // orange
-  }
-  await plugin.build()
-    .to(cartoonRef)
-    .apply(StateTransforms.Representation.OverpaintStructureRepresentation3DFromBundle, 
-      { layers: overpaintLayers })
-    .commit();
-  
-  console.log('pLDDT coloring applied');
-
-}
-
-
 function addColorLayer(
   plugin: PluginContext, 
   structure: Structure, 
@@ -730,5 +669,6 @@ export async function takeScreenshot(
 (window as any).takeScreenshot = takeScreenshot;
 // Automatically loads default protein onto webpage
 window.onload = () => {
+  
   initMolstar('P37898');
 };

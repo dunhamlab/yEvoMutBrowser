@@ -19,6 +19,7 @@ library(scales)
 library(shiny)
 library(shinyjs)
 library(shinythemes)
+library(shinyWidgets)
 library(stringr)
 library(tidyr) ## handling data, df must be tidy to use a lot of packages
 library(viridis)

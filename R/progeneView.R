@@ -100,6 +100,21 @@ gene_pro_view_ui <- function(id) {
         )
 
       ),
+
+      switchInput(
+        NS(id, "mySwitch"),
+        label = "PLDDT",
+        value = FALSE
+      ),
+
+      tags$div(class = "plddt_legend_div",
+        tags$div(class = "plddt_head",
+          tags$span("pLDDT Confidence Levels")
+        ),
+        tags$div(class = "plddt_legend_box",
+          uiOutput(NS(id, "plddt_legend")),
+        )
+      ),
     )
 
   )
@@ -119,6 +134,42 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     stable_data <- debounce(filtered_data, 150)
 
     last_choices <- reactiveVal(NULL)
+
+    # Indicates if toggle for plddt is programmatically updated
+    programmatic_update <- reactiveVal(FALSE)
+
+    observeEvent(input$mySwitch, {
+      # Skip if this was a programmatic update
+      if (programmatic_update()) {
+        programmatic_update(FALSE)  # Reset the flag
+        return()
+      }
+
+      # This code only runs for user changes
+      current_value <- input$mySwitch
+      # Applies PLDDT coloring and resets switches
+      if (current_value == TRUE) {
+        session$sendCustomMessage("applyPlddtColoring", list())
+        session$sendCustomMessage("clearSpheres", list())
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("mutations")))
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
+        mut_selected(FALSE)
+        dom_selected(FALSE)
+        motif_selected(FALSE)
+
+      # Resets to plain view
+      } else {
+        session$sendCustomMessage("clearOverlays", list())
+        session$sendCustomMessage("clearSpheres", list())
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("mutations")))
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
+        runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
+        mut_selected(FALSE)
+        dom_selected(FALSE)
+        motif_selected(FALSE)
+      }
+    }, ignoreInit = TRUE)
 
     #generates information based on the stable data (so that it doesn't flip back and forth during filtering)
     observeEvent(stable_data(), {
@@ -182,6 +233,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     output$description <- renderText(paste0(first(cur_gene()$DESCRIPTION)))
 
 
+    plddt_annotation <- c("Very High (pLDDT) > 90", "Confident (pLDDT) > 70",
+                          "Low (pLDDT) > 50", "Very Low (pLDDT) < 50")
 
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
@@ -357,7 +410,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       if (residue_num %in% new$Numbers) {
         # Filtered out rows with 'N/A' values
         row <- new[!is.na(new$Numbers) & new$Numbers == residue_num, ]
-        hover_text(row, TRUE)
+        hover_text(row)
       } else {
         paste0("Position: ", input$resi_num, " Amino Acid: ", input$resi_aa)
       }
@@ -366,8 +419,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Observe gene selection changes and loads in
     # AlphaFold Structure into Mol* Viewer
     observeEvent(input$geneSelectDropDown, {
-      print(cur_gene())
-
       gene_name <- input$geneSelectDropDown
       # Reset selections
       mut_selected(FALSE)
@@ -377,6 +428,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
       runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
+      updateSwitchInput(session, "mySwitch", value = FALSE)
+
       # Renders AlphaFold Structure
       session$sendCustomMessage("initMolstar", uniprotid)
   })
@@ -428,6 +481,28 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                               transp_colors[mut])
             ),
             tags$span(mut)
+          )
+        })
+      )
+    })
+
+    output$plddt_legend <- renderUI({
+      plddt_colors <- ALPHAFOLD_COLORS
+      names(plddt_colors) <- plddt_annotation
+
+      tags$div(
+        style = "display: flex; flex-direction: row;",
+        lapply(names(plddt_colors), function(level) {
+          tags$div(
+            style = "display:flex; align-items:center; 
+            margin-bottom:4px; margin-top:0px;",
+            tags$div(
+              style = sprintf("width:20px; height:20px;
+              background:%s; margin-right:5px; border:1px 
+              solid #000; margin-left:5px; margin-top: 4px;",
+                              plddt_colors[level])
+            ),
+            tags$span(level)
           )
         })
       )
@@ -525,14 +600,14 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
   })
 
     # Highlights and zooms into mutation points when clicked
-    observe({
-      # Get the click event data
+    observeEvent(event_data("plotly_click", source = "mutplot", priority = "event"), {
       ed <- event_data("plotly_click", source = "mutplot", priority = "event")
-      req(ed)
+      req(ed$key)
       ann <- as.character(ed$key[[1]])
       hex <- annotation_colors[ann]
       hex_val <- unname(hex)[1]
       positions <- c(ed$x)
+      update_switch()
       session$sendCustomMessage("zoomToResidue",
                                 list(residueNumber = positions))
       session$sendCustomMessage("highlightResidueWithSphere",
@@ -540,14 +615,19 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                                      colorHex = hex_val))
     })
 
-    observeEvent(input$screenshot, {
-      session$sendCustomMessage("takeScreenshot", list())
-    })
+    # Avoid reactive context issues when switching from PLDDT to standard
+    update_switch <- function() {
+      if (input$mySwitch == TRUE) {
+        programmatic_update(TRUE)
+        updateSwitchInput(session, "mySwitch", value = FALSE)
+        session$sendCustomMessage("clearOverlays", list())
+      }
+    }
 
     # Toggle mutation highlighting
     observeEvent(input$mutations, {
       mut_selected(!mut_selected())
-
+      update_switch()
       if (mut_selected()) {
         runjs(sprintf("$('#%s').addClass('active');", session$ns("mutations")))
       } else {
@@ -593,6 +673,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Toggle domain highlighting
     observeEvent(input$domain, {
       dom_selected(!dom_selected())
+      update_switch()
       if (dom_selected()) {
         runjs(sprintf("$('#%s').addClass('active');", session$ns("domain")))
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
@@ -619,13 +700,13 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     # Toggle motif highlighting
     observeEvent(input$motif, {
       motif_selected(!motif_selected())
+      update_switch()
       if (motif_selected()) {
         runjs(sprintf("$('#%s').addClass('active');", session$ns("motif")))
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
       } else {
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
       }
-
 
       if (motif_selected()) {
         dom_selected(FALSE)
@@ -669,7 +750,6 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         new_theme_empty +
         guides(fill = FALSE)
 
-
       gg <- ggplotly(p, tooltip = "text", 
                      dynamicTicks = TRUE, source = plotc) %>%
         layout(
@@ -693,9 +773,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
             width = 800
           )
         )
-
       gg
-
     }
 
     output$domainplot <- renderPlotly({
@@ -731,6 +809,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       data <- rects[rects$id == ed$key, ]
       data_start <- data$xmin
       data_end <- data$xmax
+      update_switch()
       session$sendCustomMessage("zoomToResidue",
                                 list(residueNumber = data_start))
       session$sendCustomMessage("highlightDomains",
@@ -738,22 +817,21 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
                                      residueEnd = data_end, colorHex = hex))
     }
 
-    observe({
-      # priortiy event will be triggered at every click
+    observeEvent(event_data("plotly_click", source = "motifplot", priority = 'event'), {
       ed <- event_data("plotly_click", source = "motifplot", priority = 'event')
       req(ed$key)
       highlight_specific(ed, motif_info, dtype="motif", uniprot_needed = TRUE)
     })
 
-
-    observe({
-      # priortiy event will be triggered at every event/click
-      ed <- event_data("plotly_click",
-                       source = "domainplot", priority = "event")
+    observeEvent(event_data("plotly_click", source = "domainplot", priority = 'event'), {
+      ed <- event_data("plotly_click", source = "domainplot", priority = 'event')
       req(ed$key)
       highlight_specific(ed, pfam, dtype = "pfam", uniprot_needed = FALSE)
     })
 
+    observeEvent(input$screenshot, {
+      session$sendCustomMessage("takeScreenshot", list())
+    })
 
     shared_zoom <- function(plot_id) {
       # Function to share zoom between mutplot and domainplot
