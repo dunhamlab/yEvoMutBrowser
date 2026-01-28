@@ -1970,7 +1970,7 @@ chrIX,41889,G,A,NA,missense,YIL159W,BNR1,R22H,MD5332,S288c,caspofungin,Skophamme
 chrXIII,230490,T,C,NA,synonymous,YML021C,UNG1,P108P,MD5332,S288c,caspofungin,Skophammer,2025,P1
 chrM,46309,A,T,NA,intergenic,NA,NA,NA,MD5332,S288c,caspofungin,Skophammer,2025,P1
 chrVII,551147,GCCTCTT,GCTCTT,NA,indel-frameshift,YGR032W,GSC2,A962indel,MD5332,S288c,caspofungin,Skophammer,2025,P1
-chrXI,83092,G,T,NA,intergenic,YKL190W,CNB1,E24*,MD5333,S288c,caspofungin,Skophammer,2025,P2
+chrXI,83092,G,T,NA,nonsense,YKL190W,CNB1,E24*,MD5333,S288c,caspofungin,Skophammer,2025,P2
 chrXII,811932,G,T,NA,missense,YLR342W,FKS1,D646Y,MD5333,S288c,caspofungin,Skophammer,2025,P2
 chrII,37765,G,T,NA,missense,YBL099W,ATP1,C238F,MD5333,S288c,caspofungin,Skophammer,2025,P2
 chrXVI,452842,C,T,NA,nonsense,YPL057C,SUR1,W72*,MD5333,S288c,caspofungin,Skophammer,2025,P2
