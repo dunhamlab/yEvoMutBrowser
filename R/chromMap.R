@@ -183,13 +183,20 @@ chrom_map_server <- function(
           text = "Location of mutations along chromosomes",
           x = 0.5,
           xanchor = "center",
-          y = 0.95,
+          y = 0.98,
           yanchor = "top",
           font = list(size = 20)
         ),
         xaxis = list(
           title = "Position along chromosome",
-          showgrid = FALSE
+          showgrid = FALSE,
+          showline = TRUE,
+          linecolor = "lightgray",
+          linewidth = 1,
+          ticks = "outside",
+          tickcolor = "lightgray",
+          ticklen = 5,
+          tickwidth = 1
         ),
         yaxis = list(
           title = "Chromosome",
@@ -198,7 +205,8 @@ chrom_map_server <- function(
         ),
         shapes = shapes_list,
         plot_bgcolor = "rgba(0,0,0,0)",
-        paper_bgcolor = "rgba(0,0,0,0)"
+        paper_bgcolor = "rgba(0,0,0,0)",
+        margin = list(t = 50, b = 80, l = 60, r = 50)
       )
 
       fig %>%
