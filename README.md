@@ -81,11 +81,11 @@ The CSV file **MUST** have the following columns:
 - **condition**: condition the mutant was evolved in 
 - **sample**: names of the mutated/evolved samples. the uploaded CSV can contain many individual sampeles
 
-All other columns that you can see in the table are not necessary to include in your upload.
-
 After uploading, the browser will ask for additional information (instructor and year):
 
 ![CSV upload](img/upload.png)
+
+Once you submit this information, the newly uploaded data will be available in the "View by Class" teacher dropdown menu.
 
 > [!NOTE]
 > To make your data persist in the mutation browser, you need to run the web app locally \(see [Running Locally](#running-locally) below\).
@@ -102,6 +102,8 @@ Tick marks along the linear chromosomes indicate these sites, and hovering the m
 Users can also zoom in on specific regions by clicking and dragging, offering a closer look at mutations in a given area.
 
 <img src="img/figS2_zoom.png" width="1000">
+
+Clicking on one of these tick marks that represents a gene will take you to Gene View (see below).
 
 ### Variant Pie Chart
 
@@ -127,10 +129,16 @@ The height of each lollipop reflects how frequently that particular site in the 
 
 ![Default gene view](img/gene_view_unfiltered.png)
 
+## Protein View
+
+Protein view shows the location and type of mutation on the 3D predicted protein stucture. Color coding matches the mutation types in Gene View. Users can select a mutation by clicking on that site in the linear track below the 3D rendering, or select all mutations in the filtered data by clicking the "Mutations" button. Protein domain information is also available, and can be highlighted on the structure by clicking on domains in the Pfam track. Confidence in the model prediction can be visualized using the PLDDT toggle switch. 
+
+![Protein view](img/protein_view.png)
+
 ## Running Locally
 
 > [!IMPORTANT]
-> [R](https://www.r-project.org/) needs to be installed before you can run the yEvo Mutation Browser locally.
+> [R](https://www.r-project.org/) needs to be installed before you can run the yEvo Mutation Browser locally. All required R packages are listed in the "DESCRIPTION" file.
 
 To make your data persist locally in the app, to contribute to the yEvo Mutation Browser, or to modify the mutation browser to better fit your needs or to another organism, you can run the yEvo Mutation Browser locally.
 
@@ -160,6 +168,7 @@ Listening on http://xxxxxxx
 
 Copy and paste this link into a web browser of your choice to access the mutation browser.
 
+
 ## Modifying to Other Organisms
 
 The yEvo Mutation Browser can be modified for studying and visualizing mutations in other organisms.
@@ -178,3 +187,6 @@ The `ORGANISM_GENE_INFO_LINK_FUNCTION` is a function that is passed two argument
 The first is the genes info data table set by `ORGANISM_GENE_INFO_PATH` and the second is the gene selected by the user on the [Gene View](#gene-view) visualization gene selection dropdown.
 The function must return the link to the online gene database for the desired organism and the selected gene as a string.
 For an example, please see the default yEvo Mutation Browser link function for the _S. cerevisiae_ gene database defined in `R/config.R`.
+
+
+[def]: img/protein_view.png
