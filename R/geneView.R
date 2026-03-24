@@ -219,7 +219,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       ranges$x <- c(-50, xmax + 50)
       
       ymax_count <- if (nrow(count_proteins_same) == 0) 0 else max(count_proteins_same$Counts_tot, na.rm = TRUE)
-      ranges$y <- c(0, ymax_count + ifelse(ymax_count < 5, 4, 1))
+      ranges$y <- c(0, max(ymax_count, 2) + ifelse(ymax_count > 9, 0.99, 0.25))
       
       # build ggplot (kept your original appearance + minor safe guards)
       p <- count_proteins_same %>%
@@ -233,10 +233,11 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           Counts_diff_mutation = I(rep(list(numeric(0)), length(all_annotations))),
           Counts_tot = rep(NA_integer_, length(all_annotations)),
           combined = rep(NA_character_, length(all_annotations))
-        ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2) +
+        ), aes(y = 0, color = ANNOTATION, text = NULL), size = 2, alpha = 0.5) +
         geom_hline(yintercept = 0, linetype = 2, alpha = .2) +
-        geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0), size = 15, color = "cornflowerblue") +
-        geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot), color = "gray") +
+        geom_segment(aes(x = 0, xend = xmax, y = 0, yend = 0), size = 5, color = "cornflowerblue") +
+        geom_segment(aes(x = AA_POS, xend = AA_POS, y = 0, yend = Counts_tot), color = "darkgrey", alpha = 0.5) +
+        geom_point(aes(x = AA_POS, y = Counts_tot), color = "white", size = 2, show.legend = FALSE) + # white dot masks the segment line behind each colored annotation dot
         geom_point(aes(
           x = AA_POS,
           y = Counts_tot,
@@ -265,10 +266,14 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
               )
             )
           )
-        ), size = 2) +
+        ), size = 2, alpha = 0.5) +
         ggtitle(as.character(gene())) +
         theme_classic() +
-        theme(plot.title = element_text(hjust = 0.5), plot.margin = margin(20, 20, 0, 20)) +
+        theme(plot.title = element_text(hjust = 0.5), plot.margin = margin(20, 20, 0, 20),
+              plot.background = element_rect(fill = "transparent", color = NA),
+              panel.background = element_rect(fill = "transparent", color = NA),
+              legend.background = element_rect(fill = "transparent", color = NA),
+              legend.key = element_rect(fill = "transparent", color = NA)) +
         xlab("Amino acid position") +
         ylab("Mutation Count") +
         scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +
