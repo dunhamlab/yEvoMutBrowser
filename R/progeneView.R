@@ -120,8 +120,18 @@ gene_pro_view_ui <- function(id) {
   )
 }
 
-gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
+gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector, gene_view_selected_gene) {
   moduleServer(id, function(input, output, session) {
+
+    observeEvent(gene_view_selected_gene(), {
+      req(gene_view_selected_gene())
+      new_gene <- gene_view_selected_gene()
+      updateSelectInput(
+        session,
+        "geneSelectDropDown",
+        selected = new_gene
+      )
+    }, ignoreInit = TRUE)
 
     # Reactive values to track selected states
     mut_selected <- reactiveVal(FALSE)
