@@ -36,7 +36,6 @@ yEvoMutBrowser <- function(...) {
 
   # loading in the genes data file
   genes_info <- read.csv(ORGANISM_GENE_INFO_PATH)
-
   # loading in the chromosomes data file
   chrom_info <- read.csv(ORGANISM_CHROMOSOME_INFO_PATH)
   # Define the desired order of categories
@@ -79,6 +78,7 @@ yEvoMutBrowser <- function(...) {
             snp_count_ui("snpCount"),
             gene_view_ui("geneView"),
             gene_pro_view_ui("geneView2"),
+            protein_prediction_ui("proteinPrediction"),
             data_table_ui("dataTable"),
           )
         )
@@ -191,6 +191,9 @@ yEvoMutBrowser <- function(...) {
 
     gene_pro_view_server(
       "geneView2", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
+    )
+    protein_prediction_server(
+      "proteinPrediction", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS, ALPHAFOLD_COLORS
     )
 
     observeEvent(input$append_btn, {
