@@ -229,6 +229,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       filter(fd, GENE == gene())
     })
 
+
     output$content <- renderText("Protein Info Card")
     output$description <- renderText(paste0(first(cur_gene()$DESCRIPTION)))
 
@@ -432,6 +433,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       # Renders AlphaFold Structure
       session$sendCustomMessage("initMolstar", uniprotid)
+      print(cur_gene())
   })
 
 
