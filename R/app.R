@@ -95,7 +95,7 @@ yEvoMutBrowser <- function(...) {
 
     shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
 
-    c(selected_instructor, selected_year, selected_sample, selected_condition, selected_background, filtered_data) %<-%
+    c(selected_instructor, selected_year, selected_sample, selected_condition, selected_background, filtered_data, form_complete) %<-%
       selection_panel_server("selectionPanel", filtered_data, mutation_data, mut_backend, genes_info)
 
     # to create loading message below:
@@ -193,7 +193,7 @@ yEvoMutBrowser <- function(...) {
       "geneView2", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
     )
     protein_prediction_server(
-      "proteinPrediction", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS, ALPHAFOLD_COLORS
+      "proteinPrediction", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS, ALPHAFOLD_COLORS, form_complete
     )
 
     observeEvent(input$append_btn, {

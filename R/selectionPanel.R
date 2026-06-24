@@ -266,13 +266,30 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
       data
     })
 
+    # TRUE once the user has picked a View and filled its required dropdowns
+    # (a class/sample, or a condition + ancestor strain). Used downstream to
+    # decide whether mutations may be selected.
+    form_complete <- reactive({
+      chosen <- function(x) !is.null(x) && nzchar(x) && x != "All Selected"
+      v <- input$View
+      if (is.null(v) || !nzchar(v)) return(FALSE)
+      if (v == "View By Class") {
+        chosen(input$instructor) && chosen(input$year) && chosen(input$sample)
+      } else if (v == "View By Selection Condition") {
+        chosen(input$condition) && chosen(input$background)
+      } else {
+        FALSE
+      }
+    })
+
     server_outputs <- list(
       selected_instructor = reactive(input$instructor),
       selected_year = reactive(input$year),
       selected_sample = reactive(input$sample),
       selected_condition = reactive(input$condition),
       selected_background = reactive(input$background),
-      filtered_data = new_filtered_data
+      filtered_data = new_filtered_data,
+      form_complete = form_complete
     )
 
     return(server_outputs)
