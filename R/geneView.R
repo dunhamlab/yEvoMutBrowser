@@ -8,7 +8,7 @@ gene_view_ui <- function(id) {
   )
 }
 
-gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector,chrom_selected_gene) {
+gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector,chrom_selected_gene, gene_view_selected_gene) {
   moduleServer(id, function(input, output, session) {
     
     # Keeps last choice so it doesn't change as much when switching selections
@@ -75,7 +75,13 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       chrom_selected_gene(NULL)
     })
     
-    
+    observeEvent(gene(), {
+      req(gene())
+      if (!is.null(gene_view_selected_gene)) {
+        gene_view_selected_gene(gene())
+      }
+    })
+
     # Learn about Gene button within gene viewer
     if (link != "NONE") {
       output$url <- renderUI({
