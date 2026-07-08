@@ -1,5 +1,6 @@
 protein_prediction_ui <- function(id) {
   ns <- NS(id)
+
   tabPanel(
            "Protein Prediction",
            div(style = "margin-left: 20px; width: 600px;",
@@ -11,17 +12,15 @@ protein_prediction_ui <- function(id) {
             selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
 
             tags$div(style = "font-size: 12px; color: #666; margin-bottom: 8px;",
-                     "Click mutations to select them (they turn black and are ",
-                     "listed below); click again to remove. Available once a ",
-                     "single isolate is selected (instructor, year and sample) ",
-                     "or you upload your own data."),
+                     "Click the mutation you want to predict (turns black and is ",
+                     "listed below); click again to remove."),
 
             # Protein track: one amino acid per codon (3 bases), aligned to and
             # zoom-synced with the DNA track below. Drawn by sequence-track.js.
             tags$div(
               id = NS(id, "prottrack-wrap"),
               style = paste(
-                "position: relative; width: 100%; height: 34px;",
+                "position: relative; width: 100%; height: 95px;",
                 "border: 1px solid #ddd; border-radius: 4px;",
                 "user-select: none;"
               ),
@@ -105,13 +104,85 @@ protein_prediction_ui <- function(id) {
               )
             ),
 
+            # Shown by static/sequence-track.js only while a mutation is
+            # selected; hidden otherwise (and on gene/sample changes).
+            actionButton(NS(id, "mut_click"), "Generate Mutated Sequence",
+                         style = "display: none; margin-top: 10px;"),
+
+            # Mutant DNA + protein tracks (with the selected mutation applied),
+            # in the same view group as the wild type so they zoom/pan together.
+            # Shown by sequence-track.js after "Generate Mutated Sequence" is clicked.
+            tags$div(
+              id = NS(id, "mutant-wrap"),
+              style = "display: none; margin-top: 14px;",
+              tags$div("With selected mutation",
+                       style = "font-weight: bold; margin-bottom: 4px;"),
+              tags$div(
+                id = NS(id, "mutprot-wrap"),
+                style = paste(
+                  "position: relative; width: 100%; height: 95px;",
+                  "border: 1px solid #ddd; border-radius: 4px;",
+                  "user-select: none;"
+                ),
+                tags$canvas(id = NS(id, "mutprot-canvas"),
+                            style = "width: 100%; height: 100%; display: block;"),
+                tags$div(id = NS(id, "mutprot-tip"), style = paste(
+                  "position: absolute; display: none; pointer-events: none;",
+                  "background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px;",
+                  "border-radius: 3px; font: 12px monospace; white-space: nowrap;",
+                  "z-index: 10;"))
+              ),
+              div("", style = "height: 4px;"),
+              tags$div(
+                id = NS(id, "mutdna-wrap"),
+                style = paste(
+                  "position: relative; width: 100%; height: 95px;",
+                  "border: 1px solid #ddd; border-radius: 4px;",
+                  "user-select: none;"
+                ),
+                tags$canvas(id = NS(id, "mutdna-canvas"),
+                            style = "width: 100%; height: 100%; display: block;"),
+                tags$div(id = NS(id, "mutdna-tip"), style = paste(
+                  "position: absolute; display: none; pointer-events: none;",
+                  "background: rgba(0,0,0,0.8); color: #fff; padding: 2px 6px;",
+                  "border-radius: 3px; font: 12px monospace; white-space: nowrap;",
+                  "z-index: 10;"))
+              ),
+              # Copies the mutant protein (without the stop "*"); wired in
+              # static/sequence-track.js.
+              tags$button(id = NS(id, "copy-protein"),
+                          class = "btn btn-default", style = "margin-top: 10px;",
+                          "Copy mutated protein")
+            ),
+
             tags$script(src = "static/sequence-track.js"),
 
+            # WT-vs-mutant structure comparison. The wild-type is auto-loaded
+            # from AlphaFold DB; the mutant (predicted in AlphaFold from the
+            # copied protein) is uploaded here and superposed onto the WT in a
+            # single Mol* scene, so both share one camera and overlay exactly.
+            tags$div(style = "margin-top: 16px; width: 600px;",
+              tags$div("Structure comparison — WT (grey) vs mutant (orange)",
+                       style = "font-weight: bold; margin-bottom: 4px;"),
+              fileInput(NS(id, "mutant_structure"),
+                        "Upload AlphaFold mutant structure (.pdb / .cif)",
+                        accept = c(".pdb", ".cif")),
+              tags$div(
+                id = NS(id, "molstar-parent"),
+                style = "position: relative; width: 600px; height: 600px;",
+                tags$canvas(
+                  id = NS(id, "molstar-canvas"),
+                  style = paste("position: absolute; top: 0; left: 0;",
+                                "width: 100%; height: 100%;")
+                )
+              )
+            ),
            ))
 }
 
 protein_prediction_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector, alphafold_color_vector, form_complete = reactive(FALSE)) {
   moduleServer(id, function(input, output, session) {
+
     output$info <- renderText({
       "This section provides a visual representation of the predicted protein structure based on the gene sequence. The reference sequence is derived from S288c."
     })
@@ -178,20 +249,55 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
       paste(rev(strsplit(comp, "", fixed = TRUE)[[1]]), collapse = "")
     }
 
-    # Translate a coding (5'->3') sequence, residue 1 first ('*' = stop).
+    # Translate a coding (5'->3') sequence, residue 1 first. Stops at (and
+    # includes) the first stop codon ('*'), so a premature stop introduced by a
+    # nonsense mutation truncates the protein there.
     translate_protein <- function(cds) {
       cds <- toupper(cds)
       ncod <- nchar(cds) %/% 3
       if (ncod < 1) return("")
-      aa <- vapply(seq_len(ncod), function(j) {
+      aa <- character(ncod)
+      n <- 0L
+      for (j in seq_len(ncod)) {
         codon <- substr(cds, (j - 1) * 3 + 1, (j - 1) * 3 + 3)
         a <- codon_table[[codon]]
-        if (is.null(a)) "X" else a
-      }, character(1))
-      paste(aa, collapse = "")
+        if (is.null(a)) a <- "X"
+        n <- n + 1L
+        aa[n] <- a
+        if (a == "*") break
+      }
+      paste(aa[seq_len(n)], collapse = "")
     }
 
     gene <- reactive({input$geneSelectDropDown})
+
+    # ---- Structure comparison (Mol*): WT auto-loaded, mutant superposed ----
+    mc <- session$ns("molstar-canvas")
+
+    # Load the wild-type AlphaFold structure whenever the gene changes.
+    observeEvent(gene(), {
+      req(gene())
+      uid <- genes_info$UniprotID[genes_info$GENE == gene()][1]
+      if (length(uid) == 0 || is.na(uid) || !nzchar(uid)) return()
+      session$sendCustomMessage("initMolstar", list(
+        canvasId = mc,
+        parentId = session$ns("molstar-parent"),
+        source   = list(kind = "alphafold", uniprotId = uid)
+      ))
+    })
+
+    # Superpose an uploaded mutant structure (PDB/CIF) onto the WT.
+    observeEvent(input$mutant_structure, {
+      f <- input$mutant_structure
+      req(f)
+      txt <- paste(readLines(f$datapath, warn = FALSE), collapse = "\n")
+      fmt <- if (grepl("\\.cif$", f$name, ignore.case = TRUE)) "mmcif" else "pdb"
+      session$sendCustomMessage("superposeStructure", list(
+        canvasId = mc,
+        colorHex = "#d55e00",
+        source   = list(kind = "data", format = fmt, data = txt)
+      ))
+    })
 
     cur_gene <- reactive({
       # merge & filter gene info and mutation info and filter for selected gene, using the stablized data
@@ -202,12 +308,47 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
       filter(fd, GENE == gene())
     })
 
-    # All mutations in view for this gene, one row per (POS, ALT). Always
-    # shown; whether they can be *selected* is gated separately (see
-    # `selectable` below).
+    # Coordinate layout for the current gene, in the gene's 5'->3' (coding)
+    # orientation. Shared by the wild-type and mutant tracks so they map
+    # display index -> genomic coordinate identically. NULL if unavailable.
+    gene_layout <- reactive({
+      g <- gene()
+      if (is.null(g) || !nzchar(g)) return(NULL)
+      mr <- gene_sequence[gene_sequence$GENE == g, ]
+      if (nrow(mr) < 1) return(NULL)
+      mr <- mr[1, ]
+      fwd <- toupper(as.character(mr$sequence))
+      if (is.na(fwd) || !nzchar(fwd)) return(NULL)
+      gstart <- as.numeric(mr$start)
+      L <- nchar(fwd)
+      strand <- tryCatch(as.numeric(genes_info$STRAND[genes_info$GENE == g][1]),
+                         error = function(e) 1)
+      if (is.na(strand)) strand <- 1
+      list(
+        chrom      = as.character(mr$chrom),
+        gstart     = gstart,
+        L          = L,
+        strand     = strand,
+        coding     = if (strand == -1) revcomp(fwd) else fwd,
+        disp_start = if (strand == -1) gstart + L - 1 else gstart,
+        step       = if (strand == -1) -1 else 1
+      )
+    })
+
+    # Coding-sequence display index (0-based) of a genomic position.
+    coding_index <- function(gl, pos) {
+      (as.numeric(pos) - gl$disp_start) * gl$step
+    }
+
+    # All coding-sequence mutations in view for this gene, one row per
+    # (POS, ALT).
     variant_rows <- reactive({
       cg <- cur_gene()
       if (is.null(cg) || nrow(cg) == 0) return(NULL)
+      # Drop mutation types that don't sit on the coding sequence.
+      cg <- cg %>%
+        filter(!(ANNOTATION %in% c("transposon", "synonymous", "5'-upstream")))
+      if (nrow(cg) == 0) return(NULL)
       cg %>%
         group_by(POS, ALT) %>%
         summarize(
@@ -222,7 +363,7 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
     # Push the reference sequence + this isolate's mutations to the canvas
     # renderer (static/sequence-track.js). Re-runs when the gene or the
     # upstream filter changes. The JS does all drawing and selection.
-    observeEvent(list(gene(), stable_data(), form_complete()), {
+    observeEvent(list(gene(), stable_data()), {
       req(gene())
 
       group_id <- session$ns("proPred")
@@ -235,8 +376,10 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         groupId    = group_id,
         canvasId   = session$ns("muttrack-canvas"),
         tipId      = session$ns("muttrack-tip"),
-        clickInput = session$ns("mut_click"),
-        boxId      = session$ns("mut-selected")
+        clickInput = session$ns("mut_selection"),
+        boxId      = session$ns("mut-selected"),
+        buttonId   = session$ns("mut_click"),
+        mutantWrapId = session$ns("mutant-wrap")
       )
       prot_ids <- list(
         groupId  = group_id,
@@ -253,35 +396,19 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
           c(mut_ids, list(empty = TRUE, message = "")))
       }
 
-      matched_row <- gene_sequence[gene_sequence$GENE == gene(), ]
-      if (nrow(matched_row) < 1) {
+      gl <- gene_layout()
+      if (is.null(gl)) {
         send_empty(paste0("No reference sequence available for ", gene(), "."))
         return()
       }
-
-      matched_row <- matched_row[1, ]  # guard against duplicate rows
-      fwd <- toupper(as.character(matched_row$sequence))
-      gstart <- as.numeric(matched_row$start)  # genomic coord of forward base 0
-      chrom <- as.character(matched_row$chrom)
-
-      if (is.na(fwd) || !nzchar(fwd)) {
-        send_empty(paste0("Sequence for ", gene(), " is empty."))
-        return()
-      }
-
-      strand <- tryCatch(
-        as.numeric(genes_info$STRAND[genes_info$GENE == gene()][1]),
-        error = function(e) 1)
-      if (is.na(strand)) strand <- 1
-
-      # Present everything in the gene's 5'->3' (coding) orientation so residue
-      # 1 is always on the left. For -1 strand the displayed sequence is the
-      # reverse complement; `step` lets the JS map display index -> genomic
-      # coordinate (which then counts down for -1 genes).
-      L <- nchar(fwd)
-      seq_str <- if (strand == -1) revcomp(fwd) else fwd
-      disp_start <- if (strand == -1) gstart + L - 1 else gstart  # genomic @ idx 0
-      step <- if (strand == -1) -1 else 1
+      # Everything is presented in the gene's 5'->3' (coding) orientation
+      # (see gene_layout); `step` lets the JS map display index -> genomic.
+      chrom <- gl$chrom
+      L <- gl$L
+      strand <- gl$strand
+      seq_str <- gl$coding
+      disp_start <- gl$disp_start
+      step <- gl$step
 
       session$sendCustomMessage("seqTrackData", c(seq_ids, list(
         seq   = seq_str,
@@ -317,9 +444,11 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         alt <- toupper(as.character(muts$ALT[i]))
         if (strand == -1) { ref <- revcomp(ref); alt <- revcomp(alt) }
         change <- paste0(ref, "→", alt)
-        base <- if (ann %in% c("indel-frameshift", "indel-inframe", "transposon") ||
+        # missense and nonsense both land on the base they change to (ALT);
+        # indels (non-single-base) go to the "indel" lane.
+        base <- if (ann %in% c("indel-frameshift", "indel-inframe") ||
                     nchar(alt) != 1 || !(alt %in% c("A", "C", "G", "T"))) {
-          "other"
+          "indel"
         } else {
           alt
         }
@@ -329,6 +458,7 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
           annotation = ann,
           change     = change,
           base       = base,
+          clickable  = ann %in% c("missense", "nonsense"),
           color      = unname(annotation_colors[ann]),
           hover      = paste0(
             ann, "\n", change, "\n",
@@ -343,14 +473,52 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         step       = step,
         chrom      = chrom,
         seqLength  = L,
-        selectable = isTRUE(form_complete()),  # form filled -> clicks allowed
         mutations  = mut_list
       )))
     }, ignoreInit = FALSE)
 
+    # "Generate Sequence": apply the selected (missense/nonsense) mutation to
+    # the coding sequence and render mutant DNA + protein tracks in the same
+    # view group as the wild type, with a black line at the mutation. Nonsense
+    # introduces a stop codon, so translate_protein truncates there.
+    observeEvent(input$mut_click, {
+      gl <- gene_layout()
+      sel <- input$mut_selection  # single object: list(pos, alt), or NULL
+      if (is.null(gl) || is.null(sel) || is.null(sel$pos)) return()
+
+      idx <- coding_index(gl, sel$pos)           # 0-based coding index
+      if (is.na(idx) || idx < 0 || idx >= gl$L) return()
+      alt_genomic <- toupper(as.character(sel$alt))
+      alt_coding <- if (gl$strand == -1) revcomp(alt_genomic) else alt_genomic
+
+      mut_seq <- gl$coding
+      substr(mut_seq, idx + 1, idx + 1) <- alt_coding  # SNV: single base
+
+      session$sendCustomMessage("mutantTracks", list(
+        groupId      = session$ns("proPred"),
+        wrapId       = session$ns("mutant-wrap"),
+        dnaCanvasId  = session$ns("mutdna-canvas"),
+        dnaTipId     = session$ns("mutdna-tip"),
+        protCanvasId = session$ns("mutprot-canvas"),
+        protTipId    = session$ns("mutprot-tip"),
+        copyBtnId    = session$ns("copy-protein"),
+        start        = gl$disp_start,
+        step         = gl$step,
+        chrom        = gl$chrom,
+        seqLength    = gl$L,
+        markIndex    = idx,
+        seq          = mut_seq,
+        aa           = translate_protein(mut_seq)
+      ))
+    }, ignoreInit = TRUE)
+
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
       "indel-frameshift", "indel-inframe", "synonymous", "transposon")
+
+    # Mutation types shown on the track (those that sit on the coding sequence).
+    track_annotations <- c(
+      "missense", "nonsense", "indel-frameshift", "indel-inframe")
 
     three_letter_aa <- c("Ala", "Arg", "Asn", "Asp", "Cys", "Glu", "Gln",
                          "Gly", "His", "Ile", "Leu", "Lys", "Met", "Phe",
@@ -367,8 +535,8 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
     # Create a legend for the mutation types
     output$mutation_legend <- renderUI({
       tags$div(
-        style = "display: flex; flex-direction: row;",
-        lapply(names(transp_colors), function(mut) {
+        style = "display: flex; flex-direction: row; justify-content: center;",
+        lapply(track_annotations, function(mut) {
           tags$div(
             style = "display:flex; align-items:center;
             margin-bottom:4px; margin-top:30px;",

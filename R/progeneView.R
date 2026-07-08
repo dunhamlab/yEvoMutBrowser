@@ -15,21 +15,17 @@ gene_pro_view_ui <- function(id) {
       selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
       actionButton(NS(id, "screenshot"), "Take Screenshot 📷", class = "button_style", width = "100%"),
 
-      # Molstar viewer container
+      # Molstar viewer container (namespaced ids so each module's viewer is
+      # a distinct DOM element / registry key).
       tags$div(
-        id = "molstar-parent",
+        id = NS(id, "molstar-parent"),
         style = "position: relative; width: 600px; height: 600px;",
         tags$canvas(
-          id    = "molstar-canvas",
+          id    = NS(id, "molstar-canvas"),
           style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
         ),
       )
       ,
-
-      # Creates namespace for the module to be used in JS
-      tags$script(HTML(sprintf("
-        window.MY_MODULE_NS = '%s';
-      ", prefix))),
 
       tags$script(src = "static/molstar-custom.js"),
 
@@ -123,6 +119,13 @@ gene_pro_view_ui <- function(id) {
 gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector) {
   moduleServer(id, function(input, output, session) {
 
+    # This module's single Mol* viewer, addressed by its canvas id. `ms()`
+    # sends a viewer message with that canvasId injected.
+    mc <- session$ns("molstar-canvas")
+    ms <- function(type, payload = list()) {
+      session$sendCustomMessage(type, c(list(canvasId = mc), payload))
+    }
+
     # Reactive values to track selected states
     mut_selected <- reactiveVal(FALSE)
     dom_selected <- reactiveVal(FALSE)
@@ -149,8 +152,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       current_value <- input$mySwitch
       # Applies PLDDT coloring and resets switches
       if (current_value == TRUE) {
-        session$sendCustomMessage("applyPlddtColoring", list())
-        session$sendCustomMessage("clearSpheres", list())
+        ms("applyPlddtColoring", list())
+        ms("clearSpheres", list())
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("mutations")))
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
@@ -160,8 +163,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       # Resets to plain view
       } else {
-        session$sendCustomMessage("clearOverlays", list())
-        session$sendCustomMessage("clearSpheres", list())
+        ms("clearOverlays", list())
+        ms("clearSpheres", list())
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("mutations")))
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("domain")))
         runjs(sprintf("$('#%s').removeClass('active');", session$ns("motif")))
@@ -431,8 +434,14 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       uniprotid <- genes_info$UniprotID[genes_info$GENE == gene_name]
       updateSwitchInput(session, "mySwitch", value = FALSE)
 
-      # Renders AlphaFold Structure
-      session$sendCustomMessage("initMolstar", uniprotid)
+      # Renders AlphaFold Structure into this module's viewer.
+      ms("initMolstar", list(
+        canvasId = mc,
+        parentId = session$ns("molstar-parent"),
+        numInput = session$ns("resi_num"),
+        aaInput  = session$ns("resi_aa"),
+        source   = list(kind = "alphafold", uniprotId = uniprotid)
+      ))
       print(cur_gene())
   })
 
@@ -610,9 +619,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       hex_val <- unname(hex)[1]
       positions <- c(ed$x)
       update_switch()
-      session$sendCustomMessage("zoomToResidue",
+      ms("zoomToResidue",
                                 list(residueNumber = positions))
-      session$sendCustomMessage("highlightResidueWithSphere",
+      ms("highlightResidueWithSphere",
                                 list(positions = positions,
                                      colorHex = hex_val))
     })
@@ -622,7 +631,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       if (input$mySwitch == TRUE) {
         programmatic_update(TRUE)
         updateSwitchInput(session, "mySwitch", value = FALSE)
-        session$sendCustomMessage("clearOverlays", list())
+        ms("clearOverlays", list())
       }
     }
 
@@ -645,19 +654,19 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           mut_type <- row["ANNOTATION"][[1]]
           hex <- annotation_colors[mut_type]
           hex_val <- unname(hex)[1]
-          session$sendCustomMessage("highlightResidueWithSphere",
+          ms("highlightResidueWithSphere",
                                     list(positions = residue,
                                       colorHex = hex_val
                                     ))
 
         }
       } else {
-        session$sendCustomMessage("clearSpheres", list())
+        ms("clearSpheres", list())
       }
     })
 
   highlight_all <- function(rects) {
-    session$sendCustomMessage("clearPaint", list())
+    ms("clearPaint", list())
     for (i in 1:nrow(rects)) {
       row <- rects[i, ]
       domain_start <- row['xmin'][[1]]
@@ -666,7 +675,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       hex <- unname(hex)
       len <- nchar(hex)
       hex <- substr(hex, 1, len - 2)
-      session$sendCustomMessage("highlightDomains",
+      ms("highlightDomains",
                                 list(residueStart = domain_start,
                                      residueEnd = domain_end, colorHex = hex))
     }
@@ -695,7 +704,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           highlight_all(rects)
         }
       } else {
-        session$sendCustomMessage("clearPaint", list())
+        ms("clearPaint", list())
       }
     })
 
@@ -723,7 +732,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
           highlight_all(rects)
         }
       } else {
-        session$sendCustomMessage("clearPaint", list())
+        ms("clearPaint", list())
       }
     })
 
@@ -812,9 +821,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
       data_start <- data$xmin
       data_end <- data$xmax
       update_switch()
-      session$sendCustomMessage("zoomToResidue",
+      ms("zoomToResidue",
                                 list(residueNumber = data_start))
-      session$sendCustomMessage("highlightDomains",
+      ms("highlightDomains",
                                 list(residueStart = data_start,
                                      residueEnd = data_end, colorHex = hex))
     }
@@ -832,7 +841,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     })
 
     observeEvent(input$screenshot, {
-      session$sendCustomMessage("takeScreenshot", list())
+      ms("takeScreenshot", list())
     })
 
     shared_zoom <- function(plot_id) {

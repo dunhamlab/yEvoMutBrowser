@@ -34,6 +34,15 @@
     S: "#e5c494", T: "#80b1d3", W: "#1b9e77", Y: "#d95f02", V: "#7570b3",
     "*": "#000000", X: "#cccccc"
   };
+  // Full amino-acid names (shown on hover in the protein track).
+  var AA_NAMES = {
+    A: "Alanine", R: "Arginine", N: "Asparagine", D: "Aspartate",
+    C: "Cysteine", E: "Glutamate", Q: "Glutamine", G: "Glycine",
+    H: "Histidine", I: "Isoleucine", L: "Leucine", K: "Lysine",
+    M: "Methionine", F: "Phenylalanine", P: "Proline", S: "Serine",
+    T: "Threonine", W: "Tryptophan", Y: "Tyrosine", V: "Valine",
+    "*": "Stop", X: "Unknown"
+  };
   // Black or white text, whichever reads better on the given background.
   function textColor(hex) {
     var h = hex.replace("#", "");
@@ -48,10 +57,11 @@
   var AXIS_H = 18;        // px reserved at the bottom for the position ruler
   var TICK_PX = 90;       // target spacing between axis ticks, in px
   var LEFT_GUTTER = 34;   // px reserved on the left for labels (both tracks)
-  // Mutation lanes: A/G/C/T by the changed-to base, plus "other" for
-  // indels/transposons (anything without a single-base substitution).
-  var MUT_ROWS = ["A", "G", "C", "T", "other"];
-  var MUT_ROW_INDEX = { A: 0, G: 1, C: 2, T: 3, other: 4 };
+  // Mutation lanes: A/G/C/T by the changed-to base (both missense and
+  // nonsense land on the base they change to), plus "indel" for
+  // non-single-base changes.
+  var MUT_ROWS = ["A", "G", "C", "T", "indel"];
+  var MUT_ROW_INDEX = { A: 0, G: 1, C: 2, T: 3, indel: 4 };
 
   var groups = {};        // groupId -> shared view + tracks
 
@@ -158,6 +168,37 @@
     else drawMut(tr, p, g);
   }
 
+  // Vertical text, centered in the left gutter (reads bottom-to-top). Font
+  // shrinks so the label fits within the available track height (availH).
+  function drawVerticalLabel(ctx, text, centerY, availH) {
+    var fs = Math.max(7, Math.min(11,
+      Math.floor((availH - 10) / (text.length * 0.6))));
+    ctx.save();
+    ctx.translate(LEFT_GUTTER / 2, centerY);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = "#777";
+    ctx.font = fs + "px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+
+  // Left gutter strip: background, divider line, and a vertical track label.
+  function drawGutter(ctx, fillH, label, labelCenterY) {
+    ctx.fillStyle = "#f7f7f7";
+    ctx.fillRect(0, 0, LEFT_GUTTER, fillH);
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(LEFT_GUTTER + 0.5, 0);
+    ctx.lineTo(LEFT_GUTTER + 0.5, fillH);
+    ctx.stroke();
+    // Available vertical space around the label's center (symmetric).
+    var availH = 2 * Math.min(labelCenterY, fillH - labelCenterY);
+    drawVerticalLabel(ctx, label, labelCenterY, availH);
+  }
+
   // Protein track: one amino acid per codon (3 bases), aligned to the DNA.
   function drawProt(tr, p, g) {
     var ctx = p.ctx, cssW = p.cssW, cssH = p.cssH;
@@ -168,20 +209,7 @@
     var ncod = aa.length;
     var cy = cssH / 2;
 
-    // Left gutter label.
-    ctx.fillStyle = "#f7f7f7";
-    ctx.fillRect(0, 0, LEFT_GUTTER, cssH);
-    ctx.strokeStyle = "#ccc";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(LEFT_GUTTER + 0.5, 0);
-    ctx.lineTo(LEFT_GUTTER + 0.5, cssH);
-    ctx.stroke();
-    ctx.fillStyle = "#777";
-    ctx.font = "11px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("aa", LEFT_GUTTER / 2, cy);
+    drawGutter(ctx, cssH, "Amino Acid Sequence", cy);
 
     if (ncod === 0) return;
 
@@ -201,14 +229,16 @@
     }
     // Each codon is a cell colored by its amino acid (a protein "barcode" when
     // zoomed out); the residue letter appears once cells are wide enough.
+    var mutCodon = (tr.markIndex == null) ? -1 : Math.floor(tr.markIndex / 3);
     for (var k = kmin; k <= kmax; k++) {
       var x0 = LEFT_GUTTER + (3 * k - g.offset) * bpW;
       var ch = aa.charAt(k);
-      var col = AA_COLORS[ch] || AA_COLORS.X;
+      var isMut = (k === mutCodon);              // mutated codon: black cell
+      var col = isMut ? "#000000" : (AA_COLORS[ch] || AA_COLORS.X);
       ctx.fillStyle = col;
       ctx.fillRect(x0, 0, codonW + 0.5, cssH);
       if (drawLetters) {
-        ctx.fillStyle = textColor(col);
+        ctx.fillStyle = isMut ? "#ffffff" : textColor(col);
         ctx.fillText(ch, x0 + codonW / 2, cy);
       }
     }
@@ -238,7 +268,8 @@
     for (var i = first; i < last; i++) {
       var x = LEFT_GUTTER + (i - g.offset) * bpW;
       var b = tr.seq.charAt(i);
-      ctx.fillStyle = colorFor(b);
+      var isMut = (tr.markIndex != null && i === tr.markIndex);
+      ctx.fillStyle = isMut ? "#000000" : colorFor(b); // mutated base: black
       ctx.fillRect(x, 0, bpW + 1, trackH); // +1 avoids sub-pixel seams
       if (drawLetters) {
         ctx.fillStyle = "#ffffff";
@@ -248,6 +279,7 @@
     ctx.restore();
 
     drawAxis(g, ctx, cssW, trackH, bpW);
+    drawGutter(ctx, cssH, "DNA Sequence", trackH / 2);
   }
 
   // Genomic position ruler; redrawn every frame so it tracks zoom/pan.
@@ -400,26 +432,26 @@
   // position can carry several alleles, in different lanes).
   function selKey(m) { return m.pos + "|" + (m.alt || ""); }
 
+  // Single selection: clicking a mutation makes it the (only) selected one;
+  // clicking the currently-selected one clears it.
   function toggleSelect(tr, m) {
-    if (!tr.selectedSet) { tr.selectedSet = {}; tr.selectedList = []; }
     var k = selKey(m);
-    if (tr.selectedSet[k]) {
-      delete tr.selectedSet[k];
-      tr.selectedList = tr.selectedList.filter(function (x) {
-        return selKey(x) !== k;
-      });
+    if (tr.selectedSet && tr.selectedSet[k]) {
+      tr.selectedSet = {};
+      tr.selectedList = [];
     } else {
+      tr.selectedSet = {};
       tr.selectedSet[k] = true;
-      tr.selectedList.push(m);
+      tr.selectedList = [m];
     }
   }
 
-  // Send the current selection (pos + alt per variant) to the Shiny input.
+  // Send the current (single) selection to the Shiny input, or null if none.
   function pushSelection(tr) {
     if (!tr.clickInput || !window.Shiny) return;
-    Shiny.setInputValue(tr.clickInput, (tr.selectedList || []).map(function (m) {
-      return { pos: m.pos, alt: m.alt };
-    }), { priority: "event" });
+    var m = (tr.selectedList && tr.selectedList[0]) || null;
+    Shiny.setInputValue(tr.clickInput, m ? { pos: m.pos, alt: m.alt } : null,
+      { priority: "event" });
   }
 
   function escapeHtml(s) {
@@ -430,9 +462,14 @@
   // Fill the "selected mutations" box: one line per click, showing the base
   // change, location and annotation. Hidden while the selection is empty.
   function renderSelected(tr) {
+    var list = tr.selectedList || [];
+
+    // The action button only appears while a mutation is selected.
+    var btn = tr.buttonId && document.getElementById(tr.buttonId);
+    if (btn) btn.style.display = list.length ? "inline-block" : "none";
+
     var box = tr.boxId && document.getElementById(tr.boxId);
     if (!box) return;
-    var list = tr.selectedList || [];
     if (list.length === 0) {
       box.style.display = "none";
       box.innerHTML = "";
@@ -440,7 +477,7 @@
     }
     var g = tr.group;
     var html = "<div style='font-weight:bold;margin-bottom:5px;'>" +
-      "Selected mutations (" + list.length + ")</div>";
+      "Selected mutation</div>";
     for (var i = 0; i < list.length; i++) {
       var m = list[i];
       html += "<div>" + escapeHtml(
@@ -508,12 +545,13 @@
         if (!tr.aa) { tr.tip.style.display = "none"; return; }
         var k = Math.floor(baseAtClientX(tr, e.clientX) / 3);
         if (k < 0 || k >= tr.aa.length) { tr.tip.style.display = "none"; return; }
+        var aaCh = tr.aa.charAt(k);
         showTip(tr, e.clientX, e.clientY,
-          "residue " + (k + 1) + ": " + tr.aa.charAt(k), false);
+          "residue " + (k + 1) + ": " + (AA_NAMES[aaCh] || aaCh), false);
       } else {
         var h = hitAt(tr, e.clientX, e.clientY);
         if (!h) { tr.tip.style.display = "none"; canvas.style.cursor = "grab"; return; }
-        canvas.style.cursor = tr.selectable ? "pointer" : "grab";
+        canvas.style.cursor = h.m.clickable ? "pointer" : "default";
         showTip(tr, e.clientX, e.clientY, h.m.hover || "", true);
       }
     });
@@ -524,13 +562,13 @@
 
     if (tr.kind === "mut") {
       canvas.addEventListener("click", function (e) {
-        if (!tr.selectable) return; // selecting needs a completed form
         var h = hitAt(tr, e.clientX, e.clientY);
-        if (!h) return;
+        if (!h || !h.m.clickable) return; // only missense/nonsense
         toggleSelect(tr, h.m);
         renderTrack(tr);
         renderSelected(tr);
         pushSelection(tr);
+        hideMutant(tr.group); // a previously generated mutant is now stale
       });
     }
 
@@ -573,6 +611,7 @@
     }
     tr.empty = false;
     tr.seq = msg.seq;
+    tr.markIndex = (msg.markIndex == null) ? null : msg.markIndex;
     adoptGenome(g, msg);
     renderGroup(g);
   }
@@ -583,12 +622,14 @@
     if (!tr) return;
     tr.clickInput = msg.clickInput;
     tr.boxId = msg.boxId;
-    tr.selectable = !!msg.selectable; // clicks only allowed for one isolate
-    // New gene/isolate -> clear the previous selection.
+    tr.buttonId = msg.buttonId;
+    g.mutantWrapId = msg.mutantWrapId;
+    // New gene/isolate -> clear the previous selection and any mutant tracks.
     tr.selectedSet = {};
     tr.selectedList = [];
     renderSelected(tr);
     pushSelection(tr);
+    hideMutant(g);
     if (msg.empty) {
       tr.empty = true; tr.message = msg.message; tr.mutations = [];
       renderTrack(tr);
@@ -611,6 +652,46 @@
     }
     tr.empty = false;
     tr.aa = msg.aa || "";
+    tr.markIndex = (msg.markIndex == null) ? null : msg.markIndex;
+    adoptGenome(g, msg);
+    renderGroup(g);
+  }
+
+  function hideMutant(g) {
+    if (g && g.mutantWrapId) {
+      var w = document.getElementById(g.mutantWrapId);
+      if (w) w.style.display = "none";
+    }
+  }
+
+  // "Generate Sequence": render mutant DNA + protein tracks (with a mark at
+  // the mutation) in the same view group, then reveal the container.
+  function handleMutant(msg) {
+    var g = getGroup(msg.groupId);
+    var dna = getTrack(g, "seq",
+      { canvasId: msg.dnaCanvasId, tipId: msg.dnaTipId });
+    if (dna) { dna.empty = false; dna.seq = msg.seq; dna.markIndex = msg.markIndex; }
+    var prot = getTrack(g, "prot",
+      { canvasId: msg.protCanvasId, tipId: msg.protTipId });
+    if (prot) { prot.empty = false; prot.aa = msg.aa; prot.markIndex = msg.markIndex; }
+    g.mutantProt = prot; // latest mutant protein, for the copy button
+
+    // Wire the "copy mutated protein" button once. Copies the protein without
+    // the stop codon ("*").
+    var btn = msg.copyBtnId && document.getElementById(msg.copyBtnId);
+    if (btn && !btn._copyWired) {
+      btn._copyWired = true;
+      btn.addEventListener("click", function () {
+        var seq = ((g.mutantProt && g.mutantProt.aa) || "").replace(/\*/g, "");
+        if (navigator.clipboard) navigator.clipboard.writeText(seq);
+        var label = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(function () { btn.textContent = label; }, 1500);
+      });
+    }
+
+    var wrap = document.getElementById(msg.wrapId);
+    if (wrap) wrap.style.display = "block";
     adoptGenome(g, msg);
     renderGroup(g);
   }
@@ -618,6 +699,7 @@
   if (window.Shiny) {
     Shiny.addCustomMessageHandler("seqTrackData", handleSeq);
     Shiny.addCustomMessageHandler("protTrackData", handleProt);
+    Shiny.addCustomMessageHandler("mutantTracks", handleMutant);
     Shiny.addCustomMessageHandler("mutTrackData", handleMut);
   }
 })();
