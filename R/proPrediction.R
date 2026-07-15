@@ -159,22 +159,59 @@ protein_prediction_ui <- function(id) {
 
             # WT-vs-mutant structure comparison. The wild-type is auto-loaded
             # from AlphaFold DB; the mutant (predicted in AlphaFold from the
-            # copied protein) is uploaded here and superposed onto the WT in a
-            # single Mol* scene, so both share one camera and overlay exactly.
-            tags$div(style = "margin-top: 16px; width: 600px;",
+            # copied protein) is uploaded here, aligned to the WT orientation
+            # and shown in its own viewer. The two viewers' cameras are linked
+            # so rotating one rotates the other. The mutated residue is a black
+            # strip on each cartoon.
+            # Hidden until the user copies the mutated protein (that's the point
+            # at which they have a sequence to fold in AlphaFold); revealed by
+            # static/sequence-track.js on the copy click, re-hidden on any
+            # gene/mutation change.
+            tags$div(id = NS(id, "struct-compare"),
+              style = "display: none; margin-top: 16px; width: 640px;",
               tags$div("Structure comparison — WT (grey) vs mutant (orange)",
                        style = "font-weight: bold; margin-bottom: 4px;"),
               fileInput(NS(id, "mutant_structure"),
                         "Upload AlphaFold mutant structure (.pdb / .cif)",
                         accept = c(".pdb", ".cif")),
               tags$div(
-                id = NS(id, "molstar-parent"),
-                style = "position: relative; width: 600px; height: 600px;",
-                tags$canvas(
-                  id = NS(id, "molstar-canvas"),
-                  style = paste("position: absolute; top: 0; left: 0;",
-                                "width: 100%; height: 100%;")
+                style = "display: flex; flex-direction: column; gap: 12px;",
+                tags$div(
+                  tags$div("Wild type", style = "font-size: 12px; color: #666;"),
+                  tags$div(
+                    id = NS(id, "wt-parent"),
+                    style = "position: relative; width: 600px; height: 460px;",
+                    tags$canvas(
+                      id = NS(id, "wt-canvas"),
+                      style = paste("position: absolute; top: 0; left: 0;",
+                                    "width: 100%; height: 100%;")
+                    )
+                  ),
+                  # Residue under the cursor in the WT viewer.
+                  verbatimTextOutput(NS(id, "wt_resiinfo"))
+                ),
+                tags$div(
+                  tags$div("Mutant", style = "font-size: 12px; color: #666;"),
+                  tags$div(
+                    id = NS(id, "mut-parent"),
+                    style = "position: relative; width: 600px; height: 460px;",
+                    tags$canvas(
+                      id = NS(id, "mut-canvas"),
+                      style = paste("position: absolute; top: 0; left: 0;",
+                                    "width: 100%; height: 100%;")
+                    )
+                  ),
+                  # Residue under the cursor in the mutant viewer.
+                  verbatimTextOutput(NS(id, "mut_resiinfo"))
                 )
+              ),
+              # Zoom either viewer to the mutation residue; the linked camera
+              # makes the other follow (useful when the two structures aren't
+              # perfectly aligned and the mutation drifts off-screen).
+              tags$div(
+                style = "margin-top: 10px; display: flex; gap: 10px;",
+                actionButton(NS(id, "zoom_wt"), "Hover to WT mutation"),
+                actionButton(NS(id, "zoom_mut"), "Hover to Mutant mutation")
               )
             ),
            ))
@@ -271,33 +308,97 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
 
     gene <- reactive({input$geneSelectDropDown})
 
-    # ---- Structure comparison (Mol*): WT auto-loaded, mutant superposed ----
-    mc <- session$ns("molstar-canvas")
+    # ---- Structure comparison (Mol*): two synced side-by-side viewers ----
+    wtc <- session$ns("wt-canvas")
+    mutc <- session$ns("mut-canvas")
 
-    # Load the wild-type AlphaFold structure whenever the gene changes.
+    # Load the wild-type AlphaFold structure into the WT viewer on gene change.
+    # Also wipe the mutant viewer + its file input so a mutant uploaded for the
+    # previous gene doesn't carry over into the new one.
     observeEvent(gene(), {
       req(gene())
+      session$sendCustomMessage("clearViewer", list(canvasId = mutc))
+      shinyjs::reset("mutant_structure")
       uid <- genes_info$UniprotID[genes_info$GENE == gene()][1]
       if (length(uid) == 0 || is.na(uid) || !nzchar(uid)) return()
       session$sendCustomMessage("initMolstar", list(
-        canvasId = mc,
-        parentId = session$ns("molstar-parent"),
+        canvasId = wtc,
+        parentId = session$ns("wt-parent"),
+        numInput = session$ns("wt_resi_num"),
+        aaInput  = session$ns("wt_resi_aa"),
         source   = list(kind = "alphafold", uniprotId = uid)
       ))
     })
 
-    # Superpose an uploaded mutant structure (PDB/CIF) onto the WT.
+    # Upload a mutant structure -> load it in the mutant viewer aligned to the
+    # WT orientation, link the two cameras, and mark the mutation residue black.
     observeEvent(input$mutant_structure, {
       f <- input$mutant_structure
       req(f)
+      uid <- genes_info$UniprotID[genes_info$GENE == gene()][1]
       txt <- paste(readLines(f$datapath, warn = FALSE), collapse = "\n")
       fmt <- if (grepl("\\.cif$", f$name, ignore.case = TRUE)) "mmcif" else "pdb"
-      session$sendCustomMessage("superposeStructure", list(
-        canvasId = mc,
-        colorHex = "#d55e00",
-        source   = list(kind = "data", format = fmt, data = txt)
+
+      # Protein residue of the selected mutation, for the black cartoon strip.
+      gl <- gene_layout()
+      sel <- input$mut_selection
+      res <- NULL
+      if (!is.null(gl) && !is.null(sel) && !is.null(sel$pos)) {
+        idx <- coding_index(gl, sel$pos)
+        if (!is.na(idx) && idx >= 0) res <- floor(idx / 3) + 1
+      }
+
+      session$sendCustomMessage("initAlignedMutant", list(
+        canvasId     = mutc,
+        parentId     = session$ns("mut-parent"),
+        numInput     = session$ns("mut_resi_num"),
+        aaInput      = session$ns("mut_resi_aa"),
+        colorHex     = "#d55e00",
+        source       = list(kind = "data", format = fmt, data = txt),
+        alignUniprot = if (!is.na(uid) && nzchar(uid)) uid else NULL,
+        linkWith     = wtc,
+        markResidue  = res   # NULL if no mutation selected
       ))
     })
+
+    # Protein residue number of the currently selected mutation (or NULL).
+    mut_residue <- reactive({
+      gl <- gene_layout()
+      sel <- input$mut_selection
+      if (is.null(gl) || is.null(sel) || is.null(sel$pos)) return(NULL)
+      idx <- coding_index(gl, sel$pos)
+      if (is.na(idx) || idx < 0) return(NULL)
+      floor(idx / 3) + 1
+    })
+
+    # Zoom a viewer to the mutation residue. The linked camera makes the other
+    # viewer follow, but zooming each independently lets the user recenter on
+    # its own residue when the structures aren't perfectly aligned.
+    observeEvent(input$zoom_wt, {
+      res <- mut_residue(); req(res)
+      session$sendCustomMessage("zoomToResidue",
+        list(canvasId = wtc, residueNumber = res, chainId = "A"))
+    })
+    observeEvent(input$zoom_mut, {
+      res <- mut_residue(); req(res)
+      session$sendCustomMessage("zoomToResidue",
+        list(canvasId = mutc, residueNumber = res, chainId = "A"))
+    })
+
+    # Hovered-residue readouts for each viewer (fed by the viewers' hover ->
+    # Shiny inputs), mirroring the Protein View tab's residue info box.
+    output$wt_resiinfo <- renderText({
+      req(input$wt_resi_num, input$wt_resi_aa)
+      paste0("Position: ", input$wt_resi_num, " Amino Acid: ", input$wt_resi_aa)
+    })
+    output$mut_resiinfo <- renderText({
+      req(input$mut_resi_num, input$mut_resi_aa)
+      paste0("Position: ", input$mut_resi_num, " Amino Acid: ", input$mut_resi_aa)
+    })
+    # The comparison section is shown/hidden via raw JS (display:none), so Shiny
+    # can't tell these become visible; keep them live so they update on hover.
+    outputOptions(output, "wt_resiinfo", suspendWhenHidden = FALSE)
+    outputOptions(output, "mut_resiinfo", suspendWhenHidden = FALSE)
 
     cur_gene <- reactive({
       # merge & filter gene info and mutation info and filter for selected gene, using the stablized data
@@ -379,7 +480,8 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         clickInput = session$ns("mut_selection"),
         boxId      = session$ns("mut-selected"),
         buttonId   = session$ns("mut_click"),
-        mutantWrapId = session$ns("mutant-wrap")
+        mutantWrapId = session$ns("mutant-wrap"),
+        structCompareId = session$ns("struct-compare")
       )
       prot_ids <- list(
         groupId  = group_id,

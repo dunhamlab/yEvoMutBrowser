@@ -13,6 +13,7 @@ import { MolScriptBuilder as MS } from 'molstar/lib/mol-script/language/builder'
 import { Structure } from 'molstar/lib/mol-model/structure';
 import { StructureSelection } from 'molstar/lib/mol-model/structure';
 import { alignAndSuperpose } from 'molstar/lib/mol-model/structure/structure/util/superposition';
+import { Camera } from 'molstar/lib/mol-canvas3d/camera';
 
 // Defining Shiny as a global object to allow communication from R Shiny
 declare global {
@@ -126,42 +127,51 @@ async function addCartoon(
     .commit();
 }
 
+// Create a viewer for a canvas (once) and wire hover -> Shiny inputs. Returns
+// undefined if the canvas/parent DOM or WebGL init is unavailable.
+async function createViewer(
+  canvasId: string, parentId: string, numInput?: string, aaInput?: string
+): Promise<Viewer | undefined> {
+  const plugin = new PluginContext(MySpec);
+  await plugin.init();
+
+  const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
+  const parent = document.getElementById(parentId) as HTMLDivElement | null;
+  if (!canvas || !parent) {
+    console.error('Mol*: missing canvas/parent', canvasId, parentId);
+    return undefined;
+  }
+  if (!(await plugin.initViewer(canvas, parent))) {
+    console.error('Mol* viewer failed to initialize.');
+    return undefined;
+  }
+
+  const v: Viewer = { plugin, overpaintLayers: [], numInput, aaInput };
+  viewers.set(canvasId, v);
+
+  // Hover reports the residue to THIS viewer's own Shiny inputs.
+  plugin.behaviors.interaction.hover.subscribe(e => {
+    const info = getResidueInfo(e.current.loci);
+    if (!info) return;
+    if (v.numInput) window.Shiny!.setInputValue(v.numInput, info.num, { priority: 'event' });
+    if (v.aaInput) window.Shiny!.setInputValue(v.aaInput, info.aa, { priority: 'event' });
+  });
+  return v;
+}
+
 // Initialize (or reuse) the viewer for a canvas and load the reference structure.
 async function initMolstar(msg: {
   canvasId: string; parentId: string; numInput?: string; aaInput?: string;
   source: StructureSource;
 }) {
   let v = viewers.get(msg.canvasId);
-
   if (!v) {
-    const plugin = new PluginContext(MySpec);
-    await plugin.init();
-
-    const canvas = document.getElementById(msg.canvasId) as HTMLCanvasElement | null;
-    const parent = document.getElementById(msg.parentId) as HTMLDivElement | null;
-    if (!canvas || !parent) {
-      console.error('Mol*: missing canvas/parent', msg.canvasId, msg.parentId);
-      return;
-    }
-    if (!(await plugin.initViewer(canvas, parent))) {
-      console.error('Mol* viewer failed to initialize.');
-      return;
-    }
-
-    v = { plugin, overpaintLayers: [], numInput: msg.numInput, aaInput: msg.aaInput };
-    viewers.set(msg.canvasId, v);
-
-    // Hover reports the residue to THIS viewer's own Shiny inputs.
-    const self = v;
-    plugin.behaviors.interaction.hover.subscribe(e => {
-      const info = getResidueInfo(e.current.loci);
-      if (!info) return;
-      if (self.numInput) window.Shiny!.setInputValue(self.numInput, info.num, { priority: 'event' });
-      if (self.aaInput) window.Shiny!.setInputValue(self.aaInput, info.aa, { priority: 'event' });
-    });
+    v = await createViewer(msg.canvasId, msg.parentId, msg.numInput, msg.aaInput);
+    if (!v) return;
   }
 
-  // Fresh reference structure: clear everything and load it grey.
+  // Fresh reference structure: drop any camera link, clear, load grey.
+  unlinkCanvas(msg.canvasId);
   await v.plugin.clear();
   v.overpaintLayers.length = 0;
   v.refLoci = undefined;
@@ -177,37 +187,128 @@ async function initMolstar(msg: {
   console.log('initMolstar done for', msg.canvasId);
 }
 
-// Load a SECOND structure into the same viewer and superpose it onto the
-// reference, so both share one camera and overlay exactly. Used for WT-vs-mutant.
-async function superposeStructure(msg: {
-  canvasId: string; source: StructureSource; colorHex?: string;
+// Load the mutant into its OWN viewer, aligned to the WT's orientation so a
+// synced camera shows corresponding parts. The WT is ghost-loaded only to
+// compute the superposition transform, then removed (never displayed).
+async function initAlignedMutant(msg: {
+  canvasId: string; parentId: string; source: StructureSource;
+  alignUniprot?: string; colorHex?: string; linkWith?: string; markResidue?: number;
+  numInput?: string; aaInput?: string;
 }) {
-  const v = getViewer(msg);
-  if (!v) return;
-  if (!v.refLoci) { console.warn('Mol*: no reference structure to superpose onto'); return; }
+  let v = viewers.get(msg.canvasId);
+  if (!v) {
+    v = await createViewer(msg.canvasId, msg.parentId, msg.numInput, msg.aaInput);
+    if (!v) return;
+  }
+
+  unlinkCanvas(msg.canvasId);   // drop stale link before reloading
+  await v.plugin.clear();
+  v.overpaintLayers.length = 0;
 
   const hex = (msg.colorHex ?? '#d55e00').replace('#', '');
   const colorValue = parseInt(hex, 16);
 
   const { structureData } = await loadStructure(v, msg.source, colorValue);
   const mobStruct = structureData.obj?.data as Structure | undefined;
-  if (!mobStruct) return;
 
-  // Align the mobile (new) structure's CA atoms onto the reference CA atoms.
-  const mobLoci = caLoci(mobStruct);
-  const results = alignAndSuperpose([v.refLoci, mobLoci]);
-  if (results.length) {
-    const bTransform = results[0].bTransform;
-    await v.plugin.build()
-      .to(structureData.ref)
-      .insert(StateTransforms.Model.TransformStructureConformation, {
-        transform: { name: 'matrix', params: { data: bTransform, transpose: false } }
-      })
-      .commit();
-    console.log('superpose rmsd:', results[0].rmsd);
+  // Align to the WT frame using a ghost-loaded reference, then drop the ref.
+  if (mobStruct && msg.alignUniprot) {
+    const refData = await v.plugin.builders.data.download(
+      { url: 'https://alphafold.ebi.ac.uk/files/AF-' + msg.alignUniprot + '-F1-model_v6.pdb' },
+      { state: { isGhost: true } }
+    );
+    const refTraj = await v.plugin.builders.structure.parseTrajectory(refData, 'pdb');
+    const refModel = await v.plugin.builders.structure.createModel(refTraj);
+    const refStructData = await v.plugin.builders.structure.createStructure(
+      refModel, { name: 'model', params: {} }
+    );
+    const refStruct = refStructData.obj?.data as Structure | undefined;
+    if (refStruct) {
+      const results = alignAndSuperpose([caLoci(refStruct), caLoci(mobStruct)]);
+      if (results.length) {
+        await v.plugin.build()
+          .to(structureData.ref)
+          .insert(StateTransforms.Model.TransformStructureConformation, {
+            transform: { name: 'matrix', params: { data: results[0].bTransform, transpose: false } }
+          })
+          .commit();
+        console.log('align rmsd:', results[0].rmsd);
+      }
+    }
+    await v.plugin.build().delete(refStructData.ref).commit();
   }
 
-  await addCartoon(v.plugin, structureData, colorValue);
+  await addCartoon(v.plugin, structureData, colorValue, cartoonRef);
+  v.plugin.managers.camera.reset();
+
+  // Black cartoon strip at the mutation residue, on both this (mutant) viewer
+  // and the WT viewer. Done here so both structures are already loaded.
+  if (msg.markResidue && msg.markResidue > 0) {
+    await highlightDomains(v.plugin, v.overpaintLayers, msg.markResidue, msg.markResidue, '#000000');
+    const wt = msg.linkWith ? viewers.get(msg.linkWith) : undefined;
+    if (wt) await highlightDomains(wt.plugin, wt.overpaintLayers, msg.markResidue, msg.markResidue, '#000000');
+  }
+
+  // Link to the WT viewer now that this viewer is fully set up (avoids a race
+  // where a separate linkCameras message arrives before the viewer exists).
+  if (msg.linkWith) await linkCameras({ canvasA: msg.linkWith, canvasB: msg.canvasId });
+}
+
+// Mirror one viewer's camera to another (both directions) so rotating either
+// rotates both. Re-linking replaces any previous link for the same pair.
+const cameraLinks = new Map<string, () => void>();
+
+// Drop any camera link involving this canvas (call before re-initializing a
+// viewer, so intermediate reload states aren't mirrored to the other viewer).
+function unlinkCanvas(canvasId: string) {
+  for (const [key, teardown] of Array.from(cameraLinks)) {
+    if (key.split('|').indexOf(canvasId) !== -1) {
+      teardown();
+      cameraLinks.delete(key);
+    }
+  }
+}
+
+async function linkCameras(msg: { canvasA: string; canvasB: string }) {
+  const a = viewers.get(msg.canvasA);
+  const b = viewers.get(msg.canvasB);
+  if (!a || !b) { console.warn('Mol*: linkCameras missing viewer'); return; }
+
+  const key = msg.canvasA + '|' + msg.canvasB;
+  const prev = cameraLinks.get(key);
+  if (prev) prev();
+
+  await Promise.all([a.plugin.canvas3dInitialized, b.plugin.canvas3dInitialized]);
+  const cvA = a.plugin.canvas3d;
+  const cvB = b.plugin.canvas3d;
+  if (!cvA || !cvB) return;
+
+  // Use didDraw (fires every frame a viewer redraws, incl. interactive
+  // zoom/rotate/pan) rather than camera.stateChanged, which does not emit on
+  // trackball input. On each redraw, copy the source camera to the other if it
+  // differs (the equality check prevents an infinite mirror loop).
+  const mirror = (src: typeof cvA, dst: typeof cvB) => src.didDraw.subscribe(() => {
+    const snap = src.camera.getSnapshot();
+    if (Camera.areSnapshotsEqual(dst.camera.getSnapshot(), snap)) return;
+    dst.camera.setState(snap, 0);
+    dst.requestDraw();
+  });
+
+  const subA = mirror(cvA, cvB);
+  const subB = mirror(cvB, cvA);
+  cameraLinks.set(key, () => { subA.unsubscribe(); subB.unsubscribe(); });
+}
+
+// Empty a viewer: drop any camera link and clear its loaded structure(s) and
+// overpaint, leaving a blank canvas. Used e.g. when the gene changes so a
+// previously uploaded mutant doesn't linger into the next gene.
+async function clearViewer(msg: { canvasId: string }) {
+  const v = viewers.get(msg.canvasId);
+  if (!v) return;
+  unlinkCanvas(msg.canvasId);
+  await v.plugin.clear();
+  v.overpaintLayers.length = 0;
+  v.refLoci = undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -216,7 +317,11 @@ async function superposeStructure(msg: {
 
 window.Shiny?.addCustomMessageHandler('initMolstar', (msg: any) => { initMolstar(msg); });
 
-window.Shiny?.addCustomMessageHandler('superposeStructure', (msg: any) => { superposeStructure(msg); });
+window.Shiny?.addCustomMessageHandler('clearViewer', (msg: any) => { clearViewer(msg); });
+
+window.Shiny?.addCustomMessageHandler('initAlignedMutant', (msg: any) => { initAlignedMutant(msg); });
+
+window.Shiny?.addCustomMessageHandler('linkCameras', (msg: any) => { linkCameras(msg); });
 
 window.Shiny?.addCustomMessageHandler('highlightDomains', (msg: any) => {
   const v = getViewer(msg);

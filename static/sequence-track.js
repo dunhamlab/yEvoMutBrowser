@@ -624,6 +624,7 @@
     tr.boxId = msg.boxId;
     tr.buttonId = msg.buttonId;
     g.mutantWrapId = msg.mutantWrapId;
+    g.structCompareId = msg.structCompareId;
     // New gene/isolate -> clear the previous selection and any mutant tracks.
     tr.selectedSet = {};
     tr.selectedList = [];
@@ -662,6 +663,12 @@
       var w = document.getElementById(g.mutantWrapId);
       if (w) w.style.display = "none";
     }
+    // The structure comparison is only relevant once a protein has been
+    // copied; a stale mutant (new gene/selection) means it should go away too.
+    if (g && g.structCompareId) {
+      var sc = document.getElementById(g.structCompareId);
+      if (sc) sc.style.display = "none";
+    }
   }
 
   // "Generate Sequence": render mutant DNA + protein tracks (with a mark at
@@ -687,6 +694,12 @@
         var label = btn.textContent;
         btn.textContent = "Copied!";
         setTimeout(function () { btn.textContent = label; }, 1500);
+        // Now that the user has a sequence to fold, reveal the structure
+        // comparison section (text + file upload + the two Mol* viewers).
+        if (g.structCompareId) {
+          var sc = document.getElementById(g.structCompareId);
+          if (sc) sc.style.display = "block";
+        }
       });
     }
 
