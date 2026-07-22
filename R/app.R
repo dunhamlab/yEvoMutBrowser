@@ -153,6 +153,9 @@ yEvoMutBrowser <- function(...) {
 
     chrom_selected_gene <- reactiveVal(NULL)
     
+    gene_view_selected_gene <- reactiveVal(NULL)
+
+
     chrom_map_server(
       "chromMap",
       final_gene = final_gene,
@@ -185,12 +188,15 @@ yEvoMutBrowser <- function(...) {
       link = link,
       gene_info_link_function = ORGANISM_GENE_INFO_LINK_FUNCTION,
       color_vector = GENE_VIEW_COLORS,
-      chrom_selected_gene = chrom_selected_gene
+      chrom_selected_gene = chrom_selected_gene,
+      gene_view_selected_gene = gene_view_selected_gene
     )
     
 
     gene_pro_view_server(
-      "geneView2", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS
+      "geneView2", total_spaces, filtered_data, genes_info, link, 
+      ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS,
+      gene_view_selected_gene = gene_view_selected_gene
     )
     protein_prediction_server(
       "proteinPrediction", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS, ALPHAFOLD_COLORS, form_complete
