@@ -133,7 +133,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
 
     #gene view dropdown menu
-    #creating stabilization so that the selected gene holds across different sample selections  
+    #creating stabilization so that the selected gene holds across different sample selections
     stable_data <- debounce(filtered_data, 150)
 
     last_choices <- reactiveVal(NULL)
@@ -483,11 +483,11 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         style = "display: flex; flex-direction: row;",
         lapply(names(transp_colors), function(mut) {
           tags$div(
-            style = "display:flex; align-items:center; 
+            style = "display:flex; align-items:center;
             margin-bottom:4px; margin-top:30px;",
             tags$div(
               style = sprintf("width:20px; height:20px;
-              background:%s; margin-right:5px; border:1px 
+              background:%s; margin-right:5px; border:1px
               solid #000; margin-left:5px; margin-top: 4px;",
                               transp_colors[mut])
             ),
@@ -505,11 +505,11 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         style = "display: flex; flex-direction: row;",
         lapply(names(plddt_colors), function(level) {
           tags$div(
-            style = "display:flex; align-items:center; 
+            style = "display:flex; align-items:center;
             margin-bottom:4px; margin-top:0px;",
             tags$div(
               style = sprintf("width:20px; height:20px;
-              background:%s; margin-right:5px; border:1px 
+              background:%s; margin-right:5px; border:1px
               solid #000; margin-left:5px; margin-top: 4px;",
                               plddt_colors[level])
             ),
@@ -546,7 +546,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         geom_point(size = 3.2, alpha = 0.3, shape = 15) +
         xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
 
-        new_theme_empty + labs(x = "My X-axis Label") + 
+        new_theme_empty + labs(x = "My X-axis Label") +
         guides(fill = FALSE) + theme(legend.position = "none")
 
       # Hover text
@@ -761,7 +761,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         new_theme_empty +
         guides(fill = FALSE)
 
-      gg <- ggplotly(p, tooltip = "text", 
+      gg <- ggplotly(p, tooltip = "text",
                      dynamicTicks = TRUE, source = plotc) %>%
         layout(
           title = list(text = NULL),
@@ -851,8 +851,8 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
 
       relayout_data <- event_data("plotly_relayout", source = plot_id)
 
-      if (!is.null(relayout_data) && 
-            "xaxis.range[0]" %in% names(relayout_data) && 
+      if (!is.null(relayout_data) &&
+            "xaxis.range[0]" %in% names(relayout_data) &&
             "xaxis.range[1]" %in% names(relayout_data)) {
 
         new_range <- c(relayout_data[["xaxis.range[0]"]],

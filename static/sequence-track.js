@@ -200,6 +200,19 @@
   }
 
   // Protein track: one amino acid per codon (3 bases), aligned to the DNA.
+  function isMarkedCodon(tr, k) {
+    if (tr.markIndices && tr.markIndices.length) {
+      var start = 3 * k;
+      var end = start + 3;
+      for (var i = 0; i < tr.markIndices.length; i++) {
+        var idx = tr.markIndices[i];
+        if (idx >= start && idx < end) return true;
+      }
+      return false;
+    }
+    return tr.markIndex != null && Math.floor(tr.markIndex / 3) === k;
+  }
+
   function drawProt(tr, p, g) {
     var ctx = p.ctx, cssW = p.cssW, cssH = p.cssH;
     var pw = Math.max(1, cssW - LEFT_GUTTER);
@@ -229,11 +242,10 @@
     }
     // Each codon is a cell colored by its amino acid (a protein "barcode" when
     // zoomed out); the residue letter appears once cells are wide enough.
-    var mutCodon = (tr.markIndex == null) ? -1 : Math.floor(tr.markIndex / 3);
     for (var k = kmin; k <= kmax; k++) {
       var x0 = LEFT_GUTTER + (3 * k - g.offset) * bpW;
       var ch = aa.charAt(k);
-      var isMut = (k === mutCodon);              // mutated codon: black cell
+      var isMut = isMarkedCodon(tr, k);         // mutated codon: black cell
       var col = isMut ? "#000000" : (AA_COLORS[ch] || AA_COLORS.X);
       ctx.fillStyle = col;
       ctx.fillRect(x0, 0, codonW + 0.5, cssH);
@@ -243,6 +255,13 @@
       }
     }
     ctx.restore();
+  }
+
+  function isMarkedIndex(tr, i) {
+    if (tr.markIndices && tr.markIndices.length) {
+      return tr.markIndices.indexOf(i) >= 0;
+    }
+    return tr.markIndex != null && i === tr.markIndex;
   }
 
   function drawSeq(tr, p, g) {
@@ -268,7 +287,7 @@
     for (var i = first; i < last; i++) {
       var x = LEFT_GUTTER + (i - g.offset) * bpW;
       var b = tr.seq.charAt(i);
-      var isMut = (tr.markIndex != null && i === tr.markIndex);
+      var isMut = isMarkedIndex(tr, i);
       ctx.fillStyle = isMut ? "#000000" : colorFor(b); // mutated base: black
       ctx.fillRect(x, 0, bpW + 1, trackH); // +1 avoids sub-pixel seams
       if (drawLetters) {
@@ -450,8 +469,12 @@
   function pushSelection(tr) {
     if (!tr.clickInput || !window.Shiny) return;
     var m = (tr.selectedList && tr.selectedList[0]) || null;
-    Shiny.setInputValue(tr.clickInput, m ? { pos: m.pos, alt: m.alt } : null,
-      { priority: "event" });
+    Shiny.setInputValue(tr.clickInput, m ? {
+      pos: m.pos,
+      ref: m.ref,
+      alt: m.alt,
+      annotation: m.annotation
+    } : null, { priority: "event" });
   }
 
   function escapeHtml(s) {
@@ -606,12 +629,15 @@
     if (!tr) return;
     if (msg.empty) {
       tr.empty = true; tr.message = msg.message; tr.seq = "";
+      tr.markIndex = null;
+      tr.markIndices = [];
       renderTrack(tr);
       return;
     }
     tr.empty = false;
     tr.seq = msg.seq;
     tr.markIndex = (msg.markIndex == null) ? null : msg.markIndex;
+    tr.markIndices = Array.isArray(msg.markIndices) ? msg.markIndices.slice() : [];
     adoptGenome(g, msg);
     renderGroup(g);
   }
@@ -648,12 +674,15 @@
     if (!tr) return;
     if (msg.empty) {
       tr.empty = true; tr.message = msg.message; tr.aa = "";
+      tr.markIndex = null;
+      tr.markIndices = [];
       renderTrack(tr);
       return;
     }
     tr.empty = false;
     tr.aa = msg.aa || "";
     tr.markIndex = (msg.markIndex == null) ? null : msg.markIndex;
+    tr.markIndices = Array.isArray(msg.markIndices) ? msg.markIndices.slice() : [];
     adoptGenome(g, msg);
     renderGroup(g);
   }
@@ -677,10 +706,25 @@
     var g = getGroup(msg.groupId);
     var dna = getTrack(g, "seq",
       { canvasId: msg.dnaCanvasId, tipId: msg.dnaTipId });
-    if (dna) { dna.empty = false; dna.seq = msg.seq; dna.markIndex = msg.markIndex; }
+    var dnaMarks = Array.isArray(msg.dnaMarkIndices) ? msg.dnaMarkIndices.slice() :
+      (Array.isArray(msg.markIndices) ? msg.markIndices.slice() : []);
+    var protMarks = Array.isArray(msg.protMarkIndices) ? msg.protMarkIndices.slice() :
+      (Array.isArray(msg.markIndices) ? msg.markIndices.slice() : []);
+
+    if (dna) {
+      dna.empty = false;
+      dna.seq = msg.seq;
+      dna.markIndex = (msg.markIndex == null) ? null : msg.markIndex;
+      dna.markIndices = dnaMarks;
+    }
     var prot = getTrack(g, "prot",
       { canvasId: msg.protCanvasId, tipId: msg.protTipId });
-    if (prot) { prot.empty = false; prot.aa = msg.aa; prot.markIndex = msg.markIndex; }
+    if (prot) {
+      prot.empty = false;
+      prot.aa = msg.aa;
+      prot.markIndex = null;
+      prot.markIndices = protMarks;
+    }
     g.mutantProt = prot; // latest mutant protein, for the copy button
 
     // Wire the "copy mutated protein" button once. Copies the protein without

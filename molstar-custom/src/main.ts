@@ -193,7 +193,7 @@ async function initMolstar(msg: {
 async function initAlignedMutant(msg: {
   canvasId: string; parentId: string; source: StructureSource;
   alignUniprot?: string; colorHex?: string; linkWith?: string; markResidue?: number;
-  numInput?: string; aaInput?: string;
+  numInput?: string; aaInput?: string; readyInput?: string;
 }) {
   let v = viewers.get(msg.canvasId);
   if (!v) {
@@ -244,14 +244,31 @@ async function initAlignedMutant(msg: {
   // Black cartoon strip at the mutation residue, on both this (mutant) viewer
   // and the WT viewer. Done here so both structures are already loaded.
   if (msg.markResidue && msg.markResidue > 0) {
+    await highlightResidueWithSphere(v.plugin, [msg.markResidue], '#000000');
     await highlightDomains(v.plugin, v.overpaintLayers, msg.markResidue, msg.markResidue, '#000000');
     const wt = msg.linkWith ? viewers.get(msg.linkWith) : undefined;
-    if (wt) await highlightDomains(wt.plugin, wt.overpaintLayers, msg.markResidue, msg.markResidue, '#000000');
+    if (wt) {
+      await highlightResidueWithSphere(wt.plugin, [msg.markResidue], '#000000');
+      await highlightDomains(wt.plugin, wt.overpaintLayers, msg.markResidue, msg.markResidue, '#000000');
+    }
   }
 
   // Link to the WT viewer now that this viewer is fully set up (avoids a race
   // where a separate linkCameras message arrives before the viewer exists).
   if (msg.linkWith) await linkCameras({ canvasA: msg.linkWith, canvasB: msg.canvasId });
+
+  // Everything above -- parse, fetch-and-align, cartoon, highlight, camera
+  // link -- runs as one long async chain that the Shiny message handler
+  // never awaits, so from R's perspective the mutant structure "arrives"
+  // instantly even though it isn't actually ready for several hundred ms to
+  // a couple seconds. zoomToResidue() reads the live structure hierarchy, so
+  // a click that lands before this point finds nothing loaded yet and
+  // silently no-ops (the "have to click it several times" symptom). Signal
+  // completion here so R can keep the "Hover to Mutant mutation" button
+  // disabled until this viewer is genuinely ready.
+  if (msg.readyInput && window.Shiny) {
+    window.Shiny.setInputValue(msg.readyInput, Date.now(), { priority: 'event' });
+  }
 }
 
 // Mirror one viewer's camera to another (both directions) so rotating either
@@ -283,19 +300,31 @@ async function linkCameras(msg: { canvasA: string; canvasB: string }) {
   const cvB = b.plugin.canvas3d;
   if (!cvA || !cvB) return;
 
-  // Use didDraw (fires every frame a viewer redraws, incl. interactive
-  // zoom/rotate/pan) rather than camera.stateChanged, which does not emit on
-  // trackball input. On each redraw, copy the source camera to the other if it
-  // differs (the equality check prevents an infinite mirror loop).
-  const mirror = (src: typeof cvA, dst: typeof cvB) => src.didDraw.subscribe(() => {
+  // One-shot "this draw is just the echo of a mirror we just applied, don't
+  // bounce it back" flags. Without these, dst.camera.setState(snap, 0) fires
+  // dst's own didDraw, which the opposite-direction mirror immediately
+  // propagates back to src -- hard-resetting (duration 0) whichever viewer
+  // was actively mid-animation (e.g. the focusLoci transition triggered by
+  // "Hover to WT/Mutant mutation") on every single frame of that animation.
+  // That frame-by-frame tug-of-war is why the target camera move sometimes
+  // never visibly landed and needed several clicks.
+  let echoA = false;
+  let echoB = false;
+
+  const mirror = (
+    src: typeof cvA, dst: typeof cvB,
+    isEcho: () => boolean, clearEcho: () => void, markDstEcho: () => void
+  ) => src.didDraw.subscribe(() => {
+    if (isEcho()) { clearEcho(); return; } // this draw is the echo -- swallow it
     const snap = src.camera.getSnapshot();
     if (Camera.areSnapshotsEqual(dst.camera.getSnapshot(), snap)) return;
+    markDstEcho();
     dst.camera.setState(snap, 0);
     dst.requestDraw();
   });
 
-  const subA = mirror(cvA, cvB);
-  const subB = mirror(cvB, cvA);
+  const subA = mirror(cvA, cvB, () => echoA, () => { echoA = false; }, () => { echoB = true; });
+  const subB = mirror(cvB, cvA, () => echoB, () => { echoB = false; }, () => { echoA = true; });
   cameraLinks.set(key, () => { subA.unsubscribe(); subB.unsubscribe(); });
 }
 

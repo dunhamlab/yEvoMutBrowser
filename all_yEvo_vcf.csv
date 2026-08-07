@@ -2287,7 +2287,7 @@ chrVII,550235,T,C,NA,missense,YGR032W,GSC2,F658L,251209_lab,fks1_deletion,caspof
 chrXI,499807,C,G,NA,missense,YKR029C,SET3,Q9H,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D3_fks1del
 chrII,739297,G,A,NA,missense,YBR265W,TSC10,C239Y,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D3_fks1del
 chrIII,190760,C,T,NA,nonsense,YCR034W,ELO2,Q57*,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D4_fks1del
-chrXVI,859638,G,A,NA,missense,YPR159W,KRE6,A686T,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D4_fks1del
+chrXVI,859638,G,A,NA,mizssense,YPR159W,KRE6,A686T,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D4_fks1del
 chrVII,550223,G,C,NA,missense,YGR032W,GSC2,E654Q,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D4_fks1del
 chrIII,165227,C,A,NA,synonymous,YCR026C,NPP1,P371P,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D5_fks1del
 chrVII,550223,G,A,NA,missense,YGR032W,GSC2,E654K,251209_lab,fks1_deletion,caspofungin,Maxwell,2025,D5_fks1del
