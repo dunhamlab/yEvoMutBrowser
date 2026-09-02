@@ -8,7 +8,7 @@ protein_prediction_ui <- function(id) {
            tags$div(class = "info_div",
              verbatimTextOutput(NS(id, "info")),
            ),
-            
+
             selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
 
             tags$div(style = "font-size: 12px; color: #666; margin-bottom: 8px;",
@@ -65,6 +65,15 @@ protein_prediction_ui <- function(id) {
               )
             ),
 
+            # X-axis label for the wild-type DNA/protein tracks above.
+            tags$div(
+              "Position Number",
+              style = paste(
+                "text-align: center; font-size: 11px; color: #666;",
+                "margin-top: 2px; margin-bottom: 4px;"
+              )
+            ),
+
             div("", style = "height: 6px;"),
 
             # Mutations track: genomic coordinates synced with the sequence
@@ -116,7 +125,7 @@ protein_prediction_ui <- function(id) {
               id = NS(id, "mutant-wrap"),
               style = "display: none; margin-top: 14px;",
               tags$div("With selected mutation",
-                       style = "font-weight: bold; margin-bottom: 4px;"),
+                       style = "font-weight: bold; font-size: 22px; margin-bottom: 4px;"),
               tags$div(
                 id = NS(id, "mutprot-wrap"),
                 style = paste(
@@ -148,10 +157,23 @@ protein_prediction_ui <- function(id) {
                   "border-radius: 3px; font: 12px monospace; white-space: nowrap;",
                   "z-index: 10;"))
               ),
+
+              # X-axis label for the mutant DNA/protein tracks above.
+              tags$div(
+                "Position Number",
+                style = paste(
+                  "text-align: center; font-size: 11px; color: #666;",
+                  "margin-top: 2px; margin-bottom: 4px;"
+                )
+              ),
+
               # Copies the mutant protein (without the stop "*"); wired in
-              # static/sequence-track.js.
+              # static/sequence-track.js. Also opens AlphaFold Server in a new
+              # tab so the user can immediately paste the copied sequence in
+              # to predict the mutant structure.
               tags$button(id = NS(id, "copy-protein"),
                           class = "btn btn-default", style = "margin-top: 10px;",
+                          onclick = "window.open('https://alphafoldserver.com/', '_blank');",
                           "Copy mutated protein")
             ),
 
@@ -170,10 +192,11 @@ protein_prediction_ui <- function(id) {
             tags$div(id = NS(id, "struct-compare"),
               style = "display: none; margin-top: 16px; width: 640px;",
               tags$div("Structure comparison — WT (grey) vs mutant (orange)",
-                       style = "font-weight: bold; margin-bottom: 4px;"),
+                       style = "font-weight: bold; font-size: 22px; margin-bottom: 4px;"),
               fileInput(NS(id, "mutant_structure"),
                         "Upload AlphaFold mutant structure (.pdb / .cif)",
-                        accept = c(".pdb", ".cif")),
+                        accept = c(".pdb", ".cif"),
+                        width = "420px"),
               tags$div(
                 style = "display: flex; flex-direction: column; gap: 12px;",
                 tags$div(
@@ -212,8 +235,14 @@ protein_prediction_ui <- function(id) {
                 style = "margin-top: 10px; display: flex; gap: 10px;",
                 actionButton(NS(id, "zoom_wt"), "Hover to WT mutation"),
                 actionButton(NS(id, "zoom_mut"), "Hover to Mutant mutation")
-              )
+              ),
             ),
+            # Step-by-step usage instructions. Styled identically to the
+            # "info_div" box above (same class -> same border/background/font);
+            # only the content differs: "Instructions:" is bold.
+            tags$div(class = "info_div",
+             uiOutput(NS(id, "instructions")),
+           ),
            ))
 }
 
@@ -222,6 +251,29 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
 
     output$info <- renderText({
       "This section provides a visual representation of the predicted protein structure based on the gene sequence. The reference sequence is derived from S288c."
+    })
+
+    # Same visual container as output$info (both live inside a class="info_div"
+    # div), but built with renderUI instead of renderText/verbatimTextOutput so
+    # "Instructions:" can be bold. Built as a single HTML() string (rather than
+    # passing tags$b()/strings as separate tags$pre() arguments) because
+    # htmltools pretty-prints separate tag arguments with its own indentation
+    #/newlines, and since the CSS sets white-space: pre-wrap on this pre, that
+    # extra formatting whitespace was rendering as visibly huge gaps between
+    # lines. A single pre-built string has exactly the \n's we want and none
+    # we don't.
+    output$instructions <- renderUI({
+      tags$pre(
+        class = "shiny-text-output",
+        HTML(paste0(
+          "<b>Instructions:</b>\n",
+          "1. Select a gene from the dropdown menu.\n",
+          "2. Click on the mutation of interest in the mutation track to select it (it will turn black).\n",
+          "3. Click 'Generate Mutated Sequence' to view the mutated DNA and protein tracks.\n",
+          "4. Copy the mutated protein sequence and use AlphaFold to predict its structure.\n",
+          "5. Upload the predicted mutant structure to compare it with the wild-type structure."
+        ))
+      )
     })
 
     stable_data <- debounce(filtered_data, 150)
@@ -306,19 +358,62 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
       paste(aa[seq_len(n)], collapse = "")
     }
 
+    # Apply a selected coding-sequence mutation to the reference sequence.
+    # The mark spans the mutant sequence positions [idx, idx + nchar(alt) - 1]
+    # -- i.e. the full ALT allele, anchored at the mutation's genomic
+    # position -- rather than only the subset of bases that differ
+    # character-by-character from REF. That keeps the highlighted region
+    # consistent with what's marked in the mutation track above: a deletion
+    # like ATTG -> A marks just the single remaining anchor base, and an
+    # insertion like T -> TTTT marks the full 4-base inserted run.
+    apply_mutation_to_sequence <- function(seq, gl, sel) {
+      if (is.null(gl) || is.null(sel) || is.null(sel$pos)) {
+        return(list(seq = seq, markIndices = integer(0)))
+      }
+
+      idx <- coding_index(gl, sel$pos)
+      if (is.na(idx) || idx < 0 || idx >= gl$L) {
+        return(list(seq = seq, markIndices = integer(0)))
+      }
+
+      ref_genomic <- toupper(as.character(sel$ref))
+      alt_genomic <- toupper(as.character(sel$alt))
+      ref_coding <- if (gl$strand == -1) revcomp(ref_genomic) else ref_genomic
+      alt_coding <- if (gl$strand == -1) revcomp(alt_genomic) else alt_genomic
+
+      start_pos <- idx + 1L
+      end_pos <- start_pos + nchar(ref_coding) - 1L
+
+      mutated_seq <- paste0(
+        substr(seq, 1L, start_pos - 1L),
+        alt_coding,
+        substr(seq, end_pos + 1L, nchar(seq))
+      )
+
+      mark_indices <- integer(0)
+      ann <- if (!is.null(sel$annotation)) tolower(as.character(sel$annotation)) else ""
+      if (nchar(ref_coding) == 1L && nchar(alt_coding) == 1L) {
+        mark_indices <- idx
+      } else if (identical(ann, "indel-inframe") && nchar(alt_coding) > 0L) {
+        mark_indices <- seq.int(idx, length.out = nchar(alt_coding))
+      }
+
+      list(seq = mutated_seq, markIndices = mark_indices)
+    }
+
     gene <- reactive({input$geneSelectDropDown})
 
     # ---- Structure comparison (Mol*): two synced side-by-side viewers ----
     wtc <- session$ns("wt-canvas")
     mutc <- session$ns("mut-canvas")
 
-    # Load the wild-type AlphaFold structure into the WT viewer on gene change.
-    # Also wipe the mutant viewer + its file input so a mutant uploaded for the
-    # previous gene doesn't carry over into the new one.
-    observeEvent(gene(), {
-      req(gene())
-      session$sendCustomMessage("clearViewer", list(canvasId = mutc))
-      shinyjs::reset("mutant_structure")
+    # Load the wild-type AlphaFold structure into the WT viewer. Used both on
+    # gene change and whenever the selected mutation changes (see below) --
+    # in the latter case we clear + reload rather than leaving the existing
+    # structure in place, since Mol* keeps a persistent residue
+    # selection/highlight (e.g. from "Hover to WT mutation") that would
+    # otherwise carry the previous mutation's highlight forward.
+    load_wt_structure <- function() {
       uid <- genes_info$UniprotID[genes_info$GENE == gene()][1]
       if (length(uid) == 0 || is.na(uid) || !nzchar(uid)) return()
       session$sendCustomMessage("initMolstar", list(
@@ -328,13 +423,35 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         aaInput  = session$ns("wt_resi_aa"),
         source   = list(kind = "alphafold", uniprotId = uid)
       ))
+    }
+
+    # Load the wild-type AlphaFold structure into the WT viewer on gene change.
+    # Also wipe the mutant viewer + its file input so a mutant uploaded for the
+    # previous gene doesn't carry over into the new one, and disable "Hover to
+    # Mutant mutation" since there's now nothing loaded for it to zoom to.
+    observeEvent(gene(), {
+      req(gene())
+      session$sendCustomMessage("clearViewer", list(canvasId = mutc))
+      shinyjs::reset("mutant_structure")
+      shinyjs::disable("zoom_mut")
+      load_wt_structure()
     })
 
     # Upload a mutant structure -> load it in the mutant viewer aligned to the
-    # WT orientation, link the two cameras, and mark the mutation residue black.
+    # WT orientation, link the two cameras, and mark the mutation residue
+    # black. initAlignedMutant on the JS side is a long, un-awaited async
+    # chain (parse the upload, fetch a second AlphaFold structure just to
+    # compute the alignment, superpose, commit, delete the temp reference,
+    # build the cartoon, highlight, then link cameras) -- the struct-compare
+    # panel is already visible by this point, so a click on "Hover to Mutant
+    # mutation" can land while that chain is still running and zoomToResidue()
+    # finds an empty structure hierarchy and silently no-ops. Disable the
+    # button here and only re-enable it once JS reports the chain is
+    # genuinely finished (see the mutant_ready observer below).
     observeEvent(input$mutant_structure, {
       f <- input$mutant_structure
       req(f)
+      shinyjs::disable("zoom_mut")
       uid <- genes_info$UniprotID[genes_info$GENE == gene()][1]
       txt <- paste(readLines(f$datapath, warn = FALSE), collapse = "\n")
       fmt <- if (grepl("\\.cif$", f$name, ignore.case = TRUE)) "mmcif" else "pdb"
@@ -345,7 +462,12 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
       res <- NULL
       if (!is.null(gl) && !is.null(sel) && !is.null(sel$pos)) {
         idx <- coding_index(gl, sel$pos)
-        if (!is.na(idx) && idx >= 0) res <- floor(idx / 3) + 1
+        if (!is.na(idx) && idx >= 0) {
+          aa_idx <- floor(idx / 3) + 1
+          ann <- if (!is.null(sel$annotation)) tolower(as.character(sel$annotation)) else ""
+          if (identical(ann, "nonsense")) aa_idx <- max(1L, aa_idx - 1L)
+          res <- aa_idx
+        }
       }
 
       session$sendCustomMessage("initAlignedMutant", list(
@@ -353,6 +475,7 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         parentId     = session$ns("mut-parent"),
         numInput     = session$ns("mut_resi_num"),
         aaInput      = session$ns("mut_resi_aa"),
+        readyInput   = session$ns("mutant_ready"),
         colorHex     = "#d55e00",
         source       = list(kind = "data", format = fmt, data = txt),
         alignUniprot = if (!is.na(uid) && nzchar(uid)) uid else NULL,
@@ -361,14 +484,44 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
       ))
     })
 
+    # Fired by initAlignedMutant on the JS side once the mutant structure is
+    # fully loaded, aligned, highlighted, and camera-linked -- only then is
+    # "Hover to Mutant mutation" safe to use.
+    observeEvent(input$mutant_ready, {
+      shinyjs::enable("zoom_mut")
+    }, ignoreInit = TRUE)
+
+    # The mutation-track click handler (static/sequence-track.js) hides the
+    # mutant-wrap/struct-compare containers as soon as the selected mutation
+    # changes, but it has no way to reach into the Mol* viewers themselves --
+    # so both the previously-uploaded mutant structure AND the WT viewer's
+    # residue highlight/selection (e.g. from "Hover to WT mutation") were
+    # staying in place, just hidden. Clear and reload both viewers whenever
+    # the selection changes (including deselection) so the next
+    # "copy mutated protein" / upload starts from a blank slate, matching the
+    # gene-change reset above. Also disable "Hover to Mutant mutation" again,
+    # since the mutant viewer is now empty until the next upload finishes.
+    observeEvent(input$mut_selection, {
+      session$sendCustomMessage("clearViewer", list(canvasId = mutc))
+      shinyjs::reset("mutant_structure")
+      shinyjs::disable("zoom_mut")
+      session$sendCustomMessage("clearViewer", list(canvasId = wtc))
+      load_wt_structure()
+    }, ignoreInit = TRUE, ignoreNULL = FALSE)
+
     # Protein residue number of the currently selected mutation (or NULL).
+    # For nonsense mutations, the introduced stop codon truncates the mutant
+    # protein at that site, so we highlight the preceding residue instead.
     mut_residue <- reactive({
       gl <- gene_layout()
       sel <- input$mut_selection
       if (is.null(gl) || is.null(sel) || is.null(sel$pos)) return(NULL)
       idx <- coding_index(gl, sel$pos)
       if (is.na(idx) || idx < 0) return(NULL)
-      floor(idx / 3) + 1
+      aa_idx <- floor(idx / 3) + 1
+      ann <- if (!is.null(sel$annotation)) tolower(as.character(sel$annotation)) else ""
+      if (identical(ann, "nonsense")) aa_idx <- max(1L, aa_idx - 1L)
+      aa_idx
     })
 
     # Zoom a viewer to the mutation residue. The linked camera makes the other
@@ -556,11 +709,12 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         }
         list(
           pos        = muts$POS[i],     # genomic; JS maps to display index
+          ref        = as.character(muts$REF[i]),
           alt        = as.character(muts$ALT[i]),
           annotation = ann,
           change     = change,
           base       = base,
-          clickable  = ann %in% c("missense", "nonsense"),
+          clickable  = ann %in% c("missense", "nonsense", "indel-inframe"),
           color      = unname(annotation_colors[ann]),
           hover      = paste0(
             ann, "\n", change, "\n",
@@ -579,22 +733,20 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
       )))
     }, ignoreInit = FALSE)
 
-    # "Generate Sequence": apply the selected (missense/nonsense) mutation to
-    # the coding sequence and render mutant DNA + protein tracks in the same
-    # view group as the wild type, with a black line at the mutation. Nonsense
-    # introduces a stop codon, so translate_protein truncates there.
+    # "Generate Sequence": apply the selected (missense/nonsense/indel-inframe)
+    # mutation to the coding sequence and render mutant DNA + protein tracks in
+    # the same view group as the wild type. Only the DNA track gets a black
+    # highlight at the affected position(s); the protein track is left
+    # unhighlighted (protMarkIndices is always empty) so amino acid residues
+    # are never blacked out.
     observeEvent(input$mut_click, {
       gl <- gene_layout()
       sel <- input$mut_selection  # single object: list(pos, alt), or NULL
       if (is.null(gl) || is.null(sel) || is.null(sel$pos)) return()
 
-      idx <- coding_index(gl, sel$pos)           # 0-based coding index
-      if (is.na(idx) || idx < 0 || idx >= gl$L) return()
-      alt_genomic <- toupper(as.character(sel$alt))
-      alt_coding <- if (gl$strand == -1) revcomp(alt_genomic) else alt_genomic
-
-      mut_seq <- gl$coding
-      substr(mut_seq, idx + 1, idx + 1) <- alt_coding  # SNV: single base
+      mutation_result <- apply_mutation_to_sequence(gl$coding, gl, sel)
+      mut_seq <- mutation_result$seq
+      mark_indices <- mutation_result$markIndices
 
       session$sendCustomMessage("mutantTracks", list(
         groupId      = session$ns("proPred"),
@@ -608,7 +760,10 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         step         = gl$step,
         chrom        = gl$chrom,
         seqLength    = gl$L,
-        markIndex    = idx,
+        markIndex    = if (length(mark_indices) > 0) mark_indices[1] else NULL,
+        markIndices  = mark_indices,
+        dnaMarkIndices = mark_indices,
+        protMarkIndices = integer(0),
         seq          = mut_seq,
         aa           = translate_protein(mut_seq)
       ))
