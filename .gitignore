@@ -65,3 +65,4 @@ npm-debug.log*
 # Build outputs
 dist/
 
+.entropy/
