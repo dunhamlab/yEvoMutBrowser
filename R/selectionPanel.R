@@ -13,50 +13,34 @@ selection_panel_ui <- function(id, mut_backend) {
       actionButton(NS(id, "submit_teach_year"), "Submit Teacher and Year"),
       ns = NS(id)
     ),
-    radioButtons(NS(id, "View"), "Select an option:",
-                 choices = c("View By Class", "View By Selection Condition"),
-                 selected = character(0)
-    ),
     div("", style = "height: 10px;"), # Create a 10px vertical space
     
     # create download button here
     downloadButton(NS(id, "downloadBtn"), "Download the following data"),
     div("", style = "height: 10px;"), # Create a 10px vertical space
     
-    # Only shows on condition observeEvent
-    conditionalPanel(
-      # links condition to button via button key
-      condition = "input.uploadData || input.classView ||
-      output.selectedClassView",
-      # NOTE: instructor/year/sample are multi-select. "All Selected" is NOT
-      # a real choice here -- it's shown as placeholder text (grayed out)
-      # whenever nothing is picked, which is treated as "no filter" in the
-      # server logic. This makes "pick specific values" and "all selected"
-      # mutually exclusive by construction: there's no chip for "All
-      # Selected" that could be picked alongside real values.
-      selectizeInput(NS(id, "instructor"), "Instructor", choices = "",
-                     multiple = TRUE,
-                     options = list(placeholder = "All Selected")),
-      selectizeInput(NS(id, "year"), "Year", choices = "",
-                     multiple = TRUE,
-                     options = list(placeholder = "All Selected")),
-      # PLEASE NOTE: "sample" is called "Sample Name" within ui to make it
-      # easier to understand, but the official name in the df is sample
-      selectizeInput(NS(id, "sample"), "Sample Name", choices = "",
-                     multiple = TRUE,
-                     options = list(placeholder = "All Selected")),
-      ns = NS(id)
-    ),
-    conditionalPanel(
-      condition = "input.cumulView || output.selectedCumulView",
-      selectInput(NS(id, "condition"), "Condition", choices = c(
-        "All Selected",
-        mut_backend %>%
-          count(condition) %>%
-          pull(condition)
-      )),
-      selectInput(NS(id, "background"), "Ancestor Strain", choices = ""),
-      ns = NS(id)),
+    # A single combined set of filters -- no more "View By Class" vs "View By
+    # Selection Condition" toggle. All five fields are always visible,
+    # multi-select, and cross-filter each other symmetrically (see
+    # selection_panel_server). "All Selected" is placeholder text shown
+    # whenever a field is empty, rather than a real selectable choice.
+    selectizeInput(NS(id, "instructor"), "Instructor", choices = "",
+                   multiple = TRUE,
+                   options = list(placeholder = "All Selected")),
+    selectizeInput(NS(id, "year"), "Year", choices = "",
+                   multiple = TRUE,
+                   options = list(placeholder = "All Selected")),
+    # PLEASE NOTE: "sample" is called "Sample Name" within ui to make it
+    # easier to understand, but the official name in the df is sample
+    selectizeInput(NS(id, "sample"), "Sample Name", choices = "",
+                   multiple = TRUE,
+                   options = list(placeholder = "All Selected")),
+    selectizeInput(NS(id, "condition"), "Condition", choices = "",
+                   multiple = TRUE,
+                   options = list(placeholder = "All Selected")),
+    selectizeInput(NS(id, "background"), "Ancestor Strain", choices = "",
+                   multiple = TRUE,
+                   options = list(placeholder = "All Selected")),
   )
 }
 
@@ -65,8 +49,8 @@ region2gene_name <- function(gene_region, gene_info) {
 }
 
 # Treats a multi-select input as "unfiltered" if nothing is picked yet.
-# (For instructor/year/sample, "All Selected" is placeholder text rather
-# than a real choice, so "nothing picked" IS the all-selected state.)
+# ("All Selected" is placeholder text rather than a real choice, so "nothing
+# picked" IS the all-selected state.)
 is_all_selected <- function(x) {
   is.null(x) || length(x) == 0
 }
@@ -111,116 +95,69 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
       }
     })
     
-    # Display settings
-    observe({
-      if (!is.null(input$View)) {
-        if (input$View == "View By Class") {
-          shinyjs::disable("cumulView")
-          shinyjs::enable("classView")
-          updateSelectInput(session, "condition", selected = "All Selected")
-          updateSelectInput(session, "background", selected = "All Selected")
-        } else if (input$View == "View By Selection Condition") {
-          shinyjs::enable("cumulView")
-          shinyjs::disable("classView")
-          # Reset the class-view multi-selects back to empty, which shows
-          # the "All Selected" placeholder again.
-          updateSelectizeInput(session, "instructor", selected = character(0))
-          updateSelectizeInput(session, "year", selected = character(0))
-          updateSelectizeInput(session, "sample", selected = character(0))
+    # ---- Symmetric (order-independent) cross-filtering --------------------
+    # All five fields (instructor, year, sample, condition, background) are
+    # cross-filtering multi-selects. Each field's choices come from
+    # mutation_data() filtered by whatever is currently selected in the
+    # OTHER four fields (isolated from its own value so it doesn't
+    # re-trigger itself), unioned with its own current selection so an
+    # existing pick is never silently cleared -- filtering only narrows
+    # what NEW options are offered, never what's already chosen. This lets
+    # the user start from any field -- sample, condition, year, whatever --
+    # and have the rest narrow to match.
+    #
+    # Built as one factory instead of five near-identical blocks, since the
+    # input id for each field matches its column name in mutation_data().
+    filter_fields <- c("instructor", "year", "sample", "condition", "background")
+    
+    # Cache the last choices pushed to each widget, so we skip redundant
+    # updateSelectizeInput calls (this + isolate() above is what avoids the
+    # widgets flashing).
+    last_choices <- reactiveValues()
+    for (f in filter_fields) last_choices[[f]] <- character(0)
+    
+    lapply(filter_fields, function(field) {
+      other_fields <- setdiff(filter_fields, field)
+      observe({
+        req(mutation_data())
+        data <- mutation_data()
+        for (other in other_fields) {
+          sel <- input[[other]]
+          if (!is_all_selected(sel)) {
+            data <- data[data[[other]] %in% sel, , drop = FALSE]
+          }
         }
-      } else {
-        shinyjs::disable("classView")
-        shinyjs::disable("cumulView")
-      }
+        valid <- sort(unique(as.character(data[[field]])))
+        current <- isolate(input[[field]])
+        choices <- union(valid, current)
+        
+        if (!identical(last_choices[[field]], choices)) {
+          updateSelectizeInput(session, field, choices = choices, selected = current)
+          last_choices[[field]] <- choices
+        }
+      })
     })
-    
-    # Handling behaviors for button selections
-    observe({
-      options <- as.character(mutation_data() %>%
-                                pull(background))
-      if (input$condition != "All Selected") {
-        options <- as.character(mutation_data() %>%
-                                  filter(condition == input$condition) %>%
-                                  pull(background))
-      }
-      if (length(unique(options)) != 1) {
-        updateSelectInput(session, "background",
-                          choices = c("All Selected", options)
-        )
-        shinyjs::enable("background")
-      } else {
-        updateSelectInput(session, "background", choices = options)
-        shinyjs::disable("background")
-      }
-    })
-    
-    observe({
-      updateSelectizeInput(session, "instructor", choices = unique(mutation_data()$instructor))
-    })
-    
-    observe({
-      # Make sure the data exists before we do anything
-      req(mutation_data())
-      
-      # Figure out which years to show, based on any/all instructors selected
-      if (is_all_selected(input$instructor)) {
-        years <- sort(unique(as.character(mutation_data()$year)))
-      } else {
-        years <- sort(unique(as.character(
-          mutation_data()$year[
-            mutation_data()$instructor %in% input$instructor
-          ]
-        )))
-      }
-      
-      # Update the dropdown menu with clean year choices. No "selected" is
-      # forced here, so the "All Selected" placeholder still shows until the
-      # user actually picks something.
-      updateSelectizeInput(
-        session,
-        "year",
-        choices = years,
-        server = TRUE
-      )
-    })
-    
-    observe({
-      # Sample choices narrow based on whichever instructors/years are picked
-      # (any number of them, or nothing/placeholder for no filter).
-      updateSelectizeInput(session, "sample", choices = as.character(
-        mutation_data() %>%
-          filter(is_all_selected(input$instructor) | instructor %in% input$instructor) %>%
-          filter(is_all_selected(input$year) | year %in% input$year) %>%
-          pull(sample)
-      ))
-    })
-    
     
     # download button functionality
     output$downloadBtn <- downloadHandler(
       filename = function() {
-        # Build a compact label for a multi-select field: "All" if unfiltered,
-        # otherwise the picked values joined with "-".
+        # Build a compact label per field: "All" if unfiltered, otherwise
+        # the picked values joined with "-". Fields left unfiltered are
+        # dropped from the filename entirely to keep it readable.
         fmt <- function(x) {
-          if (is_all_selected(x)) "All" else paste(x, collapse = "-")
+          if (is_all_selected(x)) NULL else paste(x, collapse = "-")
         }
-        
-        if (is.null(input$View)) {
+        parts <- Filter(Negate(is.null), list(
+          fmt(input$instructor),
+          fmt(input$year),
+          fmt(input$sample),
+          fmt(input$condition),
+          fmt(input$background)
+        ))
+        if (length(parts) == 0) {
           "master_table.csv"
-        } else if (input$View == "View By Class") {
-          paste0(
-            fmt(input$instructor), "_",
-            fmt(input$year), "_",
-            fmt(input$sample), ".csv"
-          )
-        } else if (input$View == "View By Selection Condition") {
-          if (input$background != "All Selected") {
-            paste0(input$condition, "_", input$background, ".csv")
-          } else {
-            paste0(input$condition, ".csv")
-          }
         } else {
-          "master_table.csv"
+          paste0(paste(unlist(parts), collapse = "_"), ".csv")
         }
       },
       content = function(file) {
@@ -238,27 +175,13 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
     })
     outputOptions(output, "filesUploaded", suspendWhenHidden = FALSE)
     
-    output$selectedClassView <- reactive({
-      if (!is.null(input$View)) {
-        value <- (input$View == "View By Class")
-      }
-    })
-    outputOptions(output, "selectedClassView", suspendWhenHidden = FALSE)
-    
-    output$selectedCumulView <- reactive({
-      if (!is.null(input$View)) {
-        value <- (input$View == "View By Selection Condition")
-      }
-    })
-    outputOptions(output, "selectedCumulView", suspendWhenHidden = FALSE)
-    
     # filtering dataframe based on menu selection, most things from here on out
     # should be based on filtered_data()
     new_filtered_data <- reactive({
       data <- mutation_data()
       # filtering based on selections if NOT all selected
-      # (instructor/year/sample can each hold multiple picked values now;
-      # an empty selection means "All Selected" / no filter)
+      # (all five fields can each hold multiple picked values; an empty
+      # selection means "All Selected" / no filter)
       if (!is_all_selected(input$instructor)) {
         data <- data %>% filter(instructor %in% input$instructor)
       }
@@ -268,30 +191,23 @@ selection_panel_server <- function(id, filtered_data, mutation_data, mut_backend
       if (!is_all_selected(input$sample)) {
         data <- data %>% filter(sample %in% input$sample)
       }
-      if (input$condition != "All Selected") {
-        data <- data %>% filter(condition == input$condition)
+      if (!is_all_selected(input$condition)) {
+        data <- data %>% filter(condition %in% input$condition)
       }
-      if (input$background != "All Selected") {
-        data <- data %>% filter(background == input$background)
+      if (!is_all_selected(input$background)) {
+        data <- data %>% filter(background %in% input$background)
       }
       data
     })
     
-    # TRUE once the user has picked a View. For View By Class, an empty
-    # multi-select is a valid, deliberate "All Selected" state (shown via
-    # placeholder text), so it counts as complete just like a real pick.
+    # NOTE: with the View toggle removed, there's no longer a notion of an
+    # "incomplete" filter state -- every field defaults to "All Selected"
+    # and any combination of picks is valid, so this is always TRUE now. If
+    # whatever consumes form_complete downstream (e.g. gating mutation
+    # selection) actually needs a stricter condition -- like "at least one
+    # filter must be chosen" -- let me know and I'll tighten this back up.
     form_complete <- reactive({
-      chosen_single <- function(x) !is.null(x) && nzchar(x) && x != "All Selected"
-      
-      v <- input$View
-      if (is.null(v) || !nzchar(v)) return(FALSE)
-      if (v == "View By Class") {
-        TRUE
-      } else if (v == "View By Selection Condition") {
-        chosen_single(input$condition) && chosen_single(input$background)
-      } else {
-        FALSE
-      }
+      TRUE
     })
     
     server_outputs <- list(
