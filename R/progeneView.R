@@ -69,9 +69,6 @@ gene_pro_view_ui <- function(id) {
         ),
       ),
 
-      includeCSS("R/www/styling.css"),
-
-
       # Protein Info Card
       tags$div(class = "container",
         tags$div(class = "protein-cont",

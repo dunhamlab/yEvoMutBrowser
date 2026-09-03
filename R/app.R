@@ -63,6 +63,7 @@ yEvoMutBrowser <- function(...) {
     )),
     windowTitle = "yEvo",
     theme = shinytheme("cerulean"),
+    header = tags$head(includeCSS("R/www/styling.css")),
     tabPanel(
       "Data Visualizations",
       sidebarLayout(
@@ -70,6 +71,10 @@ yEvoMutBrowser <- function(...) {
         selection_panel_ui("selectionPanel", mut_backend),
         # Right side, Data Visualization
         mainPanel(
+          tags$div(
+            class = "experiment-summary",
+            uiOutput("experimentSummary")
+          ),
           tabsetPanel(
             id = "dataVizTabs",
             type = "tabs",
@@ -115,6 +120,42 @@ yEvoMutBrowser <- function(...) {
 
     # Define a mapping from chromosome names to numbers
     chromosome_mapping <- setNames(chrom_info$visualization_order, chrom_info$CHROM)
+
+    experiment_summary <- reactive({
+      data <- filtered_data()
+      classroom_datasets <- data %>%
+        distinct(instructor, year) %>%
+        nrow()
+      independent_experiments <- data %>%
+        distinct(instructor, year, sample) %>%
+        nrow()
+
+      list(
+        classroom_datasets = classroom_datasets,
+        independent_experiments = independent_experiments
+      )
+    })
+
+    output$experimentSummary <- renderUI({
+      summary <- experiment_summary()
+
+      tags$div(
+        tags$span(
+          class = "experiment-summary-item",
+          paste0(
+            "Number of classroom datasets shown: ",
+            comma(summary$classroom_datasets)
+          )
+        ),
+        tags$span(
+          class = "experiment-summary-item",
+          paste0(
+            "Number of total independent experiments shown: ",
+            comma(summary$independent_experiments)
+          )
+        )
+      )
+    })
 
     # Create an empty dataframe to store the final results
     final_gene <- reactive({
