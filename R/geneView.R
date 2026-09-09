@@ -1,9 +1,18 @@
+# geneView.R
 gene_view_ui <- function(id) {
   tabPanel(
     "Gene View", div("", style = "height: 10px;"),
-    plotlyOutput(NS(id, "geneViewPlot"), width = "600px"), verbatimTextOutput(NS(id, "gene")),
+    div(
+      style = "display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;",
+      plotlyOutput(NS(id, "geneViewPlot"), width = "600px"),
+      # Small per-gene breakdown of mutation types (missense, nonsense,
+      # etc.), with counts + percentages on hover. Updates whenever the
+      # selected gene (or upstream filters) change.
+      plotlyOutput(NS(id, "genePieChart"), width = "280px", height = "300px")
+    ),
+    verbatimTextOutput(NS(id, "gene")),
     selectInput(NS(id, "geneSelectDropDown"), "Gene", choices = NULL),
-
+    
     uiOutput(NS(id, "url"))
   )
 }
@@ -81,7 +90,76 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
         gene_view_selected_gene(gene())
       }
     })
-
+    
+    # All possible mutation-type annotations, and their fixed colors. Shared
+    # between the main scatter plot (below) and the new pie chart, so the
+    # colors always match.
+    all_annotations <- c(
+      "missense", "nonsense", "5'-upstream",
+      "indel-frameshift", "indel-inframe", "synonymous", "transposon"
+    )
+    annotation_colors <- set_names(color_vector, all_annotations)
+    
+    # This gene's rows (mutation data merged with gene info), used by the
+    # pie chart. Kept as its own small reactive -- separate from the merge
+    # geneViewPlot does internally below -- so the existing plot logic is
+    # left untouched.
+    cur_gene_data <- reactive({
+      req(gene(), stable_filtered())
+      mutation_data_value <- isolate(stable_filtered())
+      common_cols <- intersect(colnames(mutation_data_value), colnames(genes_info))
+      if (length(common_cols) == 0) return(NULL)
+      mutation_data_value <- merge(mutation_data_value, genes_info, by = common_cols)
+      dplyr::filter(mutation_data_value, GENE == gene())
+    })
+    
+    # Small pie chart: percentage breakdown of mutation types (missense,
+    # nonsense, etc.) for the currently selected gene. Hovering a slice
+    # shows its count and percentage.
+    output$genePieChart <- renderPlotly({
+      cg <- cur_gene_data()
+      validate(need(!is.null(cg) && nrow(cg) > 0, "No mutations for this gene."))
+      
+      pie_data <- cg %>%
+        dplyr::count(ANNOTATION, name = "count") %>%
+        dplyr::mutate(percent = count / sum(count) * 100)
+      
+      pie_colors <- unname(annotation_colors[as.character(pie_data$ANNOTATION)])
+      
+      plot_ly(
+        data = pie_data,
+        labels = ~ANNOTATION,
+        values = ~count,
+        type = "pie",
+        text = ~paste0(
+          ANNOTATION, "<br>Count: ", count,
+          "<br>", round(percent, 1), "%"
+        ),
+        hoverinfo = "text",
+        textinfo = "none",
+        marker = list(colors = pie_colors, line = list(color = "#FFFFFF", width = 1)),
+        showlegend = TRUE
+      ) %>%
+        layout(
+          title = list(
+            text = paste0(gene(), " mutation types"),
+            font = list(size = 13)
+          ),
+          legend = list(font = list(size = 9), orientation = "h", x = 0, y = -0.15),
+          margin = list(l = 10, r = 10, t = 40, b = 10),
+          plot_bgcolor = "rgba(0,0,0,0)",
+          paper_bgcolor = "rgba(0,0,0,0)"
+        ) %>%
+        config(
+          toImageButtonOptions = list(
+            format = 'svg',
+            filename = 'gene_mutation_pie_chart',
+            height = 300,
+            width = 300
+          )
+        )
+    })
+    
     # Learn about Gene button within gene viewer
     if (link != "NONE") {
       output$url <- renderUI({
@@ -133,14 +211,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       
       # pattern and annotations (unchanged)
       pattern <- "(?<=\\d)([A-Za-z]|\\*|indel)$|([A-Za-z]|\\*)$"
-
-      all_annotations <- c(
-        "missense", "nonsense", "5'-upstream",
-        "indel-frameshift", "indel-inframe", "synonymous", "transposon"
-      )
-      # IF ADDING NEW ANNOTATIONS - DON'T FORGET TO ADD BOTH HERE AND IN
-      # annotation_colors BELOW
-
+      
       # Group and summarize protein counts
       count_proteins <- cur_gene %>%
         mutate(indel = nchar(ALT) - nchar(REF)) %>% # Calculate indel difference
@@ -159,7 +230,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           START = first(START)
         ) %>%
         ungroup()
-
+      
       # If count_proteins$COUNT is empty, the data is not fully loaded in yet
       if (length(count_proteins$COUNTS) <= 0) {
         validate("Loading data...")
@@ -178,7 +249,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           START = first(START)
         ) %>%
         ungroup()
-
+      
       # Combine protein and count strings
       count_proteins_same <- count_proteins_same %>%
         mutate(
@@ -201,19 +272,17 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
           AA_WT = substr(PROTEIN, 1, 1),
           AA_POS = if_else(ANNOTATION == "5'-upstream", -15,
                            if_else(ANNOTATION == "transposon", {
-                                   # Debug: Calculate amino acid position from nucleotide position for transposons
-                                   calc_pos <- as.numeric(ceiling((POS - START + 1) / 3))
+                             # Debug: Calculate amino acid position from nucleotide position for transposons
+                             calc_pos <- as.numeric(ceiling((POS - START + 1) / 3))
                            },
-                                   # Extract Amino Acid Position for regular mutations
-                                   as.numeric(str_extract(PROTEIN, "[0-9]+"))
+                           # Extract Amino Acid Position for regular mutations
+                           as.numeric(str_extract(PROTEIN, "[0-9]+"))
                            )
           ),
           # Amino Acid Mutation
           AA_M = substr(PROTEIN, nchar(PROTEIN), nchar(PROTEIN)),
           ANNOTATION = factor(ANNOTATION, levels = all_annotations)
         )
-      
-      annotation_colors <- set_names(color_vector, all_annotations)
       
       # ranges
       xmax <- genes_info %>%
@@ -226,7 +295,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       
       ymax_count <- if (nrow(count_proteins_same) == 0) 0 else max(count_proteins_same$Counts_tot, na.rm = TRUE)
       ranges$y <- c(0, ymax_count + ifelse(ymax_count < 5, 4, 1))
-     # ranges$y <- c(0, max(ymax_count, 2) + ifelse(ymax_count > 9, 0.99, 0.25))
+      # ranges$y <- c(0, max(ymax_count, 2) + ifelse(ymax_count > 9, 0.99, 0.25))
       
       # build ggplot (kept your original appearance + minor safe guards)
       p <- count_proteins_same %>%
