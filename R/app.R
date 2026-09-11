@@ -7,7 +7,6 @@
 ### Imports
 # loading necessary libraries
 library(DBI)
-library(devtools)
 library(dplyr)
 library(forcats)
 library(ggplot2) ## visualization data
