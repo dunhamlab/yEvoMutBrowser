@@ -1,6 +1,6 @@
 # yEvo Mutation Browser
 
-![yEvo](img/yEvo_logo.png)
+![](img/yEvo_logo.png)
 
 ## Overview
 
@@ -34,25 +34,17 @@ Both options are detailed below.
 ### Filtering
 
 By default, the mutation browser displays all data.
-Users can filter this data in two ways: by student class or by
-selection condition.
+Users can filter this data using five dropdown menus, all shown together in the side panel: Instructor, Year, Sample Name, Condition, and Ancestor Strain.
 
-As shown below, when selected, dropdowns appear corresponding to either option.
+Each dropdown accepts multiple selections, so you can narrow down to any combination you want. For example, several instructors at once, or just a single condition and ancestor strain. A dropdown with nothing selected displays "All Selected" and does not filter the data on that field.
 
-![Filtering side panel](img/figS1.png)
+The dropdowns also filter each other: picking values in one dropdown narrows the choices offered in the others to whatever combinations actually exist in the data. You can start from any dropdown (Sample Name, Year, Condition, etc.) and the rest will update to match.
 
-```raw
-├── View by Class                  
-│   ├── Instructor Dropdown                    
-│   ├── Year Dropdown                     
-│   └── Sample Name Dropdown                    
-└── View by Condition                  
-    └── Condition Dropdown
-```
+![Filtering side panel](img/Filter_tab.png)
 
 Below is an example of filtering on the Chromosome Map
 
-![Chromosome map plot](img/filter_example.gif)
+![Chromosome map plot](img/Forward_filtering.gif)
 
 ### Uploading Data
 
@@ -83,9 +75,9 @@ The CSV file **MUST** have the following columns:
 
 After uploading, the browser will ask for additional information (instructor and year):
 
-![CSV upload](img/upload.png)
+![CSV upload](img/upload_dataset.png)
 
-Once you submit this information, the newly uploaded data will be available in the "View by Class" teacher dropdown menu.
+Once you submit this information, the newly uploaded data will be available via the Instructor dropdown menu.
 
 > [!NOTE]
 > To make your data persist in the mutation browser, you need to run the web app locally \(see [Running Locally](#running-locally) below\).
@@ -126,6 +118,8 @@ In this view, users can select a mutated gene from a dropdown menu based on the 
 Once a gene is selected, the plot reveals the length of the amino acid sequence and color-coded lollipops indicating where mutations occurred.
 The colors differentiate between mutation types, such as missense, nonsense, synonymous, or 5’-upstream mutations.
 The height of each lollipop reflects how frequently that particular site in the protein was mutated within the dataset.
+
+Alongside the lollipop plot, a small pie chart shows the percentage breakdown of mutation types (missense, nonsense, synonymous, etc.) for the selected gene, using the same color coding as the lollipop plot. Hovering over a slice shows that mutation type's name, count, and percentage of the gene's total mutations.
 
 ![Default gene view](img/gene_view_unfiltered.png)
 
@@ -189,4 +183,3 @@ The function must return the link to the online gene database for the desired or
 For an example, please see the default yEvo Mutation Browser link function for the _S. cerevisiae_ gene database defined in `R/config.R`.
 
 
-[def]: img/protein_view.png
