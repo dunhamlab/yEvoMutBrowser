@@ -17,7 +17,7 @@ gene_view_ui <- function(id) {
   )
 }
 
-gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, gene_info_link_function, color_vector,chrom_selected_gene, gene_view_selected_gene) {
+gene_view_server <- function(id, total_spaces, filtered_data, mutation_data, genes_info, link, gene_info_link_function, color_vector, pie_color_vector, chrom_selected_gene, gene_view_selected_gene) {
   moduleServer(id, function(input, output, session) {
     
     # Keeps last choice so it doesn't change as much when switching selections
@@ -91,14 +91,31 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
       }
     })
     
-    # All possible mutation-type annotations, and their fixed colors. Shared
-    # between the main scatter plot (below) and the new pie chart, so the
-    # colors always match.
+    # All possible mutation-type annotations
     all_annotations <- c(
       "missense", "nonsense", "5'-upstream",
       "indel-frameshift", "indel-inframe", "synonymous", "transposon"
     )
-    annotation_colors <- set_names(color_vector, all_annotations)
+    
+    # Color map for the pie chart AND gene-view plot.
+    # Built the exact same way variants.R builds its own:
+    # every distinct annotation across the FULL (unfiltered) dataset,
+    # sorted alphabetically, assigned colors from the same
+    # VARIANTS_PIE_CHART_COLORS vector by position.
+    #
+    # This means the same annotation always gets the same color
+    # in both the pie chart and the gene-view plot.
+    pie_color_map <- reactive({
+      all_unique_anno <- mutation_data() %>%
+        dplyr::distinct(ANNOTATION) %>%
+        dplyr::arrange(ANNOTATION) %>%
+        dplyr::pull(ANNOTATION)
+      
+      setNames(
+        pie_color_vector[seq_along(all_unique_anno)],
+        all_unique_anno
+      )
+    })
     
     # This gene's rows (mutation data merged with gene info), used by the
     # pie chart. Kept as its own small reactive -- separate from the merge
@@ -124,7 +141,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
         dplyr::count(ANNOTATION, name = "count") %>%
         dplyr::mutate(percent = count / sum(count) * 100)
       
-      pie_colors <- unname(annotation_colors[as.character(pie_data$ANNOTATION)])
+      pie_colors <- unname(pie_color_map()[as.character(pie_data$ANNOTATION)])
       
       plot_ly(
         data = pie_data,
@@ -353,7 +370,7 @@ gene_view_server <- function(id, total_spaces, filtered_data, genes_info, link, 
         xlab("Amino acid position") +
         ylab("Mutation Count") +
         scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +
-        scale_color_manual(values = annotation_colors) +
+        scale_color_manual(values = pie_color_map()) +
         coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
         annotate("text", x = 1, y = Inf, label = "Drag over mutations to see more", hjust = 0, vjust = 2, color = "black", size = 5) +
         guides(color = guide_legend(title = "Annotation"))

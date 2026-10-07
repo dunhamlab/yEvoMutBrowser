@@ -1,3 +1,4 @@
+# app.R
 # If you are changing the 'masterfile' that the app is built off of (aka the
 # initial database),
 # This needs to be changed in two locations:
@@ -7,6 +8,7 @@
 ### Imports
 # loading necessary libraries
 library(DBI)
+library(devtools)
 library(dplyr)
 library(forcats)
 library(ggplot2) ## visualization data
@@ -32,7 +34,7 @@ yEvoMutBrowser <- function(...) {
   # it is designed to just fill in in the beginning, right before the reactive
   # frame gets created.
   mut_backend <- read.csv(PATH_TO_VCF_CSV)
-
+  
   # loading in the genes data file
   genes_info <- read.csv(ORGANISM_GENE_INFO_PATH)
   # loading in the chromosomes data file
@@ -41,14 +43,14 @@ yEvoMutBrowser <- function(...) {
   desired_order <- chrom_info[order(chrom_info$visualization_order),]$CHROM
   # Convert category to a factor with the desired order
   chrom_info$CHROM <- factor(chrom_info$CHROM, levels = desired_order)
-
+  
   # need to add this to upload the yEvo icon the theme
   addResourcePath(prefix = "img", directoryPath = "img")
   addResourcePath(prefix = "static", directoryPath = "static")
-
+  
   # create a variable called link that stores the base SGD database for locus
   link <- ORGANISM_GENE_INFO_LINK
-
+  
   # how will our layout look like for the app
   ui <- navbarPage(
     useShinyjs(),
@@ -62,7 +64,6 @@ yEvoMutBrowser <- function(...) {
     )),
     windowTitle = "yEvo",
     theme = shinytheme("cerulean"),
-    header = tags$head(includeCSS("R/www/styling.css")),
     tabPanel(
       "Data Visualizations",
       sidebarLayout(
@@ -70,10 +71,6 @@ yEvoMutBrowser <- function(...) {
         selection_panel_ui("selectionPanel", mut_backend),
         # Right side, Data Visualization
         mainPanel(
-          tags$div(
-            class = "experiment-summary",
-            uiOutput("experimentSummary")
-          ),
           tabsetPanel(
             id = "dataVizTabs",
             type = "tabs",
@@ -91,17 +88,17 @@ yEvoMutBrowser <- function(...) {
     tutorial_ui("tutorial"),
     sequencing_pdf_ui("sequencingPDF")
   ) # END OF UI
-
+  
   # Now entering server, which handles everything dynamically
   server <- function(input, output, session) {
     # initially setting default file of all mutation data
     mutation_data <- reactiveVal(read.csv(PATH_TO_VCF_CSV))
-
+    
     shinyjs::hide("cumulDropdowns") # Initially hide cumulative drop downs
-
+    
     c(selected_instructor, selected_year, selected_sample, selected_condition, selected_background, filtered_data, form_complete) %<-%
       selection_panel_server("selectionPanel", filtered_data, mutation_data, mut_backend, genes_info)
-
+    
     # to create loading message below:
     loading_message <- "Loading..."
     # Calculate the number of empty spaces needed on each side
@@ -116,46 +113,10 @@ yEvoMutBrowser <- function(...) {
       loading_message,
       paste(rep(" ", spaces_on_each_side), collapse = "")
     )
-
+    
     # Define a mapping from chromosome names to numbers
     chromosome_mapping <- setNames(chrom_info$visualization_order, chrom_info$CHROM)
-
-    experiment_summary <- reactive({
-      data <- filtered_data()
-      classroom_datasets <- data %>%
-        distinct(instructor, year) %>%
-        nrow()
-      independent_experiments <- data %>%
-        distinct(instructor, year, sample) %>%
-        nrow()
-
-      list(
-        classroom_datasets = classroom_datasets,
-        independent_experiments = independent_experiments
-      )
-    })
-
-    output$experimentSummary <- renderUI({
-      summary <- experiment_summary()
-
-      tags$div(
-        tags$span(
-          class = "experiment-summary-item",
-          paste0(
-            "Number of classroom datasets shown: ",
-            comma(summary$classroom_datasets)
-          )
-        ),
-        tags$span(
-          class = "experiment-summary-item",
-          paste0(
-            "Number of total independent experiments shown: ",
-            comma(summary$independent_experiments)
-          )
-        )
-      )
-    })
-
+    
     # Create an empty dataframe to store the final results
     final_gene <- reactive({
       mutation_data_value <- filtered_data()
@@ -167,7 +128,7 @@ yEvoMutBrowser <- function(...) {
       mutation_data_value <- merge(mutation_data_value, genes_info,
                                    by = common_cols
       )
-
+      
       # Iterate through unique genes
       final_gene_static <- mutation_data_value %>%
         group_by(GENE) %>%
@@ -182,20 +143,20 @@ yEvoMutBrowser <- function(...) {
           )])
         ) %>%
         ungroup()
-
+      
       return(final_gene_static)
     })
-
+    
     # Render the dataframe in the tableOutput
     data_table_server("dataTable", filtered_data)
-
+    
     sequencing_pdf_server("sequencingPDF", "img/Black_box.pdf")
-
+    
     chrom_selected_gene <- reactiveVal(NULL)
     
     gene_view_selected_gene <- reactiveVal(NULL)
-
-
+    
+    
     chrom_map_server(
       "chromMap",
       final_gene = final_gene,
@@ -219,20 +180,22 @@ yEvoMutBrowser <- function(...) {
       filtered_data, VARIANTS_PIE_CHART_COLORS
     )
     snp_count_server("snpCount", filtered_data, SNP_CHART_COLORS)
-
+    
     gene_view_server(
       id = "geneView",
       total_spaces = total_spaces,
       filtered_data = filtered_data,
+      mutation_data = mutation_data,
       genes_info = genes_info,
       link = link,
       gene_info_link_function = ORGANISM_GENE_INFO_LINK_FUNCTION,
       color_vector = GENE_VIEW_COLORS,
+      pie_color_vector = VARIANTS_PIE_CHART_COLORS,
       chrom_selected_gene = chrom_selected_gene,
       gene_view_selected_gene = gene_view_selected_gene
     )
     
-
+    
     gene_pro_view_server(
       "geneView2", total_spaces, filtered_data, genes_info, link, 
       ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS,
@@ -241,11 +204,11 @@ yEvoMutBrowser <- function(...) {
     protein_prediction_server(
       "proteinPrediction", total_spaces, filtered_data, genes_info, link, ORGANISM_GENE_INFO_LINK_FUNCTION, GENE_VIEW_COLORS, ALPHAFOLD_COLORS, form_complete
     )
-
+    
     observeEvent(input$append_btn, {
       new_csv_path <- input$new_csv$datapath
     })
   }
-
+  
   shinyApp(ui, server)
 }
