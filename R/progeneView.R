@@ -27,7 +27,10 @@ gene_pro_view_ui <- function(id) {
       )
       ,
 
-      tags$script(src = "static/molstar-custom.js"),
+      tags$script(src = paste0(
+        "static/molstar-custom.js?v=",
+        unname(tools::md5sum("static/molstar-custom.js"))
+      )),
 
       # Residue info box
       tags$div(class = "resi_info_div",

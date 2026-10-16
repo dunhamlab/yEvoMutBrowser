@@ -638,8 +638,14 @@ export async function takeScreenshot(
 
     const imagePass = plugin.canvas3d.getImagePass({
       multiSample: { mode: 'on', sampleLevel: 2 },
-      transparentBackground: false,
-      postprocessing: plugin.canvas3d.props.postprocessing
+      transparentBackground: true,
+      postprocessing: {
+        ...plugin.canvas3d.props.postprocessing,
+        background: {
+          ...plugin.canvas3d.props.postprocessing.background,
+          variant: { name: 'off', params: {} }
+        }
+      }
     });
 
     imagePass.setSize(width, height);
