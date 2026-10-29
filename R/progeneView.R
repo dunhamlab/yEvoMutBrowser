@@ -480,12 +480,9 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
     }
 
     # Create a named vector of annotation colors
-    annotation_colors <- set_names(color_vector, all_annotations)
+    annotation_colors <- get_annotation_colors(all_annotations)
 
-    alpha_val <- 0.4
-    transp_colors <- lapply(annotation_colors, function(col) {
-      adjustcolor(col, alpha.f = alpha_val)
-    })
+    transp_colors <- annotation_colors
 
     # Create a legend for the mutation types
     output$mutation_legend <- renderUI({
@@ -499,7 +496,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
               style = sprintf("width:20px; height:20px;
               background:%s; margin-right:5px; border:1px 
               solid #000; margin-left:5px; margin-top: 4px;",
-                              transp_colors[mut])
+                              transp_colors[[mut]])
             ),
             tags$span(mut)
           )
@@ -553,7 +550,7 @@ gene_pro_view_server <- function(id, total_spaces, filtered_data, genes_info, li
         text = hover_text(count_proteins_same)
       )) +
         scale_color_manual(values = annotation_colors) +
-        geom_point(size = 3.2, alpha = 0.3, shape = 15) +
+        geom_point(size = 3.2, shape = 15) +
         xlim(0, first(cur_gene()$PROTEIN_LENGTH)) +
 
         new_theme_empty + labs(x = "My X-axis Label") + 

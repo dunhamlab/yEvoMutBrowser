@@ -35,4 +35,68 @@ VARIANTS_PIE_CHART_COLORS <- c(
 )
 SNP_CHART_COLORS <- c("#0072B2", "#CC79A7", "#009E73")
 GENE_VIEW_COLORS <- c("#800080", "#61D04F", "#F5C710", "#DF536B", "#FFB6C1", "#6495ED", "#6A5ACD")
+
+# Shared mutation annotation colors.
+# The first seven colors preserve the existing Gene Pro View
+# and Protein Prediction annotation scheme.
+ANNOTATION_COLORS <- stats::setNames(
+  GENE_VIEW_COLORS,
+  c(
+    "missense",
+    "nonsense",
+    "5'-upstream",
+    "indel-frameshift",
+    "indel-inframe",
+    "synonymous",
+    "transposon"
+  )
+)
+
+# Transparency for mutation annotation colors:
+# 0 = fully transparent, 1 = fully opaque
+ANNOTATION_ALPHA <- 0.4
+
+# Return shared colors for requested annotations,
+# applying the configured transparency.
+# Unknown annotation types receive deterministic additional colors.
+get_annotation_colors <- function(annotation_names) {
+  
+  annotation_names <- unique(as.character(annotation_names))
+  annotation_names <- annotation_names[
+    !is.na(annotation_names) & nzchar(annotation_names)
+  ]
+  
+  extra_annotations <- setdiff(
+    annotation_names,
+    names(ANNOTATION_COLORS)
+  )
+  
+  extra_colors <- stats::setNames(
+    vapply(extra_annotations, function(annotation) {
+      
+      chars <- utf8ToInt(annotation)
+      
+      # Derive a repeatable hue from the annotation name.
+      hue <- sum(as.double(chars) * seq_along(chars)) %% 360
+      
+      grDevices::hcl(
+        h = hue,
+        c = 65,
+        l = 60
+      )
+      
+    }, character(1)),
+    extra_annotations
+  )
+  
+  color_map <- c(ANNOTATION_COLORS, extra_colors)
+  
+  # Apply transparency directly to the requested colors.
+  grDevices::adjustcolor(
+    color_map[annotation_names],
+    alpha.f = ANNOTATION_ALPHA
+  ) |>
+    stats::setNames(annotation_names)
+}
+
 ALPHAFOLD_COLORS <- c("#0053D6", "#65CBF3", "#FFDB13", "#FF7D45")

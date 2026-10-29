@@ -690,7 +690,7 @@ protein_prediction_server <- function(id, total_spaces, filtered_data, genes_inf
         return()
       }
 
-      annotation_colors <- setNames(color_vector, all_annotations)
+      annotation_colors <- get_annotation_colors(all_annotations)
       mut_list <- lapply(seq_len(nrow(muts)), function(i) {
         ann <- as.character(muts$ANNOTATION[i])
         # Show the change on the displayed (coding) strand: reverse-complement

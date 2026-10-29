@@ -97,24 +97,9 @@ gene_view_server <- function(id, total_spaces, filtered_data, mutation_data, gen
       "indel-frameshift", "indel-inframe", "synonymous", "transposon"
     )
     
-    # Color map for the pie chart AND gene-view plot.
-    # Built the exact same way variants.R builds its own:
-    # every distinct annotation across the FULL (unfiltered) dataset,
-    # sorted alphabetically, assigned colors from the same
-    # VARIANTS_PIE_CHART_COLORS vector by position.
-    #
-    # This means the same annotation always gets the same color
-    # in both the pie chart and the gene-view plot.
+    # Shared annotation colors used by Gene Pro View and Protein Prediction.
     pie_color_map <- reactive({
-      all_unique_anno <- mutation_data() %>%
-        dplyr::distinct(ANNOTATION) %>%
-        dplyr::arrange(ANNOTATION) %>%
-        dplyr::pull(ANNOTATION)
-      
-      setNames(
-        pie_color_vector[seq_along(all_unique_anno)],
-        all_unique_anno
-      )
+      ANNOTATION_COLORS
     })
     
     # This gene's rows (mutation data merged with gene info), used by the
@@ -141,7 +126,9 @@ gene_view_server <- function(id, total_spaces, filtered_data, mutation_data, gen
         dplyr::count(ANNOTATION, name = "count") %>%
         dplyr::mutate(percent = count / sum(count) * 100)
       
-      pie_colors <- unname(pie_color_map()[as.character(pie_data$ANNOTATION)])
+      pie_colors <- unname(
+        get_annotation_colors(as.character(pie_data$ANNOTATION))
+      )
       
       plot_ly(
         data = pie_data,
@@ -370,7 +357,10 @@ gene_view_server <- function(id, total_spaces, filtered_data, mutation_data, gen
         xlab("Amino acid position") +
         ylab("Mutation Count") +
         scale_y_continuous(breaks = function(x) seq(floor(min(x)), ceiling(max(x)), by = 1)) +
-        scale_color_manual(values = pie_color_map()) +
+        scale_color_manual(
+          values = get_annotation_colors(all_annotations),
+          drop = FALSE
+        ) +
         coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
         annotate("text", x = 1, y = Inf, label = "Drag over mutations to see more", hjust = 0, vjust = 2, color = "black", size = 5) +
         guides(color = guide_legend(title = "Annotation"))
